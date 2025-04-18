@@ -1,55 +1,232 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Assistant Entretien Chaudière</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assistant Entretien Chaudière</title>
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+    <nav class="main-nav">
+        <div class="nav-content">
+            <h1>Assistant Entretien Chaudière</h1>
+            <div class="nav-links">
+                <a href="#controle">1. Contrôle</a>
+                <a href="#puissance">2. Puissance</a>
+                <a href="#vase">3. Vase</a>
+                <a href="#gaz">4. Gaz</a>
+                <a href="#ecs">5. ECS</a>
+                <a href="#emetteurs">6. Émetteurs</a>
+                <a href="#reglementaire">7. Réglementaire</a>
+            </div>
+        </div>
+    </nav>
 
-<h1>Assistant Entretien Chaudière</h1>
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
 
-<section>
-  <h2>1. Contrôle Chaudière</h2>
-  <label><input type="checkbox"> Nettoyage du corps de chauffe</label>
-  <label><input type="checkbox"> Vérification sécurité</label>
-  <label><input type="checkbox"> Réglage débit gaz</label>
-  <label><input type="checkbox"> Contrôle évacuation fumées</label>
-  <label><input type="checkbox"> Mesure CO2 / CO</label>
-</section>
+    <main>
+        <section id="controle">
+            <h2>1. Contrôle Chaudière</h2>
+            <div class="instructions">
+                <p>Vérifiez chaque point de contrôle et cochez les cases correspondantes.</p>
+            </div>
+            <label><input type="checkbox"> Nettoyage du corps de chauffe</label>
+            <label><input type="checkbox"> Vérification sécurité</label>
+            <label><input type="checkbox"> Réglage débit gaz</label>
+            <label><input type="checkbox"> Contrôle évacuation fumées</label>
+            <label><input type="checkbox"> Mesure CO2 / CO</label>
+        </section>
 
-<section>
-  <h2>2. Puissance Chauffage</h2>
-  <label>Volume à chauffer (m3) <input id="volChauff" type="number" value="192"></label>
-  <label>Coefficient G <input id="coefG" type="number" step="0.01" value="0.35"></label>
-  <label>Temp. extérieure (°C) <input id="tempExt" type="number" value="-6"></label>
-  <div class="result" id="resChauffage"></div>
-</section>
+        <section id="puissance">
+            <h2>2. Puissance Chauffage</h2>
+            <div class="instructions">
+                <p>Entrez les dimensions du local et les températures pour calculer la puissance nécessaire.</p>
+            </div>
+            <div class="dimensions">
+                <label>Surface (m²) <input id="surface" type="number" value="80"></label>
+                <label>Hauteur sous plafond (m) <input id="hauteur" type="number" step="0.1" value="2.4"></label>
+            </div>
+            <label>Coefficient G (isolation) <input id="coefG" type="number" step="0.01" value="0.35"></label>
+            <div class="temperatures">
+                <label>Température intérieure (°C) <input id="tempInt" type="number" value="19"></label>
+                <label>Température extérieure (°C) <input id="tempExt" type="number" value="-6"></label>
+            </div>
+            <div class="result" id="resChauffage"></div>
+        </section>
 
-<section>
-  <h2>3. Vase d'expansion</h2>
-  <label>Volume d'eau (L) <input id="volEau" type="number" value="50"></label>
-  <label>Nombre d'étages <input id="etages" type="number" value="1"></label>
-  <div class="result" id="resVase"></div>
-</section>
+        <section id="vase">
+            <h2>3. Vase d'expansion</h2>
+            <div class="instructions">
+                <p>Indiquez la hauteur du bâtiment pour calculer la pression recommandée.</p>
+            </div>
+            <label>Hauteur du bâtiment (m) <input id="hauteurBatiment" type="number" step="0.1" value="3"></label>
+            <div class="result" id="resVase"></div>
+            <div class="note">⚠️ Vérification manométrique sur site recommandée</div>
+        </section>
 
-<section>
-  <h2>4. Puissance Gaz</h2>
-  <label>Index début <input id="indexDebut" type="number"></label>
-  <label>Index fin <input id="indexFin" type="number"></label>
-  <label>Durée (s) <input id="duree" type="number" value="36"></label>
-  <label>PCI (kWh/m3) <input id="pci" type="number" value="10.2"></label>
-  <div class="result" id="resGaz"></div>
-</section>
+        <section id="gaz">
+            <h2>4. Module Top Gaz</h2>
+            <div class="instructions">
+                <p>Entrez les 3 derniers chiffres du compteur et la durée du test.</p>
+            </div>
+            <div class="compteur-input">
+                <label>3 derniers chiffres du compteur (L)</label>
+                <div class="digit-inputs">
+                    <input type="number" id="digit1" min="0" max="9" maxlength="1" size="1">
+                    <input type="number" id="digit2" min="0" max="9" maxlength="1" size="1">
+                    <input type="number" id="digit3" min="0" max="9" maxlength="1" size="1">
+                </div>
+            </div>
+            <div class="duree-choix">
+                <label>Durée du test :</label>
+                <label><input type="radio" name="duree" value="36" checked> 36s</label>
+                <label><input type="radio" name="duree" value="60"> 60s</label>
+            </div>
+            <label>PCS gaz naturel (kWh/m³) <input id="pcs" type="number" step="0.1" value="9.6"></label>
+            <div class="result" id="resGaz"></div>
+        </section>
 
-<section>
-  <h2>5. Débit ECS</h2>
-  <label>Volume tiré (L) <input id="volEcs" type="number"></label>
-  <label>Durée (s) <input id="dureeEcs" type="number"></label>
-  <div class="result" id="resEcs"></div>
-</section>
+        <section id="ecs">
+            <h2>5. Débit ECS</h2>
+            <div class="instructions">
+                <p>Mesurez le volume tiré et la durée pour calculer le débit et la puissance.</p>
+            </div>
+            <label>Volume tiré (L) <input id="volEcs" type="number"></label>
+            <label>Durée (s) <input id="dureeEcs" type="number"></label>
+            <label>Température EFS (°C) <input id="tempEfs" type="number" value="10"></label>
+            <label>Température ECS (°C) <input id="tempEcs" type="number" value="43"></label>
+            <div class="result" id="resEcs"></div>
+        </section>
 
-<script src="script.js"></script>
+        <section id="emetteurs">
+            <h2>6. Équilibrage Émetteurs</h2>
+            <div class="instructions">
+                <p>Sélectionnez le type d'émetteur et entrez les paramètres correspondants.</p>
+            </div>
+            <div class="emetteur-type">
+                <label>Type d'émetteur :</label>
+                <label><input type="radio" name="typeEmetteur" value="radiateur" checked> Radiateur</label>
+                <label><input type="radio" name="typeEmetteur" value="plancher"> Plancher chauffant</label>
+            </div>
+
+            <div id="radiateur-params" class="emetteur-params">
+                <h3>Radiateur</h3>
+                <label>Puissance (W) <input id="puissanceRad" type="number"></label>
+                <div class="temperatures">
+                    <label>Température départ (°C) <input id="tempDepartRad" type="number" value="70"></label>
+                    <label>Température retour (°C) <input id="tempRetourRad" type="number" value="50"></label>
+                </div>
+            </div>
+
+            <div id="plancher-params" class="emetteur-params" style="display: none;">
+                <h3>Plancher chauffant</h3>
+                <label>Longueur (m) <input id="longueurPC" type="number"></label>
+                <label>Diamètre tube (mm)
+                    <select id="diametrePC">
+                        <option value="12">12 mm</option>
+                        <option value="16">16 mm</option>
+                        <option value="20">20 mm</option>
+                    </select>
+                </label>
+                <label>Type de tube
+                    <select id="typeTubePC">
+                        <option value="0.2">PE-X (0.2 mm/m)</option>
+                        <option value="0.15">PE-RT (0.15 mm/m)</option>
+                        <option value="0.1">Multicouche (0.1 mm/m)</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="result" id="resEmetteur"></div>
+            <button id="exportBtn" class="export-btn">Exporter les données</button>
+        </section>
+
+        <section id="reglementaire">
+            <h2>7. Modules Réglementaires Gaz</h2>
+
+            <div class="module-gaz">
+                <h3>Conformité Gaz</h3>
+                <div class="checklist">
+                    <label><input type="checkbox" id="regletteVaso"> Réglette VASO présente</label>
+                    <label><input type="checkbox" id="roai"> Robinet ROAI conforme</label>
+                    <label><input type="checkbox" id="distances"> Distances réglementaires respectées</label>
+                </div>
+                <button class="verifier-btn" onclick="verifierConformite('conformite')">Vérifier la conformité</button>
+                <div class="result-container">
+                    <div class="result" id="resConformiteGaz"></div>
+                    <div class="details" id="detailsConformite"></div>
+                </div>
+            </div>
+
+            <div class="module-gaz">
+                <h3>Ventilation et Hotte Cuisine</h3>
+                <div class="form-group">
+                    <label>Type de hotte
+                        <select id="typeHotte">
+                            <option value="motorisee">Motorisée</option>
+                            <option value="passive">Passive</option>
+                        </select>
+                    </label>
+                    <label>Type d'appareil gaz
+                        <select id="typeAppareil">
+                            <option value="B">Type B</option>
+                            <option value="C">Type C</option>
+                        </select>
+                    </label>
+                    <label>Volume de la pièce (m³) <input id="volumePiece" type="number"></label>
+                    <label><input type="checkbox" id="clapet"> Clapet anti-retour présent</label>
+                    <label><input type="checkbox" id="asservissement"> Asservissement électrique présent</label>
+                </div>
+                <button class="verifier-btn" onclick="verifierConformite('ventilation')">Vérifier la conformité</button>
+                <div class="result-container">
+                    <div class="result" id="resVentilation"></div>
+                    <div class="details" id="detailsVentilation"></div>
+                </div>
+            </div>
+
+            <div class="module-gaz">
+                <h3>Évacuation Fumées</h3>
+                <div class="form-group">
+                    <label>Matériau
+                        <select id="materiauEvac">
+                            <option value="inox">Inox</option>
+                            <option value="alu">Aluminium</option>
+                            <option value="pvc">PVC</option>
+                        </select>
+                    </label>
+                    <label>Pente (%) <input id="penteEvac" type="number" min="1" max="3" step="0.1"></label>
+                    <label>Longueur (m) <input id="longueurEvac" type="number"></label>
+                    <label>Nombre de coudes <input id="coudesEvac" type="number"></label>
+                    <label>Distance aux ouvrants (m) <input id="distanceOuvrants" type="number"></label>
+                </div>
+                <button class="verifier-btn" onclick="verifierConformite('evacuation')">Vérifier la conformité</button>
+                <div class="result-container">
+                    <div class="result" id="resEvacuation"></div>
+                    <div class="details" id="detailsEvacuation"></div>
+                </div>
+            </div>
+
+            <div class="module-gaz">
+                <h3>VMC Gaz & Anomalie 32C</h3>
+                <div class="checklist">
+                    <label><input type="checkbox" id="vmcFonctionne"> VMC gaz fonctionnelle</label>
+                    <label><input type="checkbox" id="dscPresent"> DSC présent</label>
+                    <label><input type="checkbox" id="testCO"> Test CO effectué</label>
+                </div>
+                <button class="verifier-btn" onclick="verifierConformite('vmc')">Vérifier la conformité</button>
+                <div class="result-container">
+                    <div class="result" id="resVMC"></div>
+                    <div class="details" id="detailsVMC"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
 </body>
+
 </html>

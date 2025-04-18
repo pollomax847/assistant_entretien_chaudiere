@@ -1,28 +1,283 @@
 body {
-  font-family: Arial, sans-serif;
-  padding: 1em;
-  background: #f1f4f6;
+    font-family: Arial, sans-serif;
+    padding: 1em;
+    background: #f1f4f6;
 }
-h1, h2 {
-  background: #0078d7;
-  color: white;
-  padding: 0.5em;
-  border-radius: 5px;
+
+h1,
+h2 {
+    background: #0078d7;
+    color: white;
+    padding: 0.5em;
+    border-radius: 5px;
 }
+
 section {
-  margin-bottom: 2em;
-  background: white;
-  padding: 1em;
-  border-radius: 8px;
-  box-shadow: 0 0 10px #ccc;
+    margin-bottom: 2em;
+    background: white;
+    padding: 1em;
+    border-radius: 8px;
+    box-shadow: 0 0 10px #ccc;
+    scroll-margin-top: 120px;
 }
-label, input, select {
-  display: block;
-  margin: 0.5em 0;
-  width: 100%;
-  max-width: 400px;
+
+label,
+input,
+select {
+    display: block;
+    margin: 0.5em 0;
+    width: 100%;
+    max-width: 400px;
 }
+
 .result {
-  font-weight: bold;
-  color: green;
+    font-weight: bold;
+    color: green;
+}
+
+.digit-inputs {
+    display: flex;
+    gap: 0.5em;
+    margin: 0.5em 0;
+}
+
+.digit-inputs input {
+    width: 3em;
+    text-align: center;
+    font-size: 1.2em;
+}
+
+.duree-choix {
+    margin: 1em 0;
+}
+
+.duree-choix label {
+    display: inline-block;
+    margin-right: 1em;
+}
+
+.dimensions,
+.temperatures {
+    display: flex;
+    gap: 1em;
+    margin: 0.5em 0;
+}
+
+.dimensions label,
+.temperatures label {
+    flex: 1;
+}
+
+.dimensions input,
+.temperatures input {
+    width: 100%;
+}
+
+.note {
+    margin-top: 1em;
+    padding: 0.5em;
+    background-color: #fff3cd;
+    color: #856404;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.emetteur-type {
+    margin: 1em 0;
+}
+
+.emetteur-type label {
+    display: inline-block;
+    margin-right: 1em;
+}
+
+.emetteur-params {
+    margin: 1em 0;
+    padding: 1em;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.emetteur-params h3 {
+    margin-top: 0;
+    color: #0078d7;
+}
+
+.export-btn {
+    margin-top: 1em;
+    padding: 0.5em 1em;
+    background: #0078d7;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.export-btn:hover {
+    background: #005a9e;
+}
+
+.module-gaz {
+    margin-bottom: 2em;
+    padding: 1em;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 0 5px #ccc;
+}
+
+.module-gaz h3 {
+    margin-top: 0;
+    color: #0078d7;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.5em;
+}
+
+.checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+}
+
+.checklist label {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+.result.conforme {
+    color: green;
+}
+
+.result.non-conforme {
+    color: red;
+}
+
+.result.attention {
+    color: orange;
+}
+
+.main-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.nav-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-links {
+    display: flex;
+    gap: 1em;
+}
+
+.nav-links a {
+    color: #0078d7;
+    text-decoration: none;
+    padding: 0.5em;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.nav-links a:hover {
+    background-color: #f0f0f0;
+}
+
+.progress-container {
+    position: fixed;
+    top: 80px;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: #f0f0f0;
+    z-index: 999;
+}
+
+.progress-bar {
+    height: 100%;
+    background: #0078d7;
+    width: 0%;
+    transition: width 0.3s;
+}
+
+main {
+    margin-top: 120px;
+    padding: 1em;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.instructions {
+    background: #f8f9fa;
+    padding: 1em;
+    border-radius: 4px;
+    margin-bottom: 1em;
+    border-left: 4px solid #0078d7;
+}
+
+.instructions p {
+    margin: 0;
+    color: #666;
+}
+
+.verifier-btn {
+    background-color: #0078d7;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    margin: 10px 0;
+    transition: background-color 0.3s;
+}
+
+.verifier-btn:hover {
+    background-color: #005a9e;
+}
+
+.result-container {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+}
+
+.result {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.details {
+    color: #666;
+    font-size: 0.9em;
+    white-space: pre-line;
+}
+
+.result.conforme {
+    color: #28a745;
+}
+
+.result.non-conforme {
+    color: #dc3545;
+}
+
+.result.attention {
+    color: #ffc107;
 }
