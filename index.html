@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assistant Entretien Chaudière</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Assistant Entretien Chaudière</h1>
+
+<section>
+  <h2>1. Contrôle Chaudière</h2>
+  <label><input type="checkbox"> Nettoyage du corps de chauffe</label>
+  <label><input type="checkbox"> Vérification sécurité</label>
+  <label><input type="checkbox"> Réglage débit gaz</label>
+  <label><input type="checkbox"> Contrôle évacuation fumées</label>
+  <label><input type="checkbox"> Mesure CO2 / CO</label>
+</section>
+
+<section>
+  <h2>2. Puissance Chauffage</h2>
+  <label>Volume à chauffer (m3) <input id="volChauff" type="number" value="192"></label>
+  <label>Coefficient G <input id="coefG" type="number" step="0.01" value="0.35"></label>
+  <label>Temp. extérieure (°C) <input id="tempExt" type="number" value="-6"></label>
+  <div class="result" id="resChauffage"></div>
+</section>
+
+<section>
+  <h2>3. Vase d'expansion</h2>
+  <label>Volume d'eau (L) <input id="volEau" type="number" value="50"></label>
+  <label>Nombre d'étages <input id="etages" type="number" value="1"></label>
+  <div class="result" id="resVase"></div>
+</section>
+
+<section>
+  <h2>4. Puissance Gaz</h2>
+  <label>Index début <input id="indexDebut" type="number"></label>
+  <label>Index fin <input id="indexFin" type="number"></label>
+  <label>Durée (s) <input id="duree" type="number" value="36"></label>
+  <label>PCI (kWh/m3) <input id="pci" type="number" value="10.2"></label>
+  <div class="result" id="resGaz"></div>
+</section>
+
+<section>
+  <h2>5. Débit ECS</h2>
+  <label>Volume tiré (L) <input id="volEcs" type="number"></label>
+  <label>Durée (s) <input id="dureeEcs" type="number"></label>
+  <div class="result" id="resEcs"></div>
+</section>
+
+<script src="script.js"></script>
+</body>
+</html>

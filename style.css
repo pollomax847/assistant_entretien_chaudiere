@@ -1,0 +1,28 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 1em;
+  background: #f1f4f6;
+}
+h1, h2 {
+  background: #0078d7;
+  color: white;
+  padding: 0.5em;
+  border-radius: 5px;
+}
+section {
+  margin-bottom: 2em;
+  background: white;
+  padding: 1em;
+  border-radius: 8px;
+  box-shadow: 0 0 10px #ccc;
+}
+label, input, select {
+  display: block;
+  margin: 0.5em 0;
+  width: 100%;
+  max-width: 400px;
+}
+.result {
+  font-weight: bold;
+  color: green;
+}
