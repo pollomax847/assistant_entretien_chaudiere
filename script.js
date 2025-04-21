@@ -389,28 +389,53 @@ function verifierEvacuation() {
 }
 
 function verifierVMC() {
-    const checkboxes = document.querySelectorAll('#vmc input[type="checkbox"]');
-    const resultContainer = document.getElementById('resVMC');
+    const typeVMC = document.getElementById('typeVMC').value;
+    const nbBouches = parseInt(document.getElementById('nbBouches').value);
+    const debitMesure = parseFloat(document.getElementById('debitMesure').value);
+    const debitMS = parseFloat(document.getElementById('debitMS').value);
+    const modulesFenetre = document.getElementById('modulesFenetre').value;
+    const etalonnagePortes = document.getElementById('etalonnagePortes').value;
+
     let conforme = true;
-    let details = [];
+    let messages = [];
 
-    checkboxes.forEach(checkbox => {
-        if (!checkbox.checked) {
+    if (isNaN(nbBouches) || isNaN(debitMesure) || isNaN(debitMS)) {
+        messages.push("⚠️ Veuillez remplir toutes les valeurs numériques.");
+        conforme = false;
+    } else {
+        const debitMin = nbBouches * 15;
+        if (debitMesure < debitMin) {
+            messages.push(`❌ Débit trop faible (attendu : ${debitMin} m³/h)`);
             conforme = false;
-            details.push(`❌ ${checkbox.nextElementSibling.textContent}`);
         } else {
-            details.push(`✅ ${checkbox.nextElementSibling.textContent}`);
+            messages.push("✅ Débit total conforme");
         }
-    });
 
-    resultContainer.innerHTML = `
-        <div class="result ${conforme ? 'conforme' : 'non-conforme'}">
-            ${conforme ? '✅ Conforme' : '❌ Non conforme'}
-        </div>
-        <div class="details">
-            ${details.join('\n')}
-        </div>
-    `;
+        if (debitMS < 0.8 || debitMS > 2.5) {
+            messages.push("❌ Débit en m/s hors plage recommandée (0.8 - 2.5 m/s)");
+            conforme = false;
+        } else {
+            messages.push("✅ Débit en m/s conforme");
+        }
+    }
+
+    if (modulesFenetre === "Non") {
+        messages.push("❌ Modules aux fenêtres non conformes");
+        conforme = false;
+    } else {
+        messages.push("✅ Modules aux fenêtres conformes");
+    }
+
+    if (etalonnagePortes === "Non") {
+        messages.push("❌ Vérifiez l'étanchéité/étalonnage des portes");
+        conforme = false;
+    } else {
+        messages.push("✅ Étalonnage des portes vérifié");
+    }
+
+    const res = document.getElementById('resVMC');
+    res.innerHTML = `<strong>${conforme ? '✅ Conforme' : '❌ Non conforme'} :</strong><br>${messages.join('<br>')}`;
+    res.style.color = conforme ? 'green' : 'red';
 }
 
 // Ajout des écouteurs d'événements
@@ -459,4 +484,36 @@ function calculerEquilibrage() {
     }
 
     document.getElementById('resEquilibrage').innerHTML = res;
+}
+
+function calculerEcsInstantane() {
+    const tEfs = parseFloat(document.getElementById('tempEfs').value);
+    const tEcs = parseFloat(document.getElementById('tempEcs').value);
+    const debit = parseFloat(document.getElementById('debitEcs').value);
+    const puissChaudiere = parseFloat(document.getElementById('puissanceChaudiere').value);
+    let res = '';
+
+    if (!isNaN(tEfs) && !isNaN(tEcs) && !isNaN(debit)) {
+        const deltaT = tEcs - tEfs;
+        const puissanceRestituee = ((debit * deltaT) / 0.0143).toFixed(1);
+        document.getElementById('deltaTEcs').value = deltaT.toFixed(1);
+
+        res += `<p>🌡️ ΔT : <strong>${deltaT.toFixed(1)} °C</strong></p>`;
+        res += `<p>🚿 Débit : <strong>${debit.toFixed(1)} L/min</strong></p>`;
+        res += `<p>⚡ Puissance restituée : <strong>${puissanceRestituee} kW</strong></p>`;
+
+        if (!isNaN(puissChaudiere)) {
+            if (puissanceRestituee < puissChaudiere * 0.7) {
+                res += `<p style="color:red">❌ Puissance restituée trop faible par rapport à la chaudière (${puissChaudiere} kW)</p>`;
+            } else if (puissanceRestituee > puissChaudiere * 1.3) {
+                res += `<p style="color:orange">⚠️ Consommation trop élevée par rapport à la chaudière (${puissChaudiere} kW)</p>`;
+            } else {
+                res += `<p style="color:green">✅ Puissance restituée cohérente</p>`;
+            }
+        }
+    } else {
+        res = '<p style="color:red">⚠️ Merci de remplir tous les champs correctement.</p>';
+    }
+
+    document.getElementById('resEcsInstantane').innerHTML = res;
 }

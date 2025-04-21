@@ -104,6 +104,80 @@
             <div id="resEquilibrage" class="result"></div>
         </section>
 
+        <section id="moduleECS">
+            <h2>🚿 Débit ECS - Analyse instantanée</h2>
+
+            <div class="input-group">
+                <label>Température EFS (°C) :
+                    <input type="number" id="tempEfs" min="0" max="30" step="0.1" placeholder="Ex : 12">
+                </label>
+                <label>Température ECS (°C) :
+                    <input type="number" id="tempEcs" min="30" max="70" step="0.1" placeholder="Ex : 50">
+                </label>
+                <label>ΔT (°C) :
+                    <input type="text" id="deltaTEcs" readonly class="readonly-input">
+                </label>
+            </div>
+
+            <div class="input-group">
+                <label>Débit ECS mesuré (L/min) :
+                    <input type="number" id="debitEcs" min="0" step="0.1" placeholder="Ex : 10">
+                </label>
+                <label>Puissance de la chaudière (kW) (facultatif) :
+                    <input type="number" id="puissanceChaudiere" min="0" step="0.1" placeholder="Ex : 24">
+                </label>
+            </div>
+
+            <button onclick="calculerEcsInstantane()" class="calculate-btn">Calculer</button>
+
+            <div id="resEcsInstantane" class="result"></div>
+        </section>
+
+        <section id="vmc">
+            <h2>🌬️ Contrôle VMC</h2>
+            <div class="instructions">
+                <p>Indique le type d'installation et les valeurs mesurées sur site :</p>
+            </div>
+
+            <label>Type d'installation :
+                <select id="typeVMC">
+                    <option>VMC simple flux classique</option>
+                    <option>VMC sanitaire (autoréglable)</option>
+                    <option>Caisson Sekoia</option>
+                    <option>VTI (VMC Très Intelligent)</option>
+                </select>
+            </label>
+
+            <label>Nombre de bouches :
+                <input type="number" id="nbBouches" placeholder="Ex : 4">
+            </label>
+
+            <label>Débit total mesuré (m³/h) :
+                <input type="number" id="debitMesure" step="0.1" placeholder="Ex : 90">
+            </label>
+
+            <label>Débit mesuré en m/s :
+                <input type="number" id="debitMS" step="0.01" placeholder="Ex : 1.2">
+            </label>
+
+            <label>Modules aux fenêtres conformes ?
+                <select id="modulesFenetre">
+                    <option>Oui</option>
+                    <option>Non</option>
+                </select>
+            </label>
+
+            <label>Étalonnage des portes vérifié ?
+                <select id="etalonnagePortes">
+                    <option>Oui</option>
+                    <option>Non</option>
+                </select>
+            </label>
+
+            <button onclick="verifierVMC()" class="calculate-btn">Vérifier conformité</button>
+            <div id="resVMC" class="result"></div>
+        </section>
+
         <section id="gaz">
             <h2>4. Module Top Gaz</h2>
             <div class="instructions">
