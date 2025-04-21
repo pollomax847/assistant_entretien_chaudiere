@@ -59,13 +59,49 @@
         </section>
 
         <section id="vase">
-            <h2>3. Vase d'expansion</h2>
-            <div class="instructions">
-                <p>Indiquez la hauteur du bâtiment pour calculer la pression recommandée.</p>
-            </div>
-            <label>Hauteur du bâtiment (m) <input id="hauteurBatiment" type="number" step="0.1" value="3"></label>
-            <div class="result" id="resVase"></div>
-            <div class="note">⚠️ Vérification manométrique sur site recommandée</div>
+            <h2>🔧 Dimensionnement du Vase d'expansion</h2>
+            <p>Ce module estime la pression de gonflage du vase et donne une indication de réglage selon l'emplacement
+                du radiateur le plus éloigné.</p>
+
+            <label>Hauteur du bâtiment (m) :
+                <input type="number" id="hauteurBatiment" placeholder="Ex : 6">
+            </label>
+
+            <label>Radiateur le plus éloigné ?
+                <select id="radiateurPlusLoin">
+                    <option value="oui">Oui</option>
+                    <option value="non">Non</option>
+                </select>
+            </label>
+
+            <button onclick="calculerVaseExpansion()">Calculer</button>
+
+            <div id="resVase" class="result"></div>
+        </section>
+
+        <section id="equilibrageReseau">
+            <h2>🔄 Équilibrage du réseau</h2>
+            <p>Utilisez ce module pour calculer un réglage manuel approximatif d'un robinet d'équilibrage ou d'un
+                débitmètre.</p>
+
+            <label>Puissance du radiateur (W) :
+                <input type="number" id="puissanceEquilibrage" placeholder="Ex : 1500">
+            </label>
+
+            <label>Débit mesuré (L/h) :
+                <input type="number" id="debitEquilibrage" placeholder="Ex : 120">
+            </label>
+
+            <label>Méthode de réglage :
+                <select id="methodeReglage">
+                    <option value="manuel">Par puissance et débit (manuel)</option>
+                    <option value="deltaT">Par ΔT (prochainement)</option>
+                </select>
+            </label>
+
+            <button onclick="calculerEquilibrage()">Calculer</button>
+
+            <div id="resEquilibrage" class="result"></div>
         </section>
 
         <section id="gaz">

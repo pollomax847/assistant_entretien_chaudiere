@@ -420,3 +420,43 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('verifierEvacuation').addEventListener('click', verifierEvacuation);
     document.getElementById('verifierVMC').addEventListener('click', verifierVMC);
 });
+
+function calculerVaseExpansion() {
+    const hauteur = parseFloat(document.getElementById('hauteurBatiment').value);
+    const plusLoin = document.getElementById('radiateurPlusLoin').value;
+
+    if (!isNaN(hauteur)) {
+        const pression = (hauteur / 10 + 0.3).toFixed(1);
+        let tours = plusLoin === 'oui' ? 'Réglage de base : 1,5 tours' : 'Réglage à adapter en fonction du réseau';
+
+        document.getElementById('resVase').innerHTML =
+            `💧 Pression de gonflage recommandée : <strong>${pression} bar</strong><br>` +
+            `🔧 ${tours}`;
+    } else {
+        document.getElementById('resVase').innerHTML = '⚠️ Veuillez renseigner la hauteur du bâtiment.';
+    }
+}
+
+function calculerEquilibrage() {
+    const puissance = parseFloat(document.getElementById('puissanceEquilibrage').value);
+    const debit = parseFloat(document.getElementById('debitEquilibrage').value);
+    const methode = document.getElementById('methodeReglage').value;
+
+    let res = '';
+
+    if (!isNaN(puissance)) {
+        if (methode === 'manuel' && !isNaN(debit) && debit > 0) {
+            const tours = (puissance / debit).toFixed(2);
+            const arrondi = Math.round(tours * 2) / 2;
+            res = `🔁 Réglage recommandé : <strong>${arrondi} tours</strong>`;
+        } else if (methode === 'deltaT') {
+            res = '⚠️ Réglage par ΔT non encore disponible.';
+        } else {
+            res = '⚠️ Veuillez remplir correctement la puissance et le débit.';
+        }
+    } else {
+        res = '⚠️ Merci d'indiquer la puissance du radiateur.';
+    }
+
+    document.getElementById('resEquilibrage').innerHTML = res;
+}
