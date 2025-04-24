@@ -480,7 +480,7 @@ function calculerEquilibrage() {
             res = '⚠️ Veuillez remplir correctement la puissance et le débit.';
         }
     } else {
-        res = '⚠️ Merci d'indiquer la puissance du radiateur.';
+        res = '⚠️ Merci d\'indiquer la puissance du radiateur.';
     }
 
     document.getElementById('resEquilibrage').innerHTML = res;
@@ -516,4 +516,112 @@ function calculerEcsInstantane() {
     }
 
     document.getElementById('resEcsInstantane').innerHTML = res;
+}
+
+function setPCSParType() {
+    const typeGaz = document.getElementById('typeGaz');
+    const pcs = parseFloat(typeGaz.value);
+    typeGaz.options[typeGaz.selectedIndex].text =
+        typeGaz.selectedIndex === 0 ? 'Gaz naturel (PCS 9.6)' :
+            typeGaz.selectedIndex === 1 ? 'Propane (PCS 12.8)' :
+                'Butane (PCS 25.9)';
+}
+
+function calculerTopGaz() {
+    const digit1 = parseInt(document.getElementById('digit1').value) || 0;
+    const digit2 = parseInt(document.getElementById('digit2').value) || 0;
+    const digit3 = parseInt(document.getElementById('digit3').value) || 0;
+    const duree = parseInt(document.getElementById('dureeTop').value);
+    const pcs = parseFloat(document.getElementById('typeGaz').value);
+    const puissChaudiere = parseFloat(document.getElementById('puissChaudiereGaz').value);
+
+    let res = '';
+    let messages = [];
+
+    // Vérification des valeurs
+    if (isNaN(digit1) || isNaN(digit2) || isNaN(digit3)) {
+        messages.push("⚠️ Veuillez remplir tous les chiffres du compteur");
+    } else {
+        const volume = digit1 * 100 + digit2 * 10 + digit3;
+        const debitHoraire = (volume * 3600) / duree;
+        const puissance = (debitHoraire * pcs) / 1000;
+
+        messages.push(`📊 Volume mesuré : ${volume} L`);
+        messages.push(`⏱️ Durée du test : ${duree} secondes`);
+        messages.push(`💨 Débit horaire : ${debitHoraire.toFixed(1)} L/h`);
+        messages.push(`⚡ Puissance mesurée : ${puissance.toFixed(1)} kW`);
+
+        if (!isNaN(puissChaudiere)) {
+            const ecart = ((puissance - puissChaudiere) / puissChaudiere * 100).toFixed(1);
+            const ecartAbsolu = Math.abs(ecart);
+
+            if (ecartAbsolu > 10) {
+                messages.push(`⚠️ Écart important avec la puissance chaudière (${ecart}%)`);
+            } else {
+                messages.push(`✅ Puissance cohérente avec la chaudière (${ecart}%)`);
+            }
+        }
+    }
+
+    res = messages.join('<br>');
+    document.getElementById('resTopGaz').innerHTML = res;
+}
+
+function afficherVisuelRadiateur() {
+    const type = document.getElementById("typeRadiateur").value;
+    const visuel = document.getElementById("visuelRadiateur");
+    const panneauOptions = document.getElementById("optionPanneaux");
+
+    let fichier = "";
+
+    if (type === "Panneaux") {
+        panneauOptions.style.display = "block";
+        const typePanneau = document.getElementById("typePanneau").value;
+        fichier = `assets/Images/${typePanneau}.png`;
+    } else {
+        panneauOptions.style.display = "none";
+        switch (type) {
+            case "Fonte": fichier = "assets/Images/fonte.png"; break;
+            case "Aluminium": fichier = "assets/Images/aluminium.png"; break;
+            case "FonteAlu": fichier = "assets/Images/fonteAlu.png"; break;
+            case "SecheServiette": fichier = "assets/Images/seche-serviette.png"; break;
+            case "Acier": fichier = "assets/Images/acier.png"; break;
+        }
+    }
+
+    if (fichier) {
+        visuel.innerHTML = `<img src="${fichier}" alt="${type}" style="max-width:100%; border:1px solid #ccc; border-radius:4px;">`;
+    } else {
+        visuel.innerHTML = "";
+    }
+}
+
+function calculerPuissanceRadiateur() {
+    const type = document.getElementById("typeRadiateur").value;
+    const hauteur = parseInt(document.getElementById("hauteurRad").value);
+    const longueur = parseInt(document.getElementById("longueurRad").value);
+    const panneau = document.getElementById("typePanneau")?.value;
+
+    if (isNaN(hauteur) || isNaN(longueur)) {
+        document.getElementById("resRadiateur").innerHTML = "⚠️ Veuillez renseigner les dimensions.";
+        return;
+    }
+
+    // Coefficients arbitraires à affiner si besoin
+    let coef = 1;
+    if (type === "Panneaux") {
+        if (panneau === "T11") coef = 0.08;
+        else if (panneau === "T22") coef = 0.12;
+        else if (panneau === "T33") coef = 0.15;
+    } else if (type === "Fonte") coef = 0.09;
+    else if (type === "Aluminium") coef = 0.10;
+    else if (type === "FonteAlu") coef = 0.11;
+    else if (type === "SecheServiette") coef = 0.07;
+    else coef = 0.06; // acier classique
+
+    const surface = (hauteur * longueur) / 1000000; // m²
+    const puissance = surface * coef * 1000; // kW → W
+
+    document.getElementById("resRadiateur").innerHTML =
+        `🔧 Puissance estimée : <strong>${puissance.toFixed(0)} W</strong>`;
 }

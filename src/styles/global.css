@@ -1,0 +1,117 @@
+/* Variables CSS globales */
+:root {
+    /* Couleurs */
+    --color-primary: #4CAF50;
+    --color-secondary: #2196F3;
+    --color-success: #4CAF50;
+    --color-warning: #FFC107;
+    --color-error: #F44336;
+    --color-background: #FFFFFF;
+    --color-text: #333333;
+
+    /* Espacement */
+    --spacing-small: 8px;
+    --spacing-medium: 16px;
+    --spacing-large: 24px;
+
+    /* Breakpoints */
+    --breakpoint-mobile: 480px;
+    --breakpoint-tablet: 768px;
+    --breakpoint-desktop: 1024px;
+}
+
+/* Reset et styles de base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    line-height: 1.6;
+    color: var(--color-text);
+    background-color: var(--color-background);
+}
+
+/* Layout */
+.app {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #f5f5f5;
+    padding: var(--spacing-medium);
+    border-right: 1px solid #ddd;
+}
+
+.main {
+    flex: 1;
+    padding: var(--spacing-medium);
+}
+
+/* Composants communs */
+.btn {
+    padding: var(--spacing-small) var(--spacing-medium);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.btn-primary {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #45a049;
+}
+
+.form-group {
+    margin-bottom: var(--spacing-medium);
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: var(--spacing-small);
+    font-weight: bold;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: var(--spacing-small);
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+/* Utilitaires */
+.text-center {
+    text-align: center;
+}
+
+.mt-1 { margin-top: var(--spacing-small); }
+.mt-2 { margin-top: var(--spacing-medium); }
+.mt-3 { margin-top: var(--spacing-large); }
+
+.mb-1 { margin-bottom: var(--spacing-small); }
+.mb-2 { margin-bottom: var(--spacing-medium); }
+.mb-3 { margin-bottom: var(--spacing-large); }
+
+/* Responsive */
+@media (max-width: var(--breakpoint-tablet)) {
+    .app {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+    }
+} 
