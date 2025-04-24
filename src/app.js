@@ -1,19 +1,19 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { FIREBASE_CONFIG } from './config/constants.js';
 import { Navigation } from './components/Navigation.js';
 import { ModuleManager } from './utils/ModuleManager.js';
 
 // Initialisation de Firebase
-const app = initializeApp(FIREBASE_CONFIG);
-const auth = getAuth(app);
+const app = firebase.initializeApp(FIREBASE_CONFIG);
+const analytics = firebase.analytics();
+const auth = firebase.auth();
+const db = firebase.firestore();
 
 // Initialisation des composants
 const navigation = new Navigation('navigation');
 const moduleManager = new ModuleManager('module-container');
 
 // Gestion de l'authentification
-onAuthStateChanged(auth, (user) => {
+auth.onAuthStateChanged((user) => {
     const userInfo = document.getElementById('userInfo');
     const userName = document.getElementById('userName');
     const logoutBtn = document.getElementById('logoutBtn');

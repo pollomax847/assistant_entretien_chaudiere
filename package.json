@@ -1,6 +1,9 @@
 {
+  "name": "assistant-entretien-chaudiere",
+  "version": "1.0.0",
+  "type": "module",
   "dependencies": {
-    "firebase": "^11.6.0"
+    "firebase": "^10.8.0"
   },
   "devDependencies": {
     "jest": "^29.7.0"
