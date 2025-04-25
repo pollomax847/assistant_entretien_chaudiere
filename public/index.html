@@ -141,15 +141,36 @@
                 <p>Estimez la puissance d'un radiateur existant.</p>
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="rad-type">Type de radiateur</label>
-                        <select id="rad-type">
-                            <option value="Acier">Acier Classique</option>
-                            <option value="Fonte">Fonte</option>
-                            <option value="Aluminium">Aluminium</option>
-                            <option value="FonteAlu">Fonte d'Aluminium</option>
-                            <option value="Panneaux">Panneaux Acier</option>
-                            <option value="SecheServiette">Sèche-Serviette</option>
+                        <label for="logement-type">Type de logement</label>
+                        <select id="logement-type">
+                            <option value="">-- Sélectionner --</option>
+                            <option value="T1">T1 (Studio)</option>
+                            <option value="T2">T2 (2 pièces)</option>
+                            <option value="T3">T3 (3 pièces)</option>
+                            <option value="T4">T4 (4 pièces)</option>
+                            <option value="T5">T5 (5 pièces)</option>
+                            <option value="T6">T6 (6 pièces)</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="rad-nombre">Nombre de radiateurs</label>
+                        <input type="number" id="rad-nombre" min="1" max="10" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="rad-type">Type de radiateur</label>
+                        <div class="radiator-type-container">
+                            <select id="rad-type" class="form-control">
+                                <option value="Acier">Acier</option>
+                                <option value="Fonte">Fonte</option>
+                                <option value="Aluminium">Aluminium</option>
+                                <option value="FonteAlu">Fonte d'aluminium</option>
+                                <option value="Panneaux">Panneaux</option>
+                                <option value="SecheServiette">Sèche-serviette</option>
+                            </select>
+                            <div id="rad-visual" class="radiator-visual">
+                                <img src="" alt="Type de radiateur" style="display: none;">
+                            </div>
+                        </div>
                     </div>
                      <div class="form-group" id="rad-panel-type-group" style="display: none;">
                         <label for="rad-panel-type">Type de panneau</label>
@@ -161,12 +182,18 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="rad-hauteur">Hauteur (cm)</label>
-                        <input type="number" id="rad-hauteur" placeholder="Ex: 60">
+                        <label for="rad-hauteur">Hauteur (mm)</label>
+                        <div class="slider-container">
+                            <input type="range" id="rad-hauteur" min="300" max="900" step="10" value="600">
+                            <span id="rad-hauteur-value">600 mm</span>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label for="rad-longueur">Longueur (cm)</label>
-                        <input type="number" id="rad-longueur" placeholder="Ex: 100">
+                        <label for="rad-longueur">Longueur (mm)</label>
+                        <div class="slider-container">
+                            <input type="range" id="rad-longueur" min="400" max="2000" step="10" value="1000">
+                            <span id="rad-longueur-value">1000 mm</span>
+                        </div>
                     </div>
                 </div>
                 <div class="radiator-visual" id="rad-visual">

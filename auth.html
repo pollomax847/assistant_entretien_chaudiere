@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Authentification - Chauffage Expert</title>
-    <link rel="stylesheet" type="text/css" href="public/css/theme.css">
-    <link rel="stylesheet" type="text/css" href="public/css/auth.css">
+    <link rel="stylesheet" type="text/css" href="css/theme.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="stylesheet" type="text/css" href="css/auth.css">
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script type="module" src="public/js/pages/auth.js"></script>
+    <script type="module" src="js/utils/ThemeManager.js"></script>
+    <script type="module" src="js/pages/auth.js"></script>
 </head>
 <body>
     <div class="auth-container">
@@ -25,18 +27,21 @@
         <div class="form-container" id="login-form">
             <h2>Connexion</h2>
             <form id="loginForm">
-            <div class="form-group">
+                <div class="form-group">
                     <label for="loginEmail">Email</label>
                     <input type="email" id="loginEmail" required>
-            </div>
-            <div class="form-group">
+                </div>
+                <div class="form-group">
                     <label for="loginPassword">Mot de passe</label>
                     <input type="password" id="loginPassword" required>
                     <a href="#" id="forgotPassword" class="forgot-password">Mot de passe oublié ?</a>
-            </div>
+                </div>
                 <button type="submit" class="btn-primary">Se connecter</button>
-        </form>
-    </div>
+                <div class="auth-options">
+                    <button type="button" id="showAuthOptions" class="btn-secondary">Options de connexion</button>
+                </div>
+            </form>
+        </div>
 
         <div class="form-container hidden" id="signup-form">
             <h2>Inscription</h2>
@@ -82,6 +87,20 @@
                 <button type="submit" class="btn-primary">Envoyer</button>
                 <button type="button" id="backToLogin" class="btn-secondary">Retour à la connexion</button>
             </form>
+        </div>
+
+        <!-- Nouvelle modal pour les options de connexion -->
+        <div class="modal hidden" id="authOptionsModal">
+            <div class="modal-content">
+                <h3>Options de connexion</h3>
+                <div class="auth-providers">
+                    <button id="googleAuth" class="btn-provider">
+                        <img src="assets/icons/google.svg" alt="Google">
+                        Se connecter avec Google
+                    </button>
+                </div>
+                <button class="btn-secondary modal-close">Fermer</button>
+            </div>
         </div>
 
         <div id="message" class="message hidden"></div>

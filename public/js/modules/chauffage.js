@@ -108,13 +108,20 @@ export function calculerVaseExpansion(hauteurBatiment, radiateurLoin) {
     try {
         // Calcul de la pression (hauteur en m / 10 + marge de sécurité)
         const pression = (hauteurBatiment / 10 + 0.3);
-        const tours = radiateurLoin ? "Réglage de base : 1,5 tours" : "Réglage à adapter en fonction du réseau";
+        
+        // Détermination du réglage en fonction de la distance du radiateur
+        let reglage;
+        if (radiateurLoin) {
+            reglage = "1,5 tours";
+        } else {
+            reglage = "Réglage à adapter en fonction du réseau";
+        }
         
         return {
             success: true,
             pression: formatNumber(pression, 1),
-            reglage: tours,
-            message: `Pression de gonflage recommandée : ${formatNumber(pression, 1)} bar | ${tours}`
+            reglage: reglage,
+            message: `Pression de gonflage recommandée : ${formatNumber(pression, 1)} bar | ${reglage}`
         };
     } catch (error) {
         console.error("Erreur lors du calcul de vase d'expansion:", error);

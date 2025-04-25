@@ -3,21 +3,17 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chauffage Expert</title>
-    <link rel="stylesheet" href="public/css/theme.css">
-    <link rel="stylesheet" href="public/css/style.css">
-    <link rel="stylesheet" href="public/css/global.css">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
-    <script type="module" src="public/js/app.js"></script>
+    <link rel="stylesheet" href="/public/css/theme.css">
+    <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="icon" href="/public/favicon.ico" type="image/x-icon">
+    <!-- html2pdf.js via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 
 <body>
-    <div class="app">
+    <div class="app-container">
         <aside class="sidebar">
             <div class="sidebar-header">
                 <h2>Chauffage Expert</h2>
@@ -26,13 +22,40 @@
                     <button id="logoutBtn" class="btn btn-primary">Déconnexion</button>
                 </div>
             </div>
-            <div id="navigation"></div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="#module-puissance-chauffage"><img src="../assets/icons/power_calculation.svg" alt=""> Puissance Chauffage</a></li>
+                    <li><a href="#module-vase-expansion"><img src="../assets/icons/maintenance.svg" alt=""> Vase d'Expansion</a></li>
+                    <li><a href="#module-equilibrage"><img src="../assets/icons/compliance.svg" alt=""> Équilibrage Réseau</a></li>
+                    <li><a href="#module-radiateurs"><img src="../assets/icons/maintenance.svg" alt=""> Radiateurs</a></li>
+                    <li><a href="#module-ecs"><img src="../assets/icons/power_calculation.svg" alt=""> ECS Instantané</a></li>
+                    <li><a href="#module-top-gaz"><img src="../assets/icons/power_calculation.svg" alt=""> Top Compteur Gaz</a></li>
+                    <li><a href="#module-vmc"><img src="../assets/icons/compliance.svg" alt=""> VMC</a></li>
+                    <li><a href="#module-reglementation-gaz"><img src="../assets/icons/compliance.svg" alt=""> Réglementation Gaz</a></li>
+                    <li><a href="#module-reglementaires-comp"><img src="../assets/icons/compliance.svg" alt=""> Autres Vérifications</a></li>
+                    <li><a href="#module-export-pdf"><img src="../assets/icons/maintenance.svg" alt=""> Export PDF</a></li>
+                    <li><a href="#module-preferences"><img src="../assets/icons/maintenance.svg" alt=""> Préférences</a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <span id="status-indicator" title="Statut de la connexion">⚫</span>
+                <span id="technician-name"></span>
+            </div>
         </aside>
 
-        <main class="main">
-            <div id="module-container"></div>
+        <main class="main-content">
+            <header class="main-header">
+                <h1>Tableau de bord</h1>
+                <input type="search" id="search-modules" placeholder="Rechercher un module...">
+            </header>
+
+            <div id="module-container">
+                <!-- Modules will be loaded here -->
+            </div>
         </main>
     </div>
+
+    <script type="module" src="/public/js/app.js"></script>
 </body>
 
 </html>

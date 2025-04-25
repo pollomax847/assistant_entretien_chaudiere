@@ -6,6 +6,13 @@
     "firebase": "^10.8.0"
   },
   "devDependencies": {
-    "jest": "^29.7.0"
+    "jest": "^29.7.0",
+    "serve": "^14.2.4",
+    "vercel": "^32.7.2"
+  },
+  "scripts": {
+    "build": "tsc && vite build",
+    "dev": "serve -s dist -l 3000",
+    "deploy": "vercel --prod"
   }
 }

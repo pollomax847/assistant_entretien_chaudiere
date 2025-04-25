@@ -1,29 +1,24 @@
 /**
- * Service Firebase
- * Initialise et exporte les fonctionnalités Firebase
+ * Configuration et initialisation de Firebase
  */
 
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { firebaseConfig } from "./firebase.config.js";
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
-/**
- * Initialise Firebase avec la configuration sécurisée
- */
-let app, analytics, auth, db;
+// Configuration Firebase (à remplacer par vos propres valeurs)
+const firebaseConfig = {
+    apiKey: "VOTRE_API_KEY",
+    authDomain: "votre-projet.firebaseapp.com",
+    projectId: "votre-projet",
+    storageBucket: "votre-projet.appspot.com",
+    messagingSenderId: "VOTRE_MESSAGING_SENDER_ID",
+    appId: "VOTRE_APP_ID"
+};
 
-try {
-  // Initialiser Firebase
-  app = initializeApp(firebaseConfig);
-  analytics = getAnalytics(app);
-  auth = getAuth(app);
-  db = getFirestore(app);
-  
-  console.log("Firebase initialisé avec succès");
-} catch (error) {
-  console.error("Erreur lors de l'initialisation de Firebase:", error);
-}
+// Initialiser Firebase
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
 
-export { app, analytics, auth, db };
+export default app;

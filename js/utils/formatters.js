@@ -55,12 +55,3 @@ export function formatDetails(details) {
     const detailsHtml = details.map(detail => `<li>${detail}</li>`).join('');
     return `<ul class="result-details">${detailsHtml}</ul>`;
 }
-
-<nav>
-  <ul>
-    <li><a href="index.html">Accueil</a></li>
-    <li><a href="auth.html">Authentification</a></li>
-    <li><a href="#section-vmc">Vérification VMC</a></li>
-    <li><a href="#section-chaudiere">Entretien Chaudière</a></li>
-  </ul>
-</nav>
