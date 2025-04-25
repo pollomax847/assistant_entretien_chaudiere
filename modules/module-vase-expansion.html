@@ -1,0 +1,52 @@
+<div class="module-container">
+    <h2>Calcul du Vase d'Expansion</h2>
+    <p class="module-description">
+        Ce module permet de calculer la pression théorique et le réglage en tours du vase d'expansion
+        en fonction de la hauteur du bâtiment et de la position du radiateur le plus éloigné.
+    </p>
+
+    <form id="vase-expansion-form" class="card">
+        <div class="input-group">
+            <label for="hauteur-batiment">Hauteur du bâtiment (m)</label>
+            <input type="number" id="hauteur-batiment" step="0.1" min="0" required>
+        </div>
+
+        <div class="input-group">
+            <label class="checkbox-label">
+                <input type="checkbox" id="radiateur-eloigne">
+                Le radiateur le plus éloigné est au dernier étage
+            </label>
+        </div>
+
+        <button type="submit">Calculer</button>
+    </form>
+
+    <div id="vase-expansion-result" class="result-container"></div>
+
+    <div class="module-info">
+        <h3>Informations complémentaires</h3>
+        <p>
+            La pression théorique se calcule selon la formule :
+        </p>
+        <p class="formula">
+            Pression (bar) = (Hauteur / 10) + 0.3
+        </p>
+        <p>
+            Le réglage en tours est arrondi à 0.5 près.
+        </p>
+        <p>
+            <strong>Important :</strong> Si le radiateur le plus éloigné est au dernier étage,
+            il faut ajouter 0.2 bar à la pression théorique.
+        </p>
+    </div>
+
+    <div class="safety-notes">
+        <h3>Notes de sécurité</h3>
+        <ul>
+            <li>Vérifier toujours la pression à froid avant intervention</li>
+            <li>Ne jamais dépasser la pression maximale indiquée sur le vase</li>
+            <li>Contrôler l'état du manomètre avant toute manipulation</li>
+            <li>Vérifier l'absence de fuites après réglage</li>
+        </ul>
+    </div>
+</div> 

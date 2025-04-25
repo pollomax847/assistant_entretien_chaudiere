@@ -1,0 +1,82 @@
+<div class="module-container">
+    <h2>Préférences</h2>
+    <p class="module-description">
+        Personnalisez votre expérience utilisateur en configurant vos préférences.
+    </p>
+
+    <form id="preferences-form" class="card">
+        <div class="input-group">
+            <label for="technician-name">Prénom du technicien</label>
+            <input type="text" id="technician-name" required>
+        </div>
+
+        <div class="input-group">
+            <label for="theme">Thème de l'application</label>
+            <select id="theme">
+                <option value="light">Clair</option>
+                <option value="dark">Sombre</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="temperature-unit">Unité de température</label>
+            <select id="temperature-unit">
+                <option value="celsius">°C (Celsius)</option>
+                <option value="fahrenheit">°F (Fahrenheit)</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="company-logo">Logo de l'entreprise</label>
+            <input type="file" id="company-logo" accept="image/*">
+            <div id="logo-preview" class="logo-preview"></div>
+        </div>
+
+        <div class="input-group">
+            <label for="default-module">Module par défaut</label>
+            <select id="default-module">
+                <option value="module-puissance-chauffage">Puissance Chauffage</option>
+                <option value="module-vase-expansion">Vase d'Expansion</option>
+                <option value="module-equilibrage">Équilibrage Réseau</option>
+                <option value="module-radiateurs">Radiateurs</option>
+                <option value="module-ecs">ECS Instantané</option>
+                <option value="module-top-gaz">Top Compteur Gaz</option>
+                <option value="module-vmc">VMC</option>
+                <option value="module-reglementation-gaz">Réglementation Gaz</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label class="checkbox-label">
+                <input type="checkbox" id="auto-save">
+                Sauvegarder automatiquement les résultats
+            </label>
+        </div>
+
+        <div class="input-group">
+            <label class="checkbox-label">
+                <input type="checkbox" id="offline-mode">
+                Activer le mode hors-ligne
+            </label>
+        </div>
+
+        <button type="submit">Enregistrer les préférences</button>
+    </form>
+
+    <div class="preferences-info">
+        <h3>Informations sur les préférences</h3>
+        <ul>
+            <li>Les préférences sont sauvegardées localement dans votre navigateur</li>
+            <li>Le mode hors-ligne permet d'utiliser l'application sans connexion internet</li>
+            <li>La sauvegarde automatique conserve vos derniers calculs</li>
+            <li>Le logo de l'entreprise sera utilisé dans les exports PDF</li>
+        </ul>
+    </div>
+
+    <div class="data-management">
+        <h3>Gestion des données</h3>
+        <button id="export-data" class="secondary-button">Exporter les données</button>
+        <button id="import-data" class="secondary-button">Importer les données</button>
+        <button id="clear-data" class="danger-button">Effacer toutes les données</button>
+    </div>
+</div> 

@@ -12,11 +12,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
-        
+      - name: Install Vercel CLI locally
+        run: npm install --save-dev vercel@latest
+      
       - name: Deploy to Vercel
-        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: npx vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

@@ -1,0 +1,68 @@
+<div class="module-container">
+    <h2>Calcul de Puissance Chauffage</h2>
+    <p class="module-description">
+        Ce module permet de calculer la puissance nécessaire pour le chauffage d'un local en fonction de sa surface,
+        de sa hauteur sous plafond, des températures intérieure et extérieure, et du coefficient d'isolation.
+    </p>
+
+    <form id="puissance-chauffage-form" class="card">
+        <div class="input-group">
+            <label for="surface">Surface du local (m²)</label>
+            <input type="number" id="surface" step="0.01" min="0" required>
+        </div>
+
+        <div class="input-group">
+            <label for="hauteur">Hauteur sous plafond (m)</label>
+            <input type="number" id="hauteur" step="0.01" min="0" required>
+        </div>
+
+        <div class="input-group">
+            <label for="temp-int">Température intérieure souhaitée (°C)</label>
+            <input type="number" id="temp-int" step="0.1" value="20" required>
+        </div>
+
+        <div class="input-group">
+            <label for="temp-ext">Température extérieure de base (°C)</label>
+            <input type="number" id="temp-ext" step="0.1" value="-7" required>
+        </div>
+
+        <div class="input-group">
+            <label for="coefficient-g">Coefficient G (isolation)</label>
+            <select id="coefficient-g" required>
+                <option value="1.2">Très bien isolé (1.2)</option>
+                <option value="1.5">Bien isolé (1.5)</option>
+                <option value="1.8">Moyennement isolé (1.8)</option>
+                <option value="2.1">Mal isolé (2.1)</option>
+                <option value="2.5">Très mal isolé (2.5)</option>
+            </select>
+        </div>
+
+        <button type="submit">Calculer</button>
+    </form>
+
+    <div id="puissance-result" class="result-container"></div>
+
+    <div class="module-info">
+        <h3>Informations complémentaires</h3>
+        <p>
+            Le coefficient G varie selon l'isolation du bâtiment :
+        </p>
+        <ul>
+            <li>1.2 : Bâtiment très bien isolé (RT 2012)</li>
+            <li>1.5 : Bâtiment bien isolé (isolation récente)</li>
+            <li>1.8 : Bâtiment moyennement isolé (isolation standard)</li>
+            <li>2.1 : Bâtiment mal isolé (isolation ancienne)</li>
+            <li>2.5 : Bâtiment très mal isolé (pas d'isolation)</li>
+        </ul>
+        <p>
+            La température extérieure de base varie selon la zone climatique :
+        </p>
+        <ul>
+            <li>Zone H1a : -9°C</li>
+            <li>Zone H1b : -7°C</li>
+            <li>Zone H1c : -5°C</li>
+            <li>Zone H2 : -3°C</li>
+            <li>Zone H3 : 0°C</li>
+        </ul>
+    </div>
+</div> 

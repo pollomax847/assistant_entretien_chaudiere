@@ -3,125 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Authentification - Chauffage Expert</title>
-    <link rel="stylesheet" type="text/css" href="css/theme.css">
-    <link rel="stylesheet" type="text/css" href="css/style.css">
-    <link rel="stylesheet" type="text/css" href="css/auth.css">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script type="module" src="js/utils/ThemeManager.js"></script>
-    <script type="module" src="js/pages/auth.js"></script>
+    <title>Connexion - Chauffage Expert</title>
+    <link rel="stylesheet" href="/css/theme.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/notifications.css">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
 </head>
-<body>
+<body class="theme-light">
     <div class="auth-container">
-        <div class="auth-header">
-            <h1>Chauffage Expert</h1>
-            <p>L'application pour les professionnels du chauffage</p>
-        </div>
-        <div class="tabs">
-            <div class="tab active" data-tab="login">Connexion</div>
-            <div class="tab" data-tab="signup">Inscription</div>
-        </div>
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>Chauffage Expert</h1>
+                <p>Application professionnelle pour les techniciens de chauffage</p>
+            </div>
 
-        <div class="form-container" id="login-form">
-            <h2>Connexion</h2>
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="loginEmail">Email</label>
-                    <input type="email" id="loginEmail" required>
+            <form id="auth-form" class="auth-form">
+                <div class="input-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
                 </div>
-                <div class="form-group">
-                    <label for="loginPassword">Mot de passe</label>
-                    <input type="password" id="loginPassword" required>
-                    <a href="#" id="forgotPassword" class="forgot-password">Mot de passe oublié ?</a>
+
+                <div class="input-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" required>
                 </div>
-                <button type="submit" class="btn-primary">Se connecter</button>
-                <div class="auth-options">
-                    <button type="button" id="showAuthOptions" class="btn-secondary">Options de connexion</button>
+
+                <div class="input-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="remember-me">
+                        Se souvenir de moi
+                    </label>
                 </div>
+
+                <button type="submit">Se connecter</button>
             </form>
-        </div>
 
-        <div class="form-container hidden" id="signup-form">
-            <h2>Inscription</h2>
-            <form id="signupForm">
-                <div class="form-group">
-                    <label for="signupName">Nom complet</label>
-                    <input type="text" id="signupName" required>
-                </div>
-                <div class="form-group">
-                    <label for="signupEmail">Email</label>
-                    <input type="email" id="signupEmail" required>
-                </div>
-                <div class="form-group">
-                    <label for="signupPassword">Mot de passe</label>
-                    <input type="password" id="signupPassword" required minlength="6">
-                    <div class="password-strength hidden" id="passwordStrength">
-                        <div class="strength-bar">
-                            <div class="strength-level"></div>
-                        </div>
-                        <span class="strength-text">Mot de passe faible</span>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="signupPasswordConfirm">Confirmer le mot de passe</label>
-                    <input type="password" id="signupPasswordConfirm" required>
-                </div>
-                <div class="form-group checkbox">
-                    <input type="checkbox" id="termsAgreement" required>
-                    <label for="termsAgreement">J'accepte les <a href="#" id="showTerms">conditions d'utilisation</a></label>
-                </div>
-                <button type="submit" class="btn-primary">S'inscrire</button>
-            </form>
-        </div>
-
-        <div class="form-container hidden" id="reset-form">
-            <h2>Réinitialisation du mot de passe</h2>
-            <p>Veuillez entrer votre adresse email pour recevoir un lien de réinitialisation.</p>
-            <form id="resetForm">
-                <div class="form-group">
-                    <label for="resetEmail">Email</label>
-                    <input type="email" id="resetEmail" required>
-                </div>
-                <button type="submit" class="btn-primary">Envoyer</button>
-                <button type="button" id="backToLogin" class="btn-secondary">Retour à la connexion</button>
-            </form>
-        </div>
-
-        <!-- Nouvelle modal pour les options de connexion -->
-        <div class="modal hidden" id="authOptionsModal">
-            <div class="modal-content">
-                <h3>Options de connexion</h3>
-                <div class="auth-providers">
-                    <button id="googleAuth" class="btn-provider">
-                        <img src="assets/icons/google.svg" alt="Google">
-                        Se connecter avec Google
-                    </button>
-                </div>
-                <button class="btn-secondary modal-close">Fermer</button>
+            <div class="auth-footer">
+                <p>Version hors-ligne disponible</p>
+                <button id="offline-mode" class="secondary-button">Continuer hors-ligne</button>
             </div>
         </div>
 
-        <div id="message" class="message hidden"></div>
-
-        <div id="termsDialog" class="dialog hidden">
-            <div class="dialog-content">
-                <h3>Conditions d'utilisation</h3>
-                <div class="dialog-body">
-                    <p>En utilisant cette application, vous acceptez les conditions suivantes :</p>
-                    <ul>
-                        <li>Chauffage Expert est un outil d'aide à la décision pour les professionnels du chauffage.</li>
-                        <li>Les calculs fournis sont donnés à titre indicatif et ne remplacent pas l'expertise d'un professionnel.</li>
-                        <li>L'utilisateur est seul responsable des décisions prises sur la base des calculs fournis.</li>
-                        <li>Vos données sont stockées de manière sécurisée et ne sont pas partagées avec des tiers.</li>
-                    </ul>
-                </div>
-                <div class="dialog-footer">
-                    <button id="closeTerms" class="btn-primary">J'ai compris</button>
-                </div>
-            </div>
+        <div class="auth-info">
+            <h2>Fonctionnalités principales</h2>
+            <ul>
+                <li>Calcul de puissance chauffage</li>
+                <li>Vérification vase d'expansion</li>
+                <li>Équilibrage réseau</li>
+                <li>Analyse ECS</li>
+                <li>Top compteur gaz</li>
+                <li>Vérification VMC</li>
+                <li>Réglementation gaz</li>
+                <li>Export PDF</li>
+            </ul>
         </div>
     </div>
+
+    <script type="module" src="/js/auth.js"></script>
 </body>
 </html>
