@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
-    "firebase": "^10.8.0"
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "firebase": "^10.8.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.4.1",
