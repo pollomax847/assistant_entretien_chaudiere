@@ -6,9 +6,12 @@
     "firebase": "^10.8.0"
   },
   "devDependencies": {
+    "@vitejs/plugin-react": "^4.4.1",
     "jest": "^29.7.0",
     "serve": "^14.2.4",
-    "vercel": "^32.7.2"
+    "typescript": "^5.8.3",
+    "vercel": "^32.7.2",
+    "vite": "^6.3.3"
   },
   "scripts": {
     "build": "tsc && vite build",
