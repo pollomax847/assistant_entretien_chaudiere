@@ -1,30 +1,16 @@
+// Ajouter les écouteurs d'événements pour tous les champs de saisie
+document.addEventListener('DOMContentLoaded', function() {
+    // Attacher les écouteurs aux champs de saisie
+    document.querySelectorAll('input, select').forEach(input => {
+        input.addEventListener(input.type === 'checkbox' ? 'change' : 'input', calcule);
+    });
+
+    // Lancer un premier calcul au chargement
+    calcule();
+});
+
 function calcule() {
-    const vol = parseFloat(document.getElementById('volChauff').value);
-    const G = parseFloat(document.getElementById('coefG').value);
-    const Text = parseFloat(document.getElementById('tempExt').value);
-    const P = (G * vol * (19 - Text) / 1000).toFixed(2);
-    document.getElementById('resChauffage').textContent = `Puissance : ${P} kW`;
-
-    const etage = parseInt(document.getElementById('etages').value);
-    const pression = etage === 0 ? 0.5 : etage === 1 ? 0.75 : etage === 2 ? 1 : 1.25;
-    const volVase = etage === 0 ? 1.5 : etage === 1 ? 3.5 : etage === 2 ? 5 : 6.5;
-    document.getElementById('resVase').textContent = `Pression gonflage : ${pression} bar | Volume mini vase : ${volVase} L`;
-
-    const deb = parseFloat(document.getElementById('indexDebut').value);
-    const fin = parseFloat(document.getElementById('indexFin').value);
-    const duree = parseFloat(document.getElementById('duree').value);
-    const pci = parseFloat(document.getElementById('typeGaz').value);
-    const pressionGaz = parseFloat(document.getElementById('pression').value);
-
-    if (!isNaN(deb) && !isNaN(fin) && !isNaN(duree)) {
-        const volume = fin - deb;
-        const m3h = (volume * 3600 / duree).toFixed(2);
-        const Pgaz = (m3h * pci).toFixed(2);
-        const pressionNormale = (pressionGaz / 20).toFixed(2);
-        document.getElementById('resGaz').textContent =
-            `Débit : ${m3h} m³/h | Puissance : ${Pgaz} kW | Pression : ${pressionGaz} mbar (${pressionNormale} × Pn)`;
-    }
-
+    // ECS
     const volEcs = parseFloat(document.getElementById('volEcs').value);
     const dureeEcs = parseFloat(document.getElementById('dureeEcs').value);
     const tempEfs = parseFloat(document.getElementById('tempEfs').value);
@@ -34,7 +20,8 @@ function calcule() {
         const debit = ((volEcs / dureeEcs) * 60).toFixed(1);
         const deltaT = tempEcs - tempEfs;
         const puissance = ((debit * deltaT) / 0.0143).toFixed(1);
-        document.getElementById('resEcs').textContent = `Débit : ${debit} L/min | ΔT : ${deltaT}°C | Puissance : ${puissance} kW`;
+        document.getElementById('resEcs').textContent = 
+            `Débit : ${debit} L/min | ΔT : ${deltaT}°C | Puissance : ${puissance} kW`;
     }
 
     // Module Top Gaz
@@ -59,19 +46,18 @@ function calcule() {
     const tempInt = parseFloat(document.getElementById('tempInt').value);
     const tempExt = parseFloat(document.getElementById('tempExt').value);
 
-    const volume = surface * hauteur;
-    const deltaT = tempInt - tempExt;
-    const puissanceChauffage = (coefG * volume * deltaT / 1000).toFixed(2);
+    if (!isNaN(surface) && !isNaN(hauteur) && !isNaN(coefG) && !isNaN(tempInt) && !isNaN(tempExt)) {
+        const volume = surface * hauteur;
+        const deltaT = tempInt - tempExt;
+        const puissanceChauffage = (coefG * volume * deltaT / 1000).toFixed(2);
+        document.getElementById('resChauffage').textContent =
+            `Volume : ${volume.toFixed(1)} m³ | ΔT : ${deltaT}°C | Puissance : ${puissanceChauffage} kW`;
+    }
 
-    document.getElementById('resChauffage').textContent =
-        `Volume : ${volume.toFixed(1)} m³ | ΔT : ${deltaT}°C | Puissance : ${puissanceChauffage} kW`;
-
-    // Vase d'expansion
-    const hauteurBatiment = parseFloat(document.getElementById('hauteurBatiment').value);
-    const pressionVase = ((hauteurBatiment / 10) + 0.3).toFixed(1);
-    document.getElementById('resVase').textContent = `Pression recommandée : ${pressionVase} bar`;
-
+    // Calcul des émetteurs
     calculeEmetteur();
+    
+    // Vérifications réglementaires
     verifieReglementaire();
 }
 
@@ -147,9 +133,6 @@ function calculeEmetteur() {
         }
     }
 }
-
-document.querySelectorAll('input').forEach(input => input.addEventListener('input', calcule));
-window.onload = calcule;
 
 // Vérifications réglementaires gaz
 function verifieReglementaire() {

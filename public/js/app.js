@@ -85,39 +85,40 @@ function initNavigation() {
  * Initialise les calculs ECS
  */
 function initEcsCalculations() {
-    const btnCalculerEcs = document.getElementById('btnCalculerEcs');
-    if (!btnCalculerEcs) return;
+    const form = document.getElementById('formEcs');
+    if (!form) return;
     
-    btnCalculerEcs.addEventListener('click', function() {
-        const tempEfs = parseFloat(document.getElementById('tempEfs').value);
-        const tempEcs = parseFloat(document.getElementById('tempEcs').value);
-        const debit = parseFloat(document.getElementById('debitEcs').value);
-        const puissanceChaudiere = parseFloat(document.getElementById('puissanceChaudiere').value);
-        
-        const result = calculerEcsInstantane(tempEfs, tempEcs, debit, puissanceChaudiere);
-        
-        // Mise à jour du deltaT calculé
-        if (result.success) {
-            document.getElementById('deltaTEcs').value = result.deltaT;
+    ['tempEfs', 'tempEcs', 'debitEcs', 'puissanceChaudiere'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.addEventListener('input', () => {
+                const tempEfs = parseFloat(document.getElementById('tempEfs').value);
+                const tempEcs = parseFloat(document.getElementById('tempEcs').value);
+                const debit = parseFloat(document.getElementById('debitEcs').value);
+                const puissanceChaudiere = parseFloat(document.getElementById('puissanceChaudiere').value);
+                
+                const result = calculerEcsInstantane(tempEfs, tempEcs, debit, puissanceChaudiere);
+                
+                if (result.success) {
+                    document.getElementById('deltaTEcs').value = result.deltaT;
+                }
+                
+                let resultHTML = '';
+                if (result.success) {
+                    resultHTML += `<p>🌡️ ΔT : <strong>${result.deltaT} °C</strong></p>`;
+                    resultHTML += `<p>🚿 Débit : <strong>${result.debit} L/min</strong></p>`;
+                    resultHTML += `<p>⚡ Puissance restituée : <strong>${result.puissanceRestituee} kW</strong></p>`;
+                    
+                    if (result.coherence) {
+                        const colorClass = result.coherence === 'bonne' ? 'success' : 
+                                        (result.coherence === 'faible' ? 'error' : 'warning');
+                        resultHTML += `<p class="${colorClass}">${result.coherence === 'bonne' ? '✅' : '⚠️'} ${result.messageCoherence}</p>`;
+                    }
+                }
+                
+                document.getElementById('resEcsInstantane').innerHTML = resultHTML;
+            });
         }
-        
-        // Affichage du résultat
-        let resultHTML = '';
-        if (result.success) {
-            resultHTML += `<p>🌡️ ΔT : <strong>${result.deltaT} °C</strong></p>`;
-            resultHTML += `<p>🚿 Débit : <strong>${result.debit} L/min</strong></p>`;
-            resultHTML += `<p>⚡ Puissance restituée : <strong>${result.puissanceRestituee} kW</strong></p>`;
-            
-            if (result.coherence) {
-                const colorClass = result.coherence === 'bonne' ? 'success' : 
-                                  (result.coherence === 'faible' ? 'error' : 'warning');
-                resultHTML += `<p class="${colorClass}">${result.coherence === 'bonne' ? '✅' : '⚠️'} ${result.messageCoherence}</p>`;
-            }
-        } else {
-            resultHTML = `<p class="error">❌ ${result.message}</p>`;
-        }
-        
-        document.getElementById('resEcsInstantane').innerHTML = resultHTML;
     });
 }
 
@@ -126,73 +127,84 @@ function initEcsCalculations() {
  */
 function initChauffageCalculations() {
     // Calcul de puissance chauffage
-    const btnCalculerChauffage = document.getElementById('btnCalculerChauffage');
-    if (btnCalculerChauffage) {
-        btnCalculerChauffage.addEventListener('click', function() {
-            const form = document.getElementById('formChauffage');
-            resetFormValidation(form);
-            
-            if (!form.checkValidity()) {
-                showFormValidationErrors(form);
-                return;
-            }
-            
-            const volume = parseFloat(document.getElementById('volChauff').value);
-            const coefG = parseFloat(document.getElementById('coefG').value);
-            const tempExt = parseFloat(document.getElementById('tempExt').value);
-            
-            const result = calculerPuissanceChauffage(volume, coefG, tempExt);
-            
-            document.getElementById('resChauffage').innerHTML = formatResult(
-                result.success, 
-                result.message,
-                { type: result.success ? 'success' : 'error' }
-            );
-        });
-    }
-    
+    const form = document.getElementById('formChauffage');
+    if (!form) return;
+
+    ['volChauff', 'coefG', 'tempExt'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.addEventListener('input', () => {
+                resetFormValidation(form);
+                
+                if (!form.checkValidity()) {
+                    showFormValidationErrors(form);
+                    return;
+                }
+                
+                const volume = parseFloat(document.getElementById('volChauff').value);
+                const coefG = parseFloat(document.getElementById('coefG').value);
+                const tempExt = parseFloat(document.getElementById('tempExt').value);
+                
+                const result = calculerPuissanceChauffage(volume, coefG, tempExt);
+                
+                document.getElementById('resChauffage').innerHTML = formatResult(
+                    result.success, 
+                    result.message,
+                    { type: result.success ? 'success' : 'error' }
+                );
+            });
+        }
+    });
+
     // Calcul de puissance radiateur
-    const btnCalculerRadiateur = document.getElementById('btnCalculerRadiateur');
-    if (btnCalculerRadiateur) {
-        btnCalculerRadiateur.addEventListener('click', function() {
-            const type = document.getElementById('typeRadiateur').value;
-            const hauteur = parseInt(document.getElementById('hauteurRad').value);
-            const longueur = parseInt(document.getElementById('longueurRad').value);
-            const panneau = type === 'Panneaux' ? document.getElementById('typePanneau').value : null;
-            
-            const result = calculerPuissanceRadiateur(type, hauteur, longueur, panneau);
-            
-            document.getElementById('resRadiateur').innerHTML = formatResult(
-                result.success, 
-                result.message,
-                { type: result.success ? 'success' : 'error' }
-            );
-        });
-        
-        // Gestion du type de radiateur
-        document.getElementById('typeRadiateur').addEventListener('change', function() {
+    ['typeRadiateur', 'hauteurRad', 'longueurRad', 'typePanneau'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.addEventListener('input', () => {
+                const type = document.getElementById('typeRadiateur').value;
+                const hauteur = parseInt(document.getElementById('hauteurRad').value);
+                const longueur = parseInt(document.getElementById('longueurRad').value);
+                const panneau = type === 'Panneaux' ? document.getElementById('typePanneau').value : null;
+                
+                const result = calculerPuissanceRadiateur(type, hauteur, longueur, panneau);
+                
+                document.getElementById('resRadiateur').innerHTML = formatResult(
+                    result.success, 
+                    result.message,
+                    { type: result.success ? 'success' : 'error' }
+                );
+            });
+        }
+    });
+    
+    // Gestion du type de radiateur
+    const typeRadiateurSelect = document.getElementById('typeRadiateur');
+    if (typeRadiateurSelect) {
+        typeRadiateurSelect.addEventListener('change', function() {
             const panneauOptions = document.getElementById('optionPanneaux');
             panneauOptions.style.display = this.value === 'Panneaux' ? 'block' : 'none';
             afficherVisuelRadiateur();
         });
     }
-    
+
     // Calcul vase d'expansion
-    const btnCalculerVase = document.getElementById('btnCalculerVase');
-    if (btnCalculerVase) {
-        btnCalculerVase.addEventListener('click', function() {
-            const hauteur = parseFloat(document.getElementById('hauteurBatiment').value);
-            const radiateurLoin = document.getElementById('radiateurPlusLoin').value === 'oui';
-            
-            const result = calculerVaseExpansion(hauteur, radiateurLoin);
-            
-            document.getElementById('resVase').innerHTML = formatResult(
-                result.success, 
-                result.message,
-                { type: result.success ? 'success' : 'error' }
-            );
-        });
-    }
+    ['hauteurBatiment', 'radiateurPlusLoin'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.addEventListener('input', () => {
+                const hauteur = parseFloat(document.getElementById('hauteurBatiment').value);
+                const radiateurLoin = document.getElementById('radiateurPlusLoin').value === 'oui';
+                
+                const result = calculerVaseExpansion(hauteur, radiateurLoin);
+                
+                document.getElementById('resVase').innerHTML = formatResult(
+                    result.success, 
+                    result.message,
+                    { type: result.success ? 'success' : 'error' }
+                );
+            });
+        }
+    });
 }
 
 /**
@@ -200,90 +212,94 @@ function initChauffageCalculations() {
  */
 function initGazVerifications() {
     // Vérification conformité gaz
-    const btnVerifierGaz = document.getElementById('verifierGaz');
-    if (btnVerifierGaz) {
-        btnVerifierGaz.addEventListener('click', function() {
-            const regletteVaso = document.getElementById('regletteVaso').checked;
-            const roai = document.getElementById('roai').checked;
-            const distances = document.getElementById('distances').checked;
-            
-            const result = verifierConformiteGaz({
-                regletteVaso,
-                roai,
-                distances
+    ['regletteVaso', 'roai', 'distances'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.addEventListener('change', () => {
+                const regletteVaso = document.getElementById('regletteVaso').checked;
+                const roai = document.getElementById('roai').checked;
+                const distances = document.getElementById('distances').checked;
+                
+                const result = verifierConformiteGaz({
+                    regletteVaso,
+                    roai,
+                    distances
+                });
+                
+                let resultHTML = formatResult(
+                    result.success, 
+                    result.message,
+                    { type: result.conforme ? 'success' : 'error' }
+                );
+                
+                if (result.details && result.details.length > 0) {
+                    resultHTML += formatDetails(result.details);
+                }
+                
+                document.getElementById('resConformiteGaz').innerHTML = resultHTML;
             });
-            
-            let resultHTML = formatResult(
-                result.success, 
-                result.message,
-                { type: result.conforme ? 'success' : 'error' }
-            );
-            
-            if (result.details && result.details.length > 0) {
-                resultHTML += formatDetails(result.details);
-            }
-            
-            document.getElementById('resConformiteGaz').innerHTML = resultHTML;
-        });
-    }
+        }
+    });
     
     // Vérification ventilation
-    const btnVerifierVentilation = document.getElementById('verifierVentilation');
-    if (btnVerifierVentilation) {
-        btnVerifierVentilation.addEventListener('click', function() {
-            const typeHotte = document.getElementById('typeHotte').value;
-            const typeAppareil = document.getElementById('typeAppareil').value;
-            const volumePiece = parseFloat(document.getElementById('volumePiece').value);
-            const clapet = document.getElementById('clapet').checked;
-            const asservissement = document.getElementById('asservissement').checked;
-            
-            const result = verifierVentilation(typeHotte, typeAppareil, volumePiece, clapet, asservissement);
-            
-            let resultHTML = formatResult(
-                result.success, 
-                result.message,
-                { type: result.conforme ? 'success' : 'error' }
-            );
-            
-            if (result.details && result.details.length > 0) {
-                resultHTML += formatDetails(result.details);
-            }
-            
-            document.getElementById('resVentilation').innerHTML = resultHTML;
-        });
-    }
-    
-    // Calcul Top Gaz
-    const btnCalculerTopGaz = document.getElementById('btnCalculerTopGaz');
-    if (btnCalculerTopGaz) {
-        btnCalculerTopGaz.addEventListener('click', function() {
-            const digit1 = parseInt(document.getElementById('digit1').value) || 0;
-            const digit2 = parseInt(document.getElementById('digit2').value) || 0;
-            const digit3 = parseInt(document.getElementById('digit3').value) || 0;
-            const duree = parseInt(document.getElementById('dureeTop').value);
-            const pcs = parseFloat(document.getElementById('typeGaz').value);
-            const puissChaudiere = parseFloat(document.getElementById('puissChaudiereGaz').value);
-            
-            const result = calculerTopGaz(digit1, digit2, digit3, duree, pcs, puissChaudiere);
-            
-            let resultHTML = '';
-            if (result.success) {
-                resultHTML += `<p>📊 Volume mesuré : <strong>${result.volume} L</strong></p>`;
-                resultHTML += `<p>⏱️ Durée du test : <strong>${result.duree} secondes</strong></p>`;
-                resultHTML += `<p>💨 Débit horaire : <strong>${result.debitHoraire} L/h</strong></p>`;
-                resultHTML += `<p>⚡ Puissance mesurée : <strong>${result.puissance} kW</strong></p>`;
+    ['typeHotte', 'typeAppareil', 'volumePiece', 'clapet', 'asservissement'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.addEventListener(input.type === 'checkbox' ? 'change' : 'input', () => {
+                const typeHotte = document.getElementById('typeHotte').value;
+                const typeAppareil = document.getElementById('typeAppareil').value;
+                const volumePiece = parseFloat(document.getElementById('volumePiece').value);
+                const clapet = document.getElementById('clapet').checked;
+                const asservissement = document.getElementById('asservissement').checked;
                 
-                if (result.ecart) {
-                    const colorClass = result.coherence === 'oui' ? 'success' : 'warning';
-                    resultHTML += `<p class="${colorClass}">${result.coherence === 'oui' ? '✅' : '⚠️'} ${result.messageCoherence}</p>`;
+                const result = verifierVentilation(typeHotte, typeAppareil, volumePiece, clapet, asservissement);
+                
+                let resultHTML = formatResult(
+                    result.success, 
+                    result.message,
+                    { type: result.conforme ? 'success' : 'error' }
+                );
+                
+                if (result.details && result.details.length > 0) {
+                    resultHTML += formatDetails(result.details);
                 }
-            } else {
-                resultHTML = `<p class="error">❌ ${result.message}</p>`;
-            }
-            
-            document.getElementById('resTopGaz').innerHTML = resultHTML;
-        });
-    }
+                
+                document.getElementById('resVentilation').innerHTML = resultHTML;
+            });
+        }
+    });
+
+    // Calcul Top Gaz - déjà automatique
+    ['digit1', 'digit2', 'digit3', 'dureeTop', 'typeGaz', 'puissChaudiereGaz'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.addEventListener('input', () => {
+                const digit1 = parseInt(document.getElementById('digit1').value) || 0;
+                const digit2 = parseInt(document.getElementById('digit2').value) || 0;
+                const digit3 = parseInt(document.getElementById('digit3').value) || 0;
+                const duree = parseInt(document.getElementById('dureeTop').value);
+                const pcs = parseFloat(document.getElementById('typeGaz').value);
+                const puissChaudiere = parseFloat(document.getElementById('puissChaudiereGaz').value);
+                
+                const result = calculerTopGaz(digit1, digit2, digit3, duree, pcs, puissChaudiere);
+                
+                let resultHTML = '';
+                if (result.success) {
+                    resultHTML += `<p>📊 Volume mesuré : <strong>${result.volume} L</strong></p>`;
+                    resultHTML += `<p>⏱️ Durée du test : <strong>${result.duree} secondes</strong></p>`;
+                    resultHTML += `<p>💨 Débit horaire : <strong>${result.debitHoraire} m³/h</strong></p>`;
+                    resultHTML += `<p>⚡ Puissance mesurée : <strong>${result.puissance} kW</strong></p>`;
+                    
+                    if (result.ecart) {
+                        const colorClass = result.coherence === 'oui' ? 'success' : 'warning';
+                        resultHTML += `<p class="${colorClass}">${result.coherence === 'oui' ? '✅' : '⚠️'} ${result.messageCoherence}</p>`;
+                    }
+                }
+                
+                document.getElementById('resTopGaz').innerHTML = resultHTML;
+            });
+        }
+    });
 }
 
 /**
