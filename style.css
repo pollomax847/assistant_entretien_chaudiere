@@ -20,6 +20,11 @@ body {
     display: grid;
     grid-template-columns: 280px 1fr;
     min-height: 100vh;
+    transition: grid-template-columns var(--transition-speed) var(--transition-easing);
+}
+
+.app-container.sidebar-hidden {
+    grid-template-columns: 1fr;
 }
 
 /* Sidebar */
@@ -31,10 +36,45 @@ body {
     height: 100vh;
     width: 280px;
     overflow-y: auto;
+    transition: transform var(--transition-speed) var(--transition-easing);
+}
+
+.sidebar-hidden .sidebar {
+    transform: translateX(-280px);
+}
+
+.sidebar-toggle {
+    position: fixed;
+    top: var(--spacing-md);
+    left: var(--spacing-md);
+    background-color: var(--surface-color);
+    border: none;
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-sm);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    z-index: var(--z-index-drawer);
+    transition: transform var(--transition-speed) var(--transition-easing);
+}
+
+.sidebar-toggle:hover {
+    background-color: var(--background-color);
+}
+
+.sidebar-hidden .sidebar-toggle {
+    transform: translateX(280px);
+}
+
+.sidebar-toggle img {
+    width: 24px;
+    height: 24px;
 }
 
 .sidebar-header {
     margin-bottom: var(--spacing-xl);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .sidebar-header h2 {
@@ -75,6 +115,11 @@ body {
 .main-content {
     margin-left: 280px;
     padding: var(--spacing-xl);
+    transition: margin-left var(--transition-speed) var(--transition-easing);
+}
+
+.sidebar-hidden .main-content {
+    margin-left: 0;
 }
 
 .main-header {
@@ -170,12 +215,22 @@ button:hover {
     }
     
     .sidebar {
-        position: relative;
-        width: 100%;
-        height: auto;
+        position: fixed;
+        width: 280px;
+        height: 100vh;
+        transform: translateX(-280px);
+        z-index: var(--z-index-drawer);
+    }
+    
+    .sidebar-visible {
+        transform: translateX(0);
     }
     
     .main-content {
         margin-left: 0;
+    }
+    
+    .sidebar-toggle {
+        display: block;
     }
 }
