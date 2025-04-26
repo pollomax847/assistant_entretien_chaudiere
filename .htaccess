@@ -1,0 +1,16 @@
+AddType text/css .css
+AddType application/javascript .js
+AddType image/png .png
+
+<FilesMatch "\.(css|js|png|jpg|jpeg|gif|ico)$">
+  Header set Cache-Control "max-age=31536000, public"
+</FilesMatch>
+
+<FilesMatch "\.(html|htm)$">
+  Header set Cache-Control "max-age=86400, public"
+</FilesMatch>
+
+# Enable gzip compression
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript text/javascript
+</IfModule>

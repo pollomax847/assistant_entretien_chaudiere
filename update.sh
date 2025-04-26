@@ -71,4 +71,31 @@ if [[ $PR_RESPONSE == *"errors"* ]]; then
 fi
 
 success "Pull request créée avec succès !"
-echo "URL de la pull request: $(echo $PR_RESPONSE | grep -o '"html_url": "[^"]*' | cut -d'"' -f4)" 
+echo "URL de la pull request: $(echo $PR_RESPONSE | grep -o '"html_url": "[^"]*' | cut -d'"' -f4)"
+
+# Créer les dossiers nécessaires s'ils n'existent pas
+mkdir -p public/css
+mkdir -p public/js
+mkdir -p public/assets
+
+# Déplacer les fichiers CSS
+cp css/* public/css/
+cp style.css public/css/
+
+# Déplacer les fichiers JS
+cp js/* public/js/
+cp script.js public/js/
+
+# Déplacer les assets
+cp -r assets/* public/assets/
+
+# Déplacer le fichier index.html
+cp index.html public/
+
+# Installer les dépendances
+npm install
+
+# Construire le projet
+npm run build
+
+echo "Mise à jour terminée !" 
