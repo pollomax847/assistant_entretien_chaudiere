@@ -6,12 +6,16 @@
   "scripts": {
     "start": "vite",
     "prebuild": "rm -rf public",
-    "build": "vite build",
+    "build": "vite build && mkdir -p public/assets/icons && cp -r assets/icons/* public/assets/icons/",
     "preview": "vite preview"
   },
   "dependencies": {
     "html2pdf.js": "^0.10.1",
-    "signature_pad": "^4.1.5"
+    "signature_pad": "^4.1.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "^5.0.1",
+    "web-vitals": "^2.1.4"
   },
   "devDependencies": {
     "vite": "^5.0.0"
