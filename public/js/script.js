@@ -17,6 +17,78 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialiser autres écouteurs généraux
     initGeneralListeners();
+
+    const form = document.getElementById('maintenance-form');
+    const resultContainer = document.getElementById('result-container');
+    const pdfContainer = document.getElementById('pdf-container');
+    const generatePdfBtn = document.getElementById('generate-pdf');
+    
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Collect form data
+            const formData = {
+                clientName: document.getElementById('client-name').value,
+                clientAddress: document.getElementById('client-address').value,
+                clientPhone: document.getElementById('client-phone').value,
+                clientEmail: document.getElementById('client-email').value,
+                boilerType: document.getElementById('boiler-type').value,
+                maintenanceDate: document.getElementById('maintenance-date').value,
+                technician: document.getElementById('technician-name').value,
+                notes: document.getElementById('notes').value
+            };
+            
+            // Display results
+            displayResults(formData);
+            
+            // Show result container
+            resultContainer.style.display = 'block';
+        });
+    }
+    
+    // Generate PDF when button is clicked
+    if (generatePdfBtn) {
+        generatePdfBtn.addEventListener('click', function() {
+            // Clone the result content for PDF
+            pdfContainer.innerHTML = document.getElementById('result-content').innerHTML;
+            
+            // Add company header for the PDF
+            const companyHeader = document.createElement('div');
+            companyHeader.innerHTML = '<h2>Rapport d\'entretien de chaudière</h2><p>Service professionnel d\'entretien de chaudières</p>';
+            pdfContainer.prepend(companyHeader);
+            
+            // Generate PDF
+            html2pdf()
+                .from(pdfContainer)
+                .save('rapport-entretien-chaudiere.pdf');
+        });
+    }
+    
+    // Function to display results
+    function displayResults(data) {
+        const resultContent = document.getElementById('result-content');
+        
+        if (!resultContent) return;
+        
+        const currentDate = new Date().toLocaleDateString();
+        
+        resultContent.innerHTML = `
+            <h2>Rapport d'Entretien de Chaudière</h2>
+            <p><strong>Date du rapport:</strong> ${currentDate}</p>
+            <p><strong>Client:</strong> ${data.clientName}</p>
+            <p><strong>Adresse:</strong> ${data.clientAddress}</p>
+            <p><strong>Téléphone:</strong> ${data.clientPhone}</p>
+            <p><strong>Email:</strong> ${data.clientEmail}</p>
+            <p><strong>Type de chaudière:</strong> ${data.boilerType}</p>
+            <p><strong>Date d'entretien:</strong> ${data.maintenanceDate}</p>
+            <p><strong>Technicien:</strong> ${data.technician}</p>
+            <h3>Observations:</h3>
+            <p>${data.notes}</p>
+            <h3>Recommandations:</h3>
+            <p>Il est recommandé d'effectuer un entretien annuel de votre chaudière pour en optimiser la performance et la durée de vie.</p>
+        `;
+    }
 });
 
 function calcule() {
