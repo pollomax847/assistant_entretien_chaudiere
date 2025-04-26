@@ -21,12 +21,20 @@ export default defineConfig({
                         return 'js/[name]-[hash][extname]';
                     }
                     return 'assets/[name]-[hash][extname]';
-                }
+                },
+                chunkFileNames: 'js/[name]-[hash].js',
+                entryFileNames: 'js/[name]-[hash].js'
             }
         }
     },
     server: {
         port: 3000,
         open: true
+    },
+    resolve: {
+        alias: {
+            '@': '/src',
+            '@modules': '/modules'
+        }
     }
 }); 

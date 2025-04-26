@@ -146,18 +146,28 @@ function updateOnlineStatus() {
 // Chargement des modules
 function loadModule(moduleId) {
     const moduleContainer = document.getElementById('module-container');
+    if (!moduleContainer) {
+        console.error('Container de module non trouvé');
+        return;
+    }
+    
     moduleContainer.innerHTML = ''; // Nettoyage du conteneur
     
-    // Chargement dynamique du module
-    fetch(`/modules/${moduleId}.html`)
-        .then(response => response.text())
+    // Chargement dynamique du module avec chemin relatif
+    fetch(`modules/${moduleId}.html`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
         .then(html => {
             moduleContainer.innerHTML = html;
             initializeModule(moduleId);
         })
         .catch(error => {
             console.error('Erreur lors du chargement du module:', error);
-            moduleContainer.innerHTML = '<div class="error">Erreur lors du chargement du module</div>';
+            moduleContainer.innerHTML = `<div class="error">Erreur lors du chargement du module: ${moduleId}</div>`;
         });
 }
 
