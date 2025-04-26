@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { AuthProvider } from '@/components/AuthProvider';
-import { showNotification } from '@/components/Notification';
+import { AuthProvider } from '../components/AuthProvider';
+import { showNotification } from '../components/Notification';
 import { useSession } from 'next-auth/react';
 
 export default function Home() {

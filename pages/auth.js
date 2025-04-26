@@ -14,7 +14,7 @@ import {
   Alert,
 } from '@mui/material';
 import Head from 'next/head';
-import { AuthProvider } from '@/components/AuthProvider';
+import { AuthProvider } from '../components/AuthProvider';
 import { useNotification } from '../components/Notification';
 
 export default function Auth() {
