@@ -1,13 +1,19 @@
 // Configuration initiale
 document.addEventListener('DOMContentLoaded', () => {
-    initializeApp();
-    setupEventListeners();
-    loadUserPreferences();
-    const sidebarHidden = localStorage.getItem('sidebarHidden') === 'true';
-    if (sidebarHidden) {
+    const appContainer = document.querySelector('.app-container');
+    
+    // Initialize modules and UI
+    initializeModules();
+    initializeEventListeners();
+    initializePreferences();
+    
+    // Check sidebar state
+    if (localStorage.getItem('sidebarHidden') === 'true' && appContainer) {
         appContainer.classList.add('sidebar-hidden');
     }
-    renderModules();
+    
+    // Initialize other components
+    updateOnlineStatus();
     loadFavorites();
 });
 
@@ -82,9 +88,9 @@ const modules = [
 ];
 
 // Initialisation de l'application
-function initializeApp() {
+function initializeModules() {
     // Vérification de la connexion
-    updateConnectionStatus();
+    updateOnlineStatus();
     
     // Chargement des modules
     loadModule('module-puissance-chauffage');
@@ -94,7 +100,7 @@ function initializeApp() {
 }
 
 // Gestionnaires d'événements
-function setupEventListeners() {
+function initializeEventListeners() {
     // Navigation
     document.querySelectorAll('.sidebar-nav a').forEach(link => {
         link.addEventListener('click', (e) => {
@@ -124,7 +130,7 @@ function setupEventListeners() {
 }
 
 // Gestion de la connexion
-function updateConnectionStatus() {
+function updateOnlineStatus() {
     const statusIndicator = document.getElementById('status-indicator');
     if (navigator.onLine) {
         statusIndicator.classList.add('status-online');
@@ -250,7 +256,7 @@ function formatLabel(key) {
 }
 
 // Gestion des préférences
-function loadUserPreferences() {
+function initializePreferences() {
     const prefs = JSON.parse(localStorage.getItem('userPreferences')) || {};
     document.getElementById('technician-name').textContent = prefs.technicianName || 'Technicien';
 }
