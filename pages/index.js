@@ -6,8 +6,10 @@ import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { AuthProvider } from '@/components/AuthProvider';
 import { showNotification } from '@/components/Notification';
+import { useSession } from 'next-auth/react';
 
 export default function Home() {
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [sidebarHidden, setSidebarHidden] = useState(false);
   const [modules, setModules] = useState([
@@ -44,6 +46,12 @@ export default function Home() {
   ]);
 
   useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth');
+    }
+  }, [status, router]);
+
+  useEffect(() => {
     // Check sidebar state from localStorage
     const savedSidebarState = localStorage.getItem('sidebarHidden');
     if (savedSidebarState === 'true') {
@@ -56,9 +64,17 @@ export default function Home() {
     localStorage.setItem('sidebarHidden', !sidebarHidden);
   };
 
+  if (status === 'loading') {
+    return <div>Chargement...</div>;
+  }
+
+  if (!session) {
+    return null;
+  }
+
   return (
     <AuthProvider>
-      {({ session, signOut }) => (
+      {({ signOut }) => (
         <>
           <Head>
             <title>Chauffage Expert</title>

@@ -1,19 +1,29 @@
 'use client';
 
+import { createContext, useContext, useState, useEffect } from 'react';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
 import { showNotification } from './Notification';
+
+const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (status === 'unauthenticated' && router.pathname !== '/auth') {
-      router.push('/auth');
+    if (status === 'loading') {
+      setIsLoading(true);
+    } else {
+      setIsLoading(false);
+      
+      // Rediriger vers la page de connexion si l'utilisateur n'est pas authentifié
+      if (!session && router.pathname !== '/auth') {
+        router.push('/auth');
+      }
     }
-  }, [status, router]);
+  }, [session, status, router]);
 
   const handleSignIn = async (email, password) => {
     try {
@@ -44,10 +54,21 @@ export function AuthProvider({ children }) {
     }
   };
 
-  return children({
-    session,
-    status,
-    signIn: handleSignIn,
-    signOut: handleSignOut,
-  });
+  if (isLoading) {
+    return <div>Chargement...</div>;
+  }
+
+  return (
+    <AuthContext.Provider value={{ session, status }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 } 

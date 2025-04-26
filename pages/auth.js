@@ -15,19 +15,18 @@ import {
 } from '@mui/material';
 import Head from 'next/head';
 import { AuthProvider } from '@/components/AuthProvider';
-import { showNotification } from '@/components/Notification';
+import { useNotification } from '../components/Notification';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const router = useRouter();
   const theme = useTheme();
+  const { addNotification } = useNotification();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-
+    
     try {
       const result = await signIn('credentials', {
         redirect: false,
@@ -36,12 +35,13 @@ export default function Auth() {
       });
 
       if (result.error) {
-        setError(result.error);
+        addNotification(result.error, 'error');
       } else {
+        addNotification('Connexion réussie', 'success');
         router.push('/');
       }
     } catch (error) {
-      setError('Une erreur est survenue lors de la connexion');
+      addNotification('Une erreur est survenue', 'error');
     }
   };
 
@@ -76,12 +76,6 @@ export default function Auth() {
                   Connexion
                 </Typography>
                 
-                {error && (
-                  <Alert severity="error" sx={{ mb: 2 }}>
-                    {error}
-                  </Alert>
-                )}
-
                 <form onSubmit={handleSubmit}>
                   <TextField
                     fullWidth
