@@ -1,51 +1,13 @@
 {
   "name": "chauffage-expert",
   "version": "1.0.0",
-  "description": "Application web pour les techniciens de chauffage",
+  "description": "Application d'assistance pour l'entretien des chaudières",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "test": "jest",
-    "format": "prettier --write ."
+    "build": "rm -rf public && mkdir -p public && cp -r css public/ && cp -r js public/ && cp -r assets public/ && cp index.html public/ && cp .htaccess public/ && mkdir -p public/assets/icons && cp assets/icons/* public/assets/icons/",
+    "start": "serve public"
   },
   "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.0",
-    "@mui/material": "^7.0.2",
-    "bcryptjs": "^2.4.3",
-    "html2pdf.js": "^0.10.1",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.1.0",
-    "next": "^14.1.0",
-    "next-auth": "^4.24.5",
-    "next-themes": "^0.2.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-hook-form": "^7.50.0",
-    "react-icons": "^5.0.1",
-    "react-toastify": "^10.0.4",
-    "signature_pad": "^4.1.5",
-    "uuid": "^11.1.0",
-    "zod": "^3.22.4"
-  },
-  "devDependencies": {
-    "@testing-library/jest-dom": "^6.4.2",
-    "@testing-library/react": "^14.2.1",
-    "@types/node": "^20.11.0",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "autoprefixer": "^10.4.17",
-    "eslint": "^8.56.0",
-    "eslint-config-next": "^14.1.0",
-    "jest": "^29.7.0",
-    "postcss": "^8.4.35",
-    "prettier": "^3.2.4",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5.3.3"
-  },
-  "author": "",
-  "license": "MIT"
+    "serve": "^14.2.1"
+  }
 }
