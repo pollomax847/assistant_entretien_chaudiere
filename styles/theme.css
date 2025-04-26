@@ -53,6 +53,18 @@
   --z-index-sidebar: 100;
   --z-index-modal: 1000;
   --z-index-snackbar: 1100;
+
+  /* Light theme */
+  --background: #ffffff;
+  --foreground: #000000;
+  --primary: #0070f3;
+  --secondary: #6c757d;
+  --success: #28a745;
+  --danger: #dc3545;
+  --warning: #ffc107;
+  --info: #17a2b8;
+  --border: #dee2e6;
+  --card-bg: #f8f9fa;
 }
 
 /* Thème sombre */
@@ -66,4 +78,16 @@
   --text-secondary: rgba(255, 255, 255, 0.6);
   --text-disabled: rgba(255, 255, 255, 0.38);
   --border-color: rgba(255, 255, 255, 0.12);
+
+  /* Dark theme */
+  --background: #121212;
+  --foreground: #ffffff;
+  --primary: #3291ff;
+  --secondary: #adb5bd;
+  --success: #4caf50;
+  --danger: #f44336;
+  --warning: #ff9800;
+  --info: #2196f3;
+  --border: #333333;
+  --card-bg: #1e1e1e;
 } 
