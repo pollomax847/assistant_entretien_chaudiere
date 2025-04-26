@@ -848,102 +848,243 @@ function initReglementationGaz() {
             }
             
             // Vérifier la conformité
-            verifierReglementationGaz();
+            checkGasRegulation();
         });
     }
     
     // Écouteurs sur les contrôles spécifiques pour chaque type
     const controls = document.querySelectorAll('#gaz-reg-fields-A input, #gaz-reg-fields-B input, #gaz-reg-fields-C input, #gaz-reg-fields-A select, #gaz-reg-fields-B select, #gaz-reg-fields-C select');
     controls.forEach(control => {
-        control.addEventListener('change', verifierReglementationGaz);
-        control.addEventListener('input', verifierReglementationGaz);
+        control.addEventListener('change', checkGasRegulation);
+        control.addEventListener('input', checkGasRegulation);
     });
 }
 
 /**
  * Vérification de la conformité réglementation gaz
  */
-function verifierReglementationGaz() {
-    const typeAppareil = document.getElementById('gaz-reg-type-appareil').value;
-    const resultElement = document.getElementById('result-reglementation-gaz');
-    
-    if (!typeAppareil) {
-        resultElement.innerHTML = '<p>Veuillez sélectionner un type d\'appareil</p>';
-        return;
+function checkGasRegulation() {
+    const results = [];
+    let isValid = true;
+
+    // 1. Alimentation gaz et raccordements
+    const tuyauterieMateriau = document.getElementById('gaz-tuyauterie-materiau').value;
+    const tuyauterieDiametre = parseFloat(document.getElementById('gaz-tuyauterie-diametre').value);
+    const roaiPresent = document.getElementById('gaz-roai-present').checked;
+    const roaiDistance = parseFloat(document.getElementById('gaz-roai-distance').value);
+    const flexibleNorme = document.getElementById('gaz-flexible-norme').value;
+    const flexibleDate = new Date(document.getElementById('gaz-flexible-date').value);
+    const vasoPresent = document.getElementById('gaz-vaso-present').checked;
+    const fuiteMethode = document.getElementById('gaz-fuite-methode').value;
+    const fuiteValeur = parseFloat(document.getElementById('gaz-fuite-valeur').value);
+
+    // Vérifications tuyauterie
+    if (tuyauterieMateriau === 'non-conforme') {
+        results.push({ type: 'error', message: 'Matériau de tuyauterie non conforme' });
+        isValid = false;
     }
-    
-    let isConforme = true;
-    let messages = [];
-    
-    // Vérifications spécifiques selon le type
-    if (typeAppareil === 'A') {
-        // Type A (non raccordé)
-        messages.push('Vérifications pour Type A (non raccordé)');
-        messages.push('⚠️ Nécessite une ventilation haute et basse de la pièce');
-    } 
-    else if (typeAppareil === 'B') {
-        // Type B (raccordé cheminée)
-        const roai = document.getElementById('gaz-reg-roai-b').checked;
-        const ameneeAir = document.getElementById('gaz-reg-amenee-air-b').checked;
-        const conduit = document.getElementById('gaz-reg-conduit-b').checked;
-        
-        if (!roai) {
-            messages.push('⚠️ Absence de robinet ROAI');
-            isConforme = false;
-        } else {
-            messages.push('✅ Présence robinet ROAI');
-        }
-        
-        if (!ameneeAir) {
-            messages.push('⚠️ Amenée d\'air non conforme');
-            isConforme = false;
-        } else {
-            messages.push('✅ Amenée d\'air conforme');
-        }
-        
-        if (!conduit) {
-            messages.push('⚠️ Conduit de fumée non conforme');
-            isConforme = false;
-        } else {
-            messages.push('✅ Conduit de fumée conforme');
-        }
-    } 
-    else if (typeAppareil === 'C') {
-        // Type C (étanche / ventouse)
-        const distance = parseFloat(document.getElementById('gaz-reg-distance-c').value);
-        
-        if (isNaN(distance) || distance < 0.4) {
-            messages.push('⚠️ Distance aux ouvrants non conforme (min. 0.4m)');
-            isConforme = false;
-        } else {
-            messages.push(`✅ Distance aux ouvrants conforme: ${distance.toFixed(2)}m`);
-        }
+    if (tuyauterieDiametre < 12) {
+        results.push({ type: 'error', message: 'Diamètre de tuyauterie insuffisant (< 12mm)' });
+        isValid = false;
     }
-    
-    // Afficher le résultat
-    resultElement.innerHTML = `
-        <p class="${isConforme ? 'success' : 'error'}">
-            <strong>${isConforme ? '✅ INSTALLATION CONFORME' : '⚠️ INSTALLATION NON CONFORME'}</strong>
-        </p>
-        <ul>
-            ${messages.map(msg => `<li>${msg}</li>`).join('')}
-        </ul>
-    `;
-    
-    // Ajouter la classe appropriée
-    resultElement.className = isConforme ? 'result-box success' : 'result-box error';
-    
-    // Charger visuel adapté
-    updateReglementationVisual(typeAppareil);
+
+    // Vérifications ROAI
+    if (!roaiPresent) {
+        results.push({ type: 'error', message: 'ROAI absent ou non accessible' });
+        isValid = false;
+    }
+    if (roaiDistance < 0.1) {
+        results.push({ type: 'error', message: 'Distance ROAI/plaque cuisson insuffisante (< 0.1m)' });
+        isValid = false;
+    }
+
+    // Vérifications flexible
+    if (flexibleNorme === 'non-conforme') {
+        results.push({ type: 'error', message: 'Flexible non conforme aux normes en vigueur' });
+        isValid = false;
+    }
+    const today = new Date();
+    const ageFlexible = (today - flexibleDate) / (1000 * 60 * 60 * 24 * 365);
+    if (ageFlexible > 10) {
+        results.push({ type: 'error', message: 'Flexible périmé (> 10 ans)' });
+        isValid = false;
+    }
+
+    // Vérifications VASO
+    if (!vasoPresent) {
+        results.push({ type: 'error', message: 'Réglette VASO absente ou non conforme' });
+        isValid = false;
+    }
+
+    // Vérifications fuite
+    if (fuiteValeur > 0.4) {
+        results.push({ type: 'error', message: 'Fuite gaz détectée (> 0.4 mbar)' });
+        isValid = false;
+    }
+
+    // 2. Ventilation et aération
+    const ventilationType = document.getElementById('gaz-ventilation-type').value;
+    const puissance = parseFloat(document.getElementById('gaz-puissance').value);
+    const grilleBasse = parseFloat(document.getElementById('gaz-grille-basse').value);
+    const grilleHaute = parseFloat(document.getElementById('gaz-grille-haute').value);
+    const placard = document.getElementById('gaz-placard').checked;
+    const cuisine = document.getElementById('gaz-cuisine').checked;
+
+    // Calcul sections minimales selon puissance
+    const sectionMinBasse = Math.max(100, puissance * 5);
+    const sectionMinHaute = Math.max(50, puissance * 2.5);
+
+    if (grilleBasse < sectionMinBasse) {
+        results.push({ type: 'error', message: `Section grille basse insuffisante (minimum ${sectionMinBasse} cm²)` });
+        isValid = false;
+    }
+    if (grilleHaute < sectionMinHaute) {
+        results.push({ type: 'error', message: `Section grille haute insuffisante (minimum ${sectionMinHaute} cm²)` });
+        isValid = false;
+    }
+
+    // 3. Typologie de chaudière
+    const typeChaudiere = document.getElementById('gaz-type-chaudiere').value;
+    const b11Tirage = document.getElementById('gaz-b11-tirage').checked;
+    const b11Refoulement = document.getElementById('gaz-b11-refoulement').checked;
+
+    if (typeChaudiere === 'B11' && (!b11Tirage || !b11Refoulement)) {
+        results.push({ type: 'error', message: 'Vérifications B11 incomplètes' });
+        isValid = false;
+    }
+
+    // 4. Évacuation des produits de combustion
+    const conduitMateriau = document.getElementById('gaz-conduit-materiau').value;
+    const conduitTube = document.getElementById('gaz-conduit-tube').checked;
+    const ventouseDistance = parseFloat(document.getElementById('gaz-ventouse-distance').value);
+    const clapet = document.getElementById('gaz-clapet').checked;
+
+    if (conduitMateriau === 'pvc') {
+        results.push({ type: 'error', message: 'Conduit en PVC interdit' });
+        isValid = false;
+    }
+    if (!conduitTube) {
+        results.push({ type: 'error', message: 'Tubage non conforme NF DTU 24.1' });
+        isValid = false;
+    }
+    if (ventouseDistance < 0.4) {
+        results.push({ type: 'error', message: 'Distance ventouse/baie insuffisante (< 0.4m)' });
+        isValid = false;
+    }
+    if (!clapet) {
+        results.push({ type: 'error', message: 'Clapet antiretour absent' });
+        isValid = false;
+    }
+
+    // 5. Sécurités
+    const securiteFlamme = document.getElementById('gaz-securite-flamme').checked;
+    const securiteTirage = document.getElementById('gaz-securite-tirage').checked;
+    const securiteRefoulement = document.getElementById('gaz-securite-refoulement').checked;
+    const securiteCag = document.getElementById('gaz-securite-cag').checked;
+    const securiteCo = document.getElementById('gaz-securite-co').checked;
+
+    if (!securiteFlamme) {
+        results.push({ type: 'error', message: 'Contrôle de flamme défectueux' });
+        isValid = false;
+    }
+    if (!securiteTirage) {
+        results.push({ type: 'error', message: 'Contrôle de tirage défectueux' });
+        isValid = false;
+    }
+    if (!securiteRefoulement) {
+        results.push({ type: 'error', message: 'Sécurité contre le refoulement défectueuse' });
+        isValid = false;
+    }
+
+    // 6. Entretien annuel
+    const entretienCorps = document.getElementById('gaz-entretien-corps').checked;
+    const entretienBrûleur = document.getElementById('gaz-entretien-brûleur').checked;
+    const entretienVeilleuse = document.getElementById('gaz-entretien-veilleuse').checked;
+    const debit = parseFloat(document.getElementById('gaz-debit').value);
+    const coAmbiant = parseFloat(document.getElementById('gaz-co-ambiant').value);
+    const rendement = parseFloat(document.getElementById('gaz-rendement').value);
+    const condensation = document.getElementById('gaz-condensation').checked;
+    const condensats = document.getElementById('gaz-condensats').checked;
+
+    if (!entretienCorps || !entretienBrûleur) {
+        results.push({ type: 'error', message: 'Nettoyage incomplet' });
+        isValid = false;
+    }
+    if (coAmbiant > 30) {
+        results.push({ type: 'error', message: 'CO ambiant trop élevé (> 30 ppm)' });
+        isValid = false;
+    }
+    if (rendement < 70) {
+        results.push({ type: 'error', message: 'Rendement insuffisant (< 70%)' });
+        isValid = false;
+    }
+    if (condensation && !condensats) {
+        results.push({ type: 'error', message: 'Contrôle condensats non effectué' });
+        isValid = false;
+    }
+
+    // 7. Anomalies
+    const anomalieType = document.getElementById('gaz-anomalie-type').value;
+    const anomalieDescription = document.getElementById('gaz-anomalie-description').value;
+    const anomalieFiche = document.getElementById('gaz-anomalie-fiche').checked;
+
+    if (anomalieType === 'DGI') {
+        results.push({ type: 'error', message: 'DANGER GRAVE IMMÉDIAT - Coupure immédiate requise' });
+        isValid = false;
+    }
+    if (anomalieDescription && !anomalieFiche) {
+        results.push({ type: 'error', message: 'Fiche d\'anomalie non remise au client' });
+        isValid = false;
+    }
+
+    // 8. Documentation
+    const docAttestation = document.getElementById('gaz-doc-attestation').checked;
+    const docCopie = document.getElementById('gaz-doc-copie').checked;
+
+    if (!docAttestation) {
+        results.push({ type: 'error', message: 'Attestation d\'entretien non remise' });
+        isValid = false;
+    }
+    if (!docCopie) {
+        results.push({ type: 'error', message: 'Copie non conservée 2 ans' });
+        isValid = false;
+    }
+
+    // Affichage des résultats
+    const resultBox = document.getElementById('result-reglementation-gaz');
+    resultBox.innerHTML = '';
+
+    if (results.length === 0) {
+        resultBox.innerHTML = '<div class="success">Toutes les vérifications sont conformes à la réglementation gaz 2025</div>';
+    } else {
+        results.forEach(result => {
+            const div = document.createElement('div');
+            div.className = result.type === 'error' ? 'error' : 'warning';
+            div.textContent = result.message;
+            resultBox.appendChild(div);
+        });
+    }
+
+    return isValid;
 }
 
-/**
- * Met à jour le visuel pour la réglementation gaz
- */
-function updateReglementationVisual(type) {
-    const visualElement = document.getElementById('gaz-reg-visual');
-    visualElement.innerHTML = `<img src="images/type_${type.toLowerCase()}.png" alt="Appareil type ${type}" style="max-width:100%;">`;
-}
+// Gestion des champs conditionnels
+document.getElementById('gaz-type-chaudiere').addEventListener('change', function() {
+    const b11Group = document.getElementById('gaz-b11-group');
+    const b11RefoulementGroup = document.getElementById('gaz-b11-refoulement-group');
+    if (this.value === 'B11') {
+        b11Group.style.display = 'block';
+        b11RefoulementGroup.style.display = 'block';
+    } else {
+        b11Group.style.display = 'none';
+        b11RefoulementGroup.style.display = 'none';
+    }
+});
+
+document.getElementById('gaz-condensation').addEventListener('change', function() {
+    const condensatsGroup = document.getElementById('gaz-condensats-group');
+    condensatsGroup.style.display = this.checked ? 'block' : 'none';
+});
 
 /**
  * Initialise le module de vérifications réglementaires complémentaires

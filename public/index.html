@@ -326,51 +326,242 @@
             </section>
 
             <section id="module-reglementation-gaz" class="module-section">
-                <h2>8. Réglementation Appareil à Gaz</h2>
-                <p>Vérifiez la conformité de l'installation selon le type d'appareil.</p>
-                <!-- Inputs for Gas Regulation -->
-                 <div class="form-group">
-                    <label for="gaz-reg-type-appareil">Type d'appareil</label>
-                    <select id="gaz-reg-type-appareil">
-                        <option value="">-- Sélectionner --</option>
-                        <option value="A">Type A (Non raccordé)</option>
-                        <option value="B">Type B (Raccordé cheminée)</option>
-                        <option value="C">Type C (Étanche / Ventouse)</option>
-                    </select>
-                </div>
-                <div id="gaz-reg-fields-A" class="gaz-reg-conditional" style="display:none;">
-                    <p><strong>Type A :</strong> Vérifier ventilation haute et basse de la pièce.</p>
-                    <!-- Add specific checks for Type A -->
-                </div>
-                 <div id="gaz-reg-fields-B" class="gaz-reg-conditional" style="display:none;">
-                    <p><strong>Type B :</strong> Vérifier conduit de cheminée, amenée d'air, ROAI.</p>
-                     <div class="form-group checkbox">
-                        <input type="checkbox" id="gaz-reg-roai-b">
-                        <label for="gaz-reg-roai-b">Présence Robinet ROAI</label>
+                <h2>8. Réglementation Gaz 2025</h2>
+                <p>Vérification complète selon le référentiel gaz 2025 et la fiche d'autocontrôle 2025.</p>
+
+                <!-- 1. Alimentation gaz et raccordements -->
+                <div class="sub-module">
+                    <h3>1. Alimentation gaz et raccordements</h3>
+                    <div class="form-group">
+                        <label for="gaz-tuyauterie-materiau">Matériau tuyauterie fixe</label>
+                        <select id="gaz-tuyauterie-materiau">
+                            <option value="acier">Acier</option>
+                            <option value="cuivre">Cuivre</option>
+                            <option value="per">PER</option>
+                            <option value="non-conforme">Non conforme</option>
+                        </select>
                     </div>
-                     <div class="form-group checkbox">
-                        <input type="checkbox" id="gaz-reg-amenee-air-b">
-                        <label for="gaz-reg-amenee-air-b">Amenée d'air directe/indirecte conforme</label>
+                    <div class="form-group">
+                        <label for="gaz-tuyauterie-diametre">Diamètre minimum (mm)</label>
+                        <input type="number" id="gaz-tuyauterie-diametre" min="12" placeholder="Minimum 12mm">
                     </div>
-                     <div class="form-group checkbox">
-                        <input type="checkbox" id="gaz-reg-conduit-b">
-                        <label for="gaz-reg-conduit-b">Conduit de fumée conforme (ramoné, non obstrué)</label>
+                    <div class="form-group checkbox">
+                        <input type="checkbox" id="gaz-roai-present">
+                        <label for="gaz-roai-present">ROAI présent et accessible</label>
                     </div>
-                    <!-- Add specific checks for Type B -->
+                    <div class="form-group">
+                        <label for="gaz-roai-distance">Distance ROAI/plaque cuisson (m)</label>
+                        <input type="number" id="gaz-roai-distance" min="0.1" placeholder="Minimum 0.1m">
+                    </div>
+                    <div class="form-group">
+                        <label for="gaz-flexible-norme">Norme flexible</label>
+                        <select id="gaz-flexible-norme">
+                            <option value="NF-D36-121">NF D36-121</option>
+                            <option value="EN-14800">EN 14800</option>
+                            <option value="non-conforme">Non conforme</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="gaz-flexible-date">Date de péremption flexible</label>
+                        <input type="date" id="gaz-flexible-date">
+                    </div>
+                    <div class="form-group checkbox">
+                        <input type="checkbox" id="gaz-vaso-present">
+                        <label for="gaz-vaso-present">Réglette VASO présente et conforme</label>
+                    </div>
+                    <div class="form-group">
+                        <label for="gaz-fuite-methode">Méthode détection fuite</label>
+                        <select id="gaz-fuite-methode">
+                            <option value="manometre">Manomètre</option>
+                            <option value="detecteur">Détecteur gaz</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="gaz-fuite-valeur">Valeur fuite (mbar)</label>
+                        <input type="number" id="gaz-fuite-valeur" step="0.1" placeholder="Maximum 0.4 mbar">
+                    </div>
                 </div>
-                 <div id="gaz-reg-fields-C" class="gaz-reg-conditional" style="display:none;">
-                    <p><strong>Type C :</strong> Vérifier terminal ventouse, distances.</p>
-                     <div class="form-group">
-                        <label for="gaz-reg-distance-c">Distance sortie aux ouvrants/vents dominants (m)</label>
-                        <input type="number" id="gaz-reg-distance-c" placeholder="Ex: 0.4">
+
+                <!-- 2. Ventilation et aération -->
+                <div class="sub-module">
+                    <h3>2. Ventilation et aération du local</h3>
+                    <div class="form-group">
+                        <label for="gaz-ventilation-type">Type d'appareil</label>
+                        <select id="gaz-ventilation-type">
+                            <option value="A">Type A</option>
+                            <option value="B">Type B</option>
+                            <option value="C">Type C</option>
+                        </select>
                     </div>
-                    <!-- Add specific checks for Type C -->
+                    <div class="form-group">
+                        <label for="gaz-puissance">Puissance installée (kW)</label>
+                        <input type="number" id="gaz-puissance" min="0" max="70" placeholder="Maximum 70 kW">
+                    </div>
+                    <div class="form-group">
+                        <label for="gaz-grille-basse">Section grille basse (cm²)</label>
+                        <input type="number" id="gaz-grille-basse" min="100" placeholder="Minimum selon puissance">
+                    </div>
+                    <div class="form-group">
+                        <label for="gaz-grille-haute">Section grille haute (cm²)</label>
+                        <input type="number" id="gaz-grille-haute" min="50" placeholder="Minimum selon puissance">
+                    </div>
+                    <div class="form-group checkbox">
+                        <input type="checkbox" id="gaz-placard">
+                        <label for="gaz-placard">Chaudière en placard</label>
+                    </div>
+                    <div class="form-group checkbox">
+                        <input type="checkbox" id="gaz-cuisine">
+                        <label for="gaz-cuisine">Chaudière en cuisine</label>
+                    </div>
                 </div>
+
+                <!-- 3. Typologie de chaudière -->
+                <div class="sub-module">
+                    <h3>3. Typologie de chaudière</h3>
+                    <div class="form-group">
+                        <label for="gaz-type-chaudiere">Type de chaudière</label>
+                        <select id="gaz-type-chaudiere">
+                            <option value="A">Type A (non raccordé)</option>
+                            <option value="B">Type B (raccordé cheminée)</option>
+                            <option value="B11">Type B11 (tirage naturel)</option>
+                            <option value="C">Type C (étanche/ventouse)</option>
+                        </select>
+                    </div>
+                    <div class="form-group checkbox" id="gaz-b11-group" style="display:none;">
+                        <input type="checkbox" id="gaz-b11-tirage">
+                        <label for="gaz-b11-tirage">Vérification tirage B11 effectuée</label>
+                    </div>
+                    <div class="form-group checkbox" id="gaz-b11-refoulement-group" style="display:none;">
+                        <input type="checkbox" id="gaz-b11-refoulement">
+                        <label for="gaz-b11-refoulement">Vérification refoulement B11 effectuée</label>
+                    </div>
+                </div>
+
+                <!-- 4. Évacuation des produits de combustion -->
+                <div class="sub-module">
+                    <h3>4. Évacuation des produits de combustion</h3>
+                    <div class="form-group">
+                        <label for="gaz-conduit-materiau">Matériau conduit</label>
+                        <select id="gaz-conduit-materiau">
+                            <option value="acier">Acier</option>
+                            <option value="inox">Inox</option>
+                            <option value="ceramique">Céramique</option>
+                            <option value="pvc">PVC (interdit)</option>
+                        </select>
+                    </div>
+                    <div class="form-group checkbox">
+                        <input type="checkbox" id="gaz-conduit-tube">
+                        <label for="gaz-conduit-tube">Tubage conforme NF DTU 24.1</label>
+                    </div>
+                    <div class="form-group">
+                        <label for="gaz-ventouse-distance">Distance ventouse/baie (m)</label>
+                        <input type="number" id="gaz-ventouse-distance" min="0.4" placeholder="Minimum 0.4m">
+                    </div>
+                    <div class="form-group checkbox">
+                        <input type="checkbox" id="gaz-clapet">
+                        <label for="gaz-clapet">Clapet antiretour présent</label>
+                    </div>
+                </div>
+
+                <!-- 5. Sécurités -->
+                <div class="sub-module">
+                    <h3>5. Sécurités associées</h3>
+                    <div class="form-group checkbox">
+                        <input type="checkbox" id="gaz-securite-flamme">
+                        <label for="gaz-securite-flamme">Contrôle de flamme fonctionnel</label>
+                    </div>
+                    <div class="form-group checkbox">
+                        <input type="checkbox" id="gaz-securite-tirage">
+                        <label for="gaz-securite-tirage">Contrôle de tirage fonctionnel</label>
+                    </div>
+                    <div class="form-group checkbox">
+                        <input type="checkbox" id="gaz-securite-refoulement">
+                        <label for="gaz-securite-refoulement">Sécurité contre le refoulement fonctionnelle</label>
+                    </div>
+                    <div class="form-group checkbox">
+                        <input type="checkbox" id="gaz-securite-cag">
+                        <label for="gaz-securite-cag">CAG (Coupure Automatique Gaz) présente</label>
+                    </div>
+                    <div class="form-group checkbox">
+                        <input type="checkbox" id="gaz-securite-co">
+                        <label for="gaz-securite-co">Détecteur CO intégré présent</label>
+                    </div>
+                </div>
+
+                <!-- 6. Entretien annuel -->
+                <div class="sub-module">
+                    <h3>6. Entretien annuel</h3>
+                    <div class="form-group checkbox">
+                        <input type="checkbox" id="gaz-entretien-corps">
+                        <label for="gaz-entretien-corps">Nettoyage corps de chauffe</label>
+                    </div>
+                    <div class="form-group checkbox">
+                        <input type="checkbox" id="gaz-entretien-brûleur">
+                        <label for="gaz-entretien-brûleur">Nettoyage brûleur</label>
+                    </div>
+                    <div class="form-group checkbox">
+                        <input type="checkbox" id="gaz-entretien-veilleuse">
+                        <label for="gaz-entretien-veilleuse">Nettoyage veilleuse</label>
+                    </div>
+                    <div class="form-group">
+                        <label for="gaz-debit">Débit gaz mesuré (m³/h)</label>
+                        <input type="number" id="gaz-debit" step="0.1" placeholder="Débit nominal">
+                    </div>
+                    <div class="form-group">
+                        <label for="gaz-co-ambiant">CO ambiant (ppm)</label>
+                        <input type="number" id="gaz-co-ambiant" placeholder="Maximum 30 ppm">
+                    </div>
+                    <div class="form-group">
+                        <label for="gaz-rendement">Rendement de combustion (%)</label>
+                        <input type="number" id="gaz-rendement" min="70" max="100" placeholder="Minimum 70%">
+                    </div>
+                    <div class="form-group checkbox">
+                        <input type="checkbox" id="gaz-condensation">
+                        <label for="gaz-condensation">Chaudière à condensation</label>
+                    </div>
+                    <div class="form-group checkbox" id="gaz-condensats-group" style="display:none;">
+                        <input type="checkbox" id="gaz-condensats">
+                        <label for="gaz-condensats">Contrôle condensats et siphon</label>
+                    </div>
+                </div>
+
+                <!-- 7. Anomalies -->
+                <div class="sub-module">
+                    <h3>7. Gestion des anomalies</h3>
+                    <div class="form-group">
+                        <label for="gaz-anomalie-type">Type d'anomalie</label>
+                        <select id="gaz-anomalie-type">
+                            <option value="A1">A1 - Légère</option>
+                            <option value="A2">A2 - Sérieuse</option>
+                            <option value="DGI">DGI - Danger Grave Immédiat</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="gaz-anomalie-description">Description de l'anomalie</label>
+                        <textarea id="gaz-anomalie-description" rows="3" placeholder="Décrire l'anomalie en détail"></textarea>
+                    </div>
+                    <div class="form-group checkbox">
+                        <input type="checkbox" id="gaz-anomalie-fiche">
+                        <label for="gaz-anomalie-fiche">Fiche d'anomalie remise au client</label>
+                    </div>
+                </div>
+
+                <!-- 8. Documentation -->
+                <div class="sub-module">
+                    <h3>8. Documentation</h3>
+                    <div class="form-group checkbox">
+                        <input type="checkbox" id="gaz-doc-attestation">
+                        <label for="gaz-doc-attestation">Attestation d'entretien remise</label>
+                    </div>
+                    <div class="form-group checkbox">
+                        <input type="checkbox" id="gaz-doc-copie">
+                        <label for="gaz-doc-copie">Copie conservée 2 ans</label>
+                    </div>
+                </div>
+
                 <div class="result-box" id="result-reglementation-gaz">
-                    <!-- Gas Regulation results -->
+                    <!-- Results will be displayed here -->
                 </div>
-                 <!-- Placeholder for visuals -->
-                <div id="gaz-reg-visual"></div>
             </section>
 
             <section id="module-reglementaires-comp" class="module-section">
