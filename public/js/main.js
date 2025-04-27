@@ -1,18 +1,11 @@
 /**
- * Fichier principal pour charger les modules partagés
+ * Fichier principal pour les fonctionnalités de l'application
  */
-
-// Importation des modules nécessaires
-import { verifierVMC, initVMC } from './modules/vmc.js';
-import { calculerVaseExpansion, initVaseExpansion } from './modules/vase-expansion.js';
 
 // Initialisation globale
 document.addEventListener('DOMContentLoaded', () => {
   console.log("Application initialisée");
   
-  // Initialisation des modules
-  initModules();
-
   // Set the current date as the default for the maintenance date input
   const datePicker = document.getElementById('maintenance-date');
   
@@ -68,22 +61,90 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+  
+  // Initialize form handling
+  const form = document.getElementById('maintenance-form');
+  if (form) {
+    form.addEventListener('submit', handleFormSubmit);
+  }
 });
 
 /**
- * Initialise tous les modules nécessaires
+ * Handle form submission and generate report
  */
-function initModules() {
-  // Détection des modules présents sur la page
-  const modules = {
-    vmc: document.getElementById('verifierVMC'),
-    vase: document.getElementById('calculerVase'),
-    // Ajouter ici d'autres modules au besoin
+function handleFormSubmit(e) {
+  e.preventDefault();
+  
+  // Collect form data
+  const formData = {
+    clientName: document.getElementById('client-name')?.value || '',
+    clientAddress: document.getElementById('client-address')?.value || '',
+    clientPhone: document.getElementById('client-phone')?.value || '',
+    clientEmail: document.getElementById('client-email')?.value || '',
+    boilerType: document.getElementById('boiler-type')?.value || '',
+    maintenanceDate: document.getElementById('maintenance-date')?.value || '',
+    technician: document.getElementById('technician-name')?.value || '',
+    notes: document.getElementById('notes')?.value || ''
   };
   
-  // Initialiser les modules détectés
-  if (modules.vmc) initVMC();
-  if (modules.vase) initVaseExpansion();
+  // Display results
+  const resultContainer = document.getElementById('result-container');
+  const resultContent = document.getElementById('result-content');
   
-  console.log('Modules initialisés');
+  if (resultContainer && resultContent) {
+    const currentDate = new Date().toLocaleDateString();
+    
+    resultContent.innerHTML = `
+      <h2>Rapport d'Entretien de Chaudière</h2>
+      <p><strong>Date du rapport:</strong> ${currentDate}</p>
+      <p><strong>Client:</strong> ${formData.clientName}</p>
+      <p><strong>Adresse:</strong> ${formData.clientAddress}</p>
+      <p><strong>Téléphone:</strong> ${formData.clientPhone}</p>
+      <p><strong>Email:</strong> ${formData.clientEmail}</p>
+      <p><strong>Type de chaudière:</strong> ${formData.boilerType}</p>
+      <p><strong>Date d'entretien:</strong> ${formData.maintenanceDate}</p>
+      <p><strong>Technicien:</strong> ${formData.technician}</p>
+      <h3>Observations:</h3>
+      <p>${formData.notes}</p>
+      <h3>Recommandations:</h3>
+      <p>Il est recommandé d'effectuer un entretien annuel de votre chaudière pour en optimiser la performance et la durée de vie.</p>
+    `;
+    
+    resultContainer.style.display = 'block';
+  }
 }
+
+/**
+ * Generate PDF from report content
+ */
+function generatePDF() {
+  const resultContent = document.getElementById('result-content');
+  const pdfContainer = document.getElementById('pdf-container');
+  
+  if (resultContent && pdfContainer) {
+    // Clone the result content for PDF
+    pdfContainer.innerHTML = resultContent.innerHTML;
+    
+    // Add company header for the PDF
+    const companyHeader = document.createElement('div');
+    companyHeader.innerHTML = '<h2>Rapport d\'entretien de chaudière</h2><p>Service professionnel d\'entretien de chaudières</p>';
+    pdfContainer.prepend(companyHeader);
+    
+    // Generate PDF using html2pdf library
+    if (typeof html2pdf === 'function') {
+      html2pdf()
+        .from(pdfContainer)
+        .save('rapport-entretien-chaudiere.pdf');
+    } else {
+      console.error('html2pdf library not loaded');
+    }
+  }
+}
+
+// Add event listener for PDF generation button
+document.addEventListener('DOMContentLoaded', () => {
+  const generatePdfBtn = document.getElementById('generate-pdf');
+  if (generatePdfBtn) {
+    generatePdfBtn.addEventListener('click', generatePDF);
+  }
+});

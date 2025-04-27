@@ -89,6 +89,53 @@ document.addEventListener('DOMContentLoaded', function() {
             <p>Il est recommandé d'effectuer un entretien annuel de votre chaudière pour en optimiser la performance et la durée de vie.</p>
         `;
     }
+
+    // Ajouter la validation des champs au chargement
+    const emailInput = document.getElementById('client-email');
+    if (emailInput) {
+        emailInput.addEventListener('blur', function() {
+            if (this.value && !validateEmail(this.value)) {
+                this.classList.add('invalid');
+                this.setCustomValidity('Veuillez entrer une adresse email valide');
+            } else {
+                this.classList.remove('invalid');
+                this.setCustomValidity('');
+            }
+        });
+    }
+
+    // Add form reset functionality
+    const resetBtn = document.getElementById('reset-form');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', function() {
+            const form = document.getElementById('maintenance-form');
+            if (form) {
+                form.reset();
+                
+                // Reset the date field to current date
+                const datePicker = document.getElementById('maintenance-date');
+                if (datePicker) {
+                    const today = new Date();
+                    const year = today.getFullYear();
+                    let month = today.getMonth() + 1;
+                    let day = today.getDate();
+                    
+                    // Add leading zero if needed
+                    month = month < 10 ? '0' + month : month;
+                    day = day < 10 ? '0' + day : day;
+                    
+                    const formattedDate = `${year}-${month}-${day}`;
+                    datePicker.value = formattedDate;
+                }
+                
+                // Hide results if visible
+                const resultContainer = document.getElementById('result-container');
+                if (resultContainer) {
+                    resultContainer.style.display = 'none';
+                }
+            }
+        });
+    }
 });
 
 function calcule() {
@@ -155,4 +202,31 @@ function calculeEmetteur() {
         // Calculs spécifiques pour les planchers chauffants
         // ...
     }
+}
+
+/**
+ * Fonctions supplémentaires pour le fonctionnement de l'application
+ */
+
+// Fonctions utilitaires
+function formatDate(dateString) {
+  if (!dateString) return '';
+  
+  const date = new Date(dateString);
+  return date.toLocaleDateString('fr-FR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+}
+
+function validateEmail(email) {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email);
+}
+
+function validatePhone(phone) {
+  // Format français: 10 chiffres, éventuellement séparés par des espaces
+  const cleaned = phone.replace(/\s/g, '');
+  return cleaned.length === 10 && /^\d+$/.test(cleaned);
 }

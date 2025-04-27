@@ -6,24 +6,10 @@ const nextConfig = {
   // Configure trailing slashes in URLs
   trailingSlash: false,
   
-  // Configure static file handling
+  // Properly serve static assets with correct MIME types
   async headers() {
     return [
       {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-        ],
-      },
-      {
-        // Set proper content types for JavaScript files
         source: '/js/:path*',
         headers: [
           {
@@ -33,7 +19,6 @@ const nextConfig = {
         ],
       },
       {
-        // Set proper content types for CSS files
         source: '/css/:path*',
         headers: [
           {
@@ -45,7 +30,7 @@ const nextConfig = {
     ];
   },
 
-  // Redirect /public to /
+  // Redirect /public to root
   async redirects() {
     return [
       {
