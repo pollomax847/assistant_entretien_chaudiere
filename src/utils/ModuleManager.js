@@ -16,6 +16,9 @@ class ModuleManager {
             document.body.appendChild(this.container);
             console.warn(`Un conteneur de substitution a été créé avec l'ID '${containerId}'.`);
         }
+        
+        // Exposer l'instance pour l'accès global (pour les modules de cartes)
+        window.moduleManager = this;
     }
 
     /**
@@ -541,6 +544,48 @@ class ModuleManager {
      */
     getAvailableModules() {
         return window.MODULES || [];
+    }
+    
+    /**
+     * Initialise la page d'accueil avec les cartes de modules
+     */
+    async initHomePage() {
+        console.log("Initialisation de la page d'accueil...");
+        try {
+            await this.renderModule('home');
+            console.log("Page d'accueil chargée avec succès");
+        } catch (error) {
+            console.error("Erreur lors du chargement de la page d'accueil:", error);
+            this.showErrorHomePage(error);
+        }
+    }
+    
+    /**
+     * Affiche une page d'erreur si la page d'accueil ne peut pas être chargée
+     */
+    showErrorHomePage(error) {
+        this.container.innerHTML = `
+            <div class="error-home">
+                <h2>Erreur lors du chargement de la page d'accueil</h2>
+                <p>Une erreur s'est produite lors du chargement de la page d'accueil.</p>
+                <div class="error-details">
+                    <p><strong>Détails:</strong> ${error.message}</p>
+                </div>
+                <div class="error-actions">
+                    <button id="retry-home-btn">Réessayer</button>
+                </div>
+            </div>
+        `;
+        
+        // Configurer le bouton pour réessayer
+        setTimeout(() => {
+            const retryBtn = this.container.querySelector('#retry-home-btn');
+            if (retryBtn) {
+                retryBtn.addEventListener('click', () => {
+                    this.initHomePage();
+                });
+            }
+        }, 0);
     }
 }
 
