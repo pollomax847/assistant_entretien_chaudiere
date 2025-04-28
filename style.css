@@ -27,6 +27,35 @@ body {
     grid-template-columns: 1fr;
 }
 
+/* Navigation */
+.nav-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 20px;
+}
+
+.nav-link {
+    text-decoration: none;
+    color: #333;
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+
+.nav-link.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Informations utilisateur */
+#userInfo {
+    display: none;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
 /* Sidebar */
 .sidebar {
     background-color: var(--surface-color);
@@ -206,6 +235,30 @@ button:hover {
 
 .status-offline {
     background-color: var(--error-color);
+}
+
+/* Footer */
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--surface-color);
+    text-align: center;
+    padding: var(--spacing-md) 0;
+    font-size: var(--font-size-sm);
+    border-top: 1px solid var(--border-color);
+    z-index: var(--z-index-footer);
+}
+
+.footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+    margin: 0 var(--spacing-md);
+}
+
+.footer a:hover {
+    text-decoration: underline;
 }
 
 /* Responsive */

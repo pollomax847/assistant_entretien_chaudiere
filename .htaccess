@@ -1,51 +1,73 @@
+# Configuration des types MIME
 AddType text/css .css
 AddType application/javascript .js
 AddType image/png .png
+AddType image/jpeg .jpg .jpeg
+AddType image/gif .gif
+AddType image/svg+xml .svg .svgz
+AddType image/x-icon .ico
+AddType text/html .html .htm .shtml
 
-<FilesMatch "\.(css|js|png|jpg|jpeg|gif|ico)$">
-  Header set Cache-Control "max-age=31536000, public"
+# Configuration du cache
+<FilesMatch "\.(css|js|png|jpg|jpeg|gif|ico|svg)$">
+    Header set Cache-Control "max-age=31536000, public, immutable"
+    Header set X-Content-Type-Options "nosniff"
 </FilesMatch>
 
-<FilesMatch "\.(html|htm)$">
-  Header set Cache-Control "max-age=86400, public"
+<FilesMatch "\.(html|htm|shtml)$">
+    Header set Cache-Control "max-age=86400, public"
 </FilesMatch>
 
-# Enable gzip compression
+# Compression Gzip
 <IfModule mod_deflate.c>
-  AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript text/javascript
+    AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript text/javascript image/svg+xml
+    BrowserMatch ^Mozilla/4 gzip-only-text/html
+    BrowserMatch ^Mozilla/4\.0[678] no-gzip
+    BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
+    SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png)$ no-gzip dont-vary
 </IfModule>
 
+# Configuration du répertoire
 DirectoryIndex index.html
 Options -Indexes
 
+# Règles de réécriture d'URL
 <IfModule mod_rewrite.c>
-  RewriteEngine On
-  RewriteBase /
-  RewriteRule ^index\.html$ - [L]
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . /index.html [L]
+    RewriteEngine On
+    RewriteBase /
+    
+    # Ne pas réécrire les fichiers et répertoires existants
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    
+    # Réécrire toutes les autres URL vers index.html
+    RewriteRule ^(.*)$ /index.html [L]
+    
+    # Redirection de /public vers la racine
+    RewriteRule ^public/(.*)$ /$1 [R=301,L]
 </IfModule>
 
-<FilesMatch "\.(css|js)$">
-  Header set Content-Type "text/css" env=IS_CSS
-  Header set Content-Type "application/javascript" env=IS_JS
-</FilesMatch>
-
-# Activer le module de réécriture d'URL
-RewriteEngine On
-
-# Règle pour rediriger vers index.html pour les URL non-fichiers
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ public/index.html [L]
-
-# Autoriser l'accès aux dossiers
+# En-têtes de sécurité
 <IfModule mod_headers.c>
+    # CORS
     Header set Access-Control-Allow-Origin "*"
     Header set Access-Control-Allow-Methods "GET, POST, OPTIONS"
     Header set Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept"
+    
+    # Sécurité
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>
 
-# Gérer les erreurs
-ErrorDocument 404 /public/index.html
+# Gestion des erreurs
+ErrorDocument 404 /index.html
+ErrorDocument 403 /index.html
+ErrorDocument 500 /index.html
+
+# Désactiver l'accès aux fichiers sensibles
+<FilesMatch "^(\.htaccess|\.htpasswd|\.git|\.env|package\.json|package-lock\.json)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

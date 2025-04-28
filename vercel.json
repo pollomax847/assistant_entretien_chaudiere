@@ -12,22 +12,31 @@
       "dest": "/index.html"
     },
     {
+      "src": "/auth",
+      "dest": "/auth.html"
+    },
+    {
       "src": "/css/(.*)",
       "dest": "/css/$1",
       "headers": {
-        "Content-Type": "text/css"
+        "Content-Type": "text/css; charset=utf-8"
       }
     },
     {
       "src": "/js/(.*)",
       "dest": "/js/$1",
       "headers": {
-        "Content-Type": "application/javascript"
+        "Content-Type": "application/javascript; charset=utf-8"
       }
     },
     {
       "src": "/assets/(.*)",
       "dest": "/assets/$1"
+    },
+    {
+      "src": "/public",
+      "dest": "/",
+      "status": 301
     }
   ],
   "headers": [
@@ -36,7 +45,7 @@
       "headers": [
         {
           "key": "Content-Type",
-          "value": "text/css"
+          "value": "text/css; charset=utf-8"
         },
         {
           "key": "Cache-Control",
@@ -49,7 +58,7 @@
       "headers": [
         {
           "key": "Content-Type",
-          "value": "application/javascript"
+          "value": "application/javascript; charset=utf-8"
         },
         {
           "key": "Cache-Control",
@@ -66,5 +75,9 @@
         }
       ]
     }
-  ]
+  ],
+  "trailingSlash": false,
+  "env": {
+    "NODE_ENV": "production"
+  }
 }

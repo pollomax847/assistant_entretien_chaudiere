@@ -22,8 +22,15 @@
       "@utils/*": ["src/utils/*"],
       "@components/*": ["src/components/*"],
       "@config/*": ["src/config/*"]
-    }
+    },
+    "composite": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true
   },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": [
+    "src",
+    "vite.config.ts",
+    "src/**/*.ts",
+    "src/**/*.js"
+  ]
 }
