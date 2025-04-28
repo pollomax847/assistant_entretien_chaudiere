@@ -26,7 +26,8 @@ export function formatNumber(value, decimals = 2) {
  * @param {boolean} success - Si le calcul est réussi
  * @param {string} message - Message à afficher
  * @param {object} [options] - Options additionnelles
- * @param {string} [options.type] - Type de résultat (success, warning, error)
+ * @param {string} [options.type] - Type de résultat (success, warning, error, info)
+ * @param {Array} [options.details] - Liste des détails à afficher
  * @returns {string} HTML formaté pour l'affichage du résultat
  */
 export function formatResult(success, message, options = {}) {
@@ -41,17 +42,35 @@ export function formatResult(success, message, options = {}) {
     
     const icon = icons[type] || icons.info;
     
-    return `<div class="result ${type}">${icon} ${message}</div>`;
+    let html = `<div class="result ${type}">`;
+    html += `<h3>${icon} ${message}</h3>`;
+    
+    if (options.details && options.details.length > 0) {
+        html += '<ul>';
+        options.details.forEach(detail => {
+            html += `<li>${detail}</li>`;
+        });
+        html += '</ul>';
+    }
+    
+    html += '</div>';
+    
+    return html;
 }
 
 /**
  * Formate une liste de détails en HTML
- * @param {Array<string>} details - Liste des détails à formatter
+ * @param {Array} details - Liste des détails à afficher
  * @returns {string} HTML formaté pour l'affichage des détails
  */
 export function formatDetails(details) {
     if (!details || details.length === 0) return '';
     
-    const detailsHtml = details.map(detail => `<li>${detail}</li>`).join('');
-    return `<ul class="result-details">${detailsHtml}</ul>`;
+    let html = '<ul class="details-list">';
+    details.forEach(detail => {
+        html += `<li>${detail}</li>`;
+    });
+    html += '</ul>';
+    
+    return html;
 }

@@ -59,7 +59,7 @@ const modules = [
         id: 'module-vmc',
         title: 'VMC',
         icon: '/assets/icons/ventilation.svg',
-        description: 'Calculs pour la ventilation mécanique'
+        description: 'Vérification et calculs pour la ventilation mécanique'
     },
     {
         id: 'module-reglementation-gaz',
@@ -180,6 +180,9 @@ function initializeModule(moduleId) {
         case 'module-vase-expansion':
             initializeVaseExpansion();
             break;
+        case 'module-vmc':
+            initializeVMC();
+            break;
         // Ajouter les autres cas pour chaque module
     }
 }
@@ -238,15 +241,125 @@ function calculateVaseExpansion() {
     });
 }
 
+// Module VMC
+function initializeVMC() {
+    const form = document.getElementById('vmc-form');
+    if (!form) return;
+    
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        verifyVMC();
+    });
+}
+
+function verifyVMC() {
+    const typeVMC = document.getElementById('typeVMC').value;
+    const nbBouches = parseInt(document.getElementById('nbBouches').value);
+    const debitMesure = parseFloat(document.getElementById('debitMesure').value);
+    const debitMS = parseFloat(document.getElementById('debitMS').value);
+    const modulesFenetre = document.getElementById('modulesFenetre').value === 'true';
+    const etalonnagePortes = document.getElementById('etalonnagePortes').value === 'true';
+    
+    // Normes VMC
+    const normesVMC = {
+        simple_flux: { debitMin: 15, debitMax: 30 },
+        sanitaire: { debitMin: 20, debitMax: 40 },
+        sekoia: { debitMin: 25, debitMax: 45 },
+        vti: { debitMin: 30, debitMax: 50 }
+    };
+    
+    // Vérifications
+    let messages = [];
+    let estConforme = true;
+    
+    // Vérification des champs obligatoires
+    if (isNaN(nbBouches) || isNaN(debitMesure) || isNaN(debitMS)) {
+        displayResult('vmc-result', { message: 'Veuillez remplir tous les champs numériques', type: 'error' });
+        return;
+    }
+    
+    // Vérification du débit
+    const norme = normesVMC[typeVMC];
+    const debitParBouche = debitMesure / nbBouches;
+    
+    if (debitParBouche < norme.debitMin) {
+        messages.push(`Le débit par bouche (${debitParBouche.toFixed(2)} m³/h) est inférieur au minimum requis (${norme.debitMin} m³/h).`);
+        estConforme = false;
+    }
+    
+    if (debitParBouche > norme.debitMax) {
+        messages.push(`Le débit par bouche (${debitParBouche.toFixed(2)} m³/h) est supérieur au maximum autorisé (${norme.debitMax} m³/h).`);
+        estConforme = false;
+    }
+    
+    // Vérification du débit en m/s
+    if (debitMS < 0.8 || debitMS > 2.5) {
+        messages.push(`Le débit en m/s (${debitMS.toFixed(1)}) est hors plage recommandée (0.8 - 2.5 m/s)`);
+        estConforme = false;
+    }
+    
+    // Vérification des modules aux fenêtres
+    if (!modulesFenetre) {
+        messages.push('Les modules aux fenêtres ne sont pas conformes');
+        estConforme = false;
+    }
+    
+    // Vérification de l'étalonnage des portes
+    if (!etalonnagePortes) {
+        messages.push("L'étalonnage des portes n'a pas été vérifié");
+        estConforme = false;
+    }
+    
+    // Affichage des résultats
+    if (estConforme) {
+        displayResult('vmc-result', { 
+            message: 'L\'installation VMC est conforme aux normes', 
+            type: 'success',
+            details: [
+                `Débit total: ${debitMesure.toFixed(1)} m³/h`,
+                `Débit par bouche: ${debitParBouche.toFixed(1)} m³/h`,
+                `Débit en m/s: ${debitMS.toFixed(1)} m/s`
+            ]
+        });
+    } else {
+        displayResult('vmc-result', { 
+            message: 'L\'installation VMC présente des non-conformités', 
+            type: 'error',
+            details: messages
+        });
+    }
+}
+
 // Affichage des résultats
 function displayResult(containerId, data) {
     const container = document.getElementById(containerId);
     if (!container) return;
     
-    let html = '<div class="result">';
-    for (const [key, value] of Object.entries(data)) {
-        html += `<p><strong>${formatLabel(key)}:</strong> ${value}</p>`;
+    const type = data.type || 'info';
+    const icons = {
+        'success': '✅',
+        'warning': '⚠️',
+        'error': '❌',
+        'info': 'ℹ️'
+    };
+    
+    let html = `<div class="result ${type}">`;
+    html += `<h3>${icons[type]} ${data.message}</h3>`;
+    
+    if (data.details && data.details.length > 0) {
+        html += '<ul>';
+        data.details.forEach(detail => {
+            html += `<li>${detail}</li>`;
+        });
+        html += '</ul>';
+    } else {
+        for (const [key, value] of Object.entries(data)) {
+            if (key !== 'message' && key !== 'type' && key !== 'details') {
+                html += `<p><strong>${formatLabel(key)}:</strong> ${value}</p>`;
+            }
+        }
     }
+    
     html += '</div>';
     
     container.innerHTML = html;
@@ -387,4 +500,4 @@ function setupFavoritesFilter() {
         modulesGrid.classList.toggle('show-favorites', showFavorites);
         toggleFavoritesBtn.classList.toggle('active', showFavorites);
     });
-} 
+}
