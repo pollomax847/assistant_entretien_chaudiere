@@ -111,6 +111,9 @@ class ModuleManager {
             const moduleClass = path.replace(/[^a-zA-Z0-9]/g, '-').replace(/^-|-$/g, '');
             this.container.className = `module-container module-${moduleClass}`;
             
+            // Précharger les ressources nécessaires pour les icônes
+            await this.preloadThemeResources(path);
+            
             // Rendre le module avec gestion des erreurs
             try {
                 await module.render(this.container);
@@ -120,6 +123,9 @@ class ModuleManager {
                 if (path.includes('topgaz')) {
                     this.verifyInputFieldsInitialization();
                 }
+                
+                // Vérifier et réparer les problèmes d'affichage des icônes
+                this.verifyThemeResources(path);
                 
                 // Déclencher un événement pour signaler que le module est chargé
                 const event = new CustomEvent('moduleLoaded', { 
@@ -137,6 +143,213 @@ class ModuleManager {
         } finally {
             this.loadingModule = false;
         }
+    }
+    
+    /**
+     * Précharge les ressources nécessaires pour le thème et les icônes
+     * @param {string} path - Le chemin du module
+     */
+    async preloadThemeResources(path) {
+        console.log('Préchargement des ressources de thème pour', path);
+        
+        // Chemins communs pour les icônes et ressources de thème
+        const resourcePaths = [
+            './src/assets/icons/',
+            './src/assets/images/',
+            './src/css/theme/',
+            `./src/modules${path}/assets/`
+        ];
+        
+        try {
+            // Vérifier si les feuilles de style sont correctement chargées
+            const styleSheets = Array.from(document.styleSheets);
+            const themeSheets = styleSheets.filter(sheet => 
+                sheet.href && (sheet.href.includes('theme') || sheet.href.includes('icons'))
+            );
+            
+            if (themeSheets.length === 0) {
+                console.warn("Aucune feuille de style de thème détectée. Tentative de chargement...");
+                await this.loadStylesheet('./src/css/theme/default.css');
+                await this.loadStylesheet('./src/css/icons.css');
+            }
+        } catch (error) {
+            console.error('Erreur lors du préchargement des ressources:', error);
+        }
+    }
+    
+    /**
+     * Charge une feuille de style
+     * @param {string} url - L'URL de la feuille de style
+     */
+    loadStylesheet(url) {
+        return new Promise((resolve, reject) => {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = url;
+            link.onload = () => {
+                console.log(`Feuille de style chargée: ${url}`);
+                resolve();
+            };
+            link.onerror = (err) => {
+                console.error(`Erreur lors du chargement de la feuille de style ${url}:`, err);
+                reject(err);
+            };
+            document.head.appendChild(link);
+        });
+    }
+    
+    /**
+     * Vérifie et répare les problèmes d'affichage des icônes
+     * @param {string} path - Le chemin du module actuel
+     */
+    verifyThemeResources(path) {
+        console.log('Vérification des ressources de thème pour', path);
+        
+        // Vérifier les icônes manquantes
+        const icons = this.container.querySelectorAll('.icon, i, [class*="icon-"], [class*="fa-"]');
+        
+        if (icons.length === 0) {
+            console.log('Aucune icône détectée dans ce module.');
+            return;
+        }
+        
+        console.log(`${icons.length} icônes détectées. Vérification de l'affichage...`);
+        
+        icons.forEach((icon, index) => {
+            // Vérifier si l'icône a une taille (ce qui indique qu'elle est visible)
+            const rect = icon.getBoundingClientRect();
+            const computedStyle = window.getComputedStyle(icon);
+            const isVisible = rect.width > 0 && rect.height > 0;
+            const hasContent = icon.textContent.trim() !== '' || 
+                              (computedStyle.content && computedStyle.content !== 'none' && computedStyle.content !== '""');
+            
+            if (!isVisible || !hasContent) {
+                console.warn(`Icône ${index} non visible ou sans contenu. Tentative de réparation...`, icon);
+                this.repairIcon(icon);
+            }
+        });
+        
+        // Faire une deuxième vérification après un court délai pour voir si les icônes sont chargées
+        setTimeout(() => {
+            const hiddenIcons = this.findHiddenIcons();
+            if (hiddenIcons.length > 0) {
+                console.warn(`${hiddenIcons.length} icônes toujours non visibles. Application des correctifs...`);
+                this.applyIconFix();
+            }
+        }, 500);
+    }
+    
+    /**
+     * Identifie les icônes qui ne sont pas visibles
+     */
+    findHiddenIcons() {
+        const icons = this.container.querySelectorAll('.icon, i, [class*="icon-"], [class*="fa-"]');
+        return Array.from(icons).filter(icon => {
+            const rect = icon.getBoundingClientRect();
+            return rect.width === 0 || rect.height === 0;
+        });
+    }
+    
+    /**
+     * Tente de réparer une icône non visible
+     */
+    repairIcon(icon) {
+        // Conserver les classes existantes
+        const classes = Array.from(icon.classList);
+        
+        // Récupérer le type d'icône (par exemple, 'fa' pour Font Awesome)
+        const isFA = classes.some(c => c.startsWith('fa') || c.startsWith('fas') || c.startsWith('far') || c.startsWith('fab'));
+        const isCustom = classes.some(c => c.startsWith('icon-'));
+        
+        if (isFA) {
+            // Ajouter les classes de base si elles manquent
+            if (!icon.classList.contains('fa') && !icon.classList.contains('fas') && !icon.classList.contains('far')) {
+                icon.classList.add('fas');
+            }
+        } else if (isCustom) {
+            // Vérifier si la police d'icônes personnalisée est chargée
+            this.loadCustomIconFont();
+        }
+        
+        // Forcer un refresh du rendu
+        icon.style.display = 'none';
+        setTimeout(() => {
+            icon.style.display = '';
+        }, 10);
+    }
+    
+    /**
+     * Charge la police d'icônes personnalisée si nécessaire
+     */
+    loadCustomIconFont() {
+        const fontUrl = './src/assets/fonts/icons.woff2';
+        
+        // Vérifier si la police est déjà chargée
+        const isLoaded = Array.from(document.fonts).some(font => 
+            font.family.toLowerCase().includes('icon') || 
+            font.family.toLowerCase().includes('custom')
+        );
+        
+        if (!isLoaded) {
+            const fontFace = new FontFace('CustomIcons', `url(${fontUrl})`);
+            fontFace.load().then(font => {
+                document.fonts.add(font);
+                console.log('Police d\'icônes personnalisée chargée.');
+                
+                // Déclencher un événement pour signaler que la police est chargée
+                document.dispatchEvent(new Event('iconsLoaded'));
+            }).catch(err => {
+                console.error('Erreur lors du chargement de la police d\'icônes:', err);
+            });
+        }
+    }
+    
+    /**
+     * Applique un correctif général pour les problèmes d'icônes
+     */
+    applyIconFix() {
+        // Injecter un correctif CSS
+        const styleId = 'icon-fix-style';
+        let styleElem = document.getElementById(styleId);
+        
+        if (!styleElem) {
+            styleElem = document.createElement('style');
+            styleElem.id = styleId;
+            document.head.appendChild(styleElem);
+        }
+        
+        styleElem.textContent = `
+            /* Correctif pour les icônes */
+            [class*="icon-"]:before, [class*="fa-"]:before {
+                display: inline-block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
+            
+            .icon, i[class*="fa"], i[class*="icon-"] {
+                display: inline-flex !important;
+                align-items: center;
+                justify-content: center;
+                min-width: 1em;
+                min-height: 1em;
+            }
+            
+            /* Forcer le chargement des polices d'icônes */
+            @font-face {
+                font-family: 'FontAwesome';
+                src: url('./src/assets/fonts/fontawesome-webfont.woff2') format('woff2');
+                font-display: block;
+            }
+            
+            @font-face {
+                font-family: 'CustomIcons';
+                src: url('./src/assets/fonts/icons.woff2') format('woff2');
+                font-display: block;
+            }
+        `;
+        
+        console.log('Correctif CSS pour les icônes appliqué.');
     }
 
     /**
