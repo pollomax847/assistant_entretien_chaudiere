@@ -1,13 +1,22 @@
 {
-  "name": "chauffage-expert",
+  "name": "assistant-entretien-chaudiere",
   "version": "1.0.0",
-  "description": "Application d'assistance pour l'entretien des chaudières",
-  "private": true,
+  "description": "Application d'assistance pour l'entretien de chaudière",
+  "type": "module",
   "scripts": {
-    "build": "rm -rf public && mkdir -p public && cp -r css public/ && cp -r js public/ && cp -r assets public/ && cp index.html public/ && cp .htaccess public/ && mkdir -p public/assets/icons && cp assets/icons/* public/assets/icons/",
-    "start": "serve public"
+    "dev": "node server.js",
+    "build": "vite build",
+    "preview": "vite preview",
+    "serve": "vite serve"
   },
   "dependencies": {
-    "serve": "^14.2.1"
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.2",
+    "vite": "^6.3.3"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }

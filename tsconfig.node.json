@@ -2,9 +2,12 @@
   "compilerOptions": {
     "composite": true,
     "skipLibCheck": true,
-    "module": "Node16",
-    "moduleResolution": "node16",
-    "allowSyntheticDefaultImports": true
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "esModuleInterop": true
   },
-  "include": ["vite.config.ts"]
-} 
+  "include": ["vite.config.ts", "src/**/*.ts", "src/**/*.js"]
+}

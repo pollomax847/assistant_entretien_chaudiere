@@ -1,11 +1,22 @@
+// Import the constants from the loader
+import { APP_CONFIG, MODULES, CONSTANTS } from '/src/config/constants-loader.js';
+
 // Configuration initiale
 document.addEventListener('DOMContentLoaded', () => {
     const appContainer = document.querySelector('.app-container');
     
     // Initialize modules and UI
-    initializeModules();
-    initializeEventListeners();
-    initializePreferences();
+    try {
+        initializeModules();
+    } catch (e) {
+        console.log('Erreur lors de l\'initialisation des modules:', e);
+    }
+    
+    try {
+        initializeEventListeners();
+    } catch (e) {
+        console.log('Erreur lors de l\'initialisation des écouteurs d\'événements:', e);
+    }
     
     // Check sidebar state
     if (localStorage.getItem('sidebarHidden') === 'true' && appContainer) {
@@ -13,491 +24,335 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Initialize other components
-    updateOnlineStatus();
-    loadFavorites();
+    try {
+        updateOnlineStatus();
+    } catch (e) {
+        console.log('Erreur lors de la mise à jour du statut de connexion:', e);
+    }
+
+    try {
+        loadFavorites();
+    } catch (e) {
+        console.log('Erreur lors du chargement des favoris:', e);
+    }
+
+    // Initialize general listeners
+    try {
+        initGeneralListeners();
+    } catch (e) {
+        console.log('Erreur lors de l\'initialisation des écouteurs généraux:', e);
+    }
+
+    // Log initialization pour débugger
+    console.log('Chauffage Expert: Initialization complete');
 });
 
-// Configuration des modules
-const modules = [
-    {
-        id: 'module-puissance-chauffage',
-        title: 'Puissance Chauffage',
-        icon: '/assets/icons/calculator.svg',
-        description: 'Calcul de la puissance de chauffage nécessaire'
-    },
-    {
-        id: 'module-vase-expansion',
-        title: 'Vase d\'Expansion',
-        icon: '/assets/icons/water.svg',
-        description: 'Calcul et vérification du vase d\'expansion'
-    },
-    {
-        id: 'module-equilibrage',
-        title: 'Équilibrage Réseau',
-        icon: '/assets/icons/balance.svg',
-        description: 'Calculs d\'équilibrage du réseau de chauffage'
-    },
-    {
-        id: 'module-radiateurs',
-        title: 'Radiateurs',
-        icon: '/assets/icons/radiator.svg',
-        description: 'Calculs et vérifications des radiateurs'
-    },
-    {
-        id: 'module-ecs',
-        title: 'ECS Instantané',
-        icon: '/assets/icons/water-drop.svg',
-        description: 'Calculs pour l\'eau chaude sanitaire'
-    },
-    {
-        id: 'module-top-gaz',
-        title: 'Top Compteur Gaz',
-        icon: '/assets/icons/gas.svg',
-        description: 'Vérification des compteurs de gaz'
-    },
-    {
-        id: 'module-vmc',
-        title: 'VMC',
-        icon: '/assets/icons/ventilation.svg',
-        description: 'Vérification et calculs pour la ventilation mécanique'
-    },
-    {
-        id: 'module-reglementation-gaz',
-        title: 'Réglementation Gaz',
-        icon: '/assets/icons/rules.svg',
-        description: 'Vérifications réglementaires gaz'
-    },
-    {
-        id: 'module-reglementaires-comp',
-        title: 'Autres Vérifications',
-        icon: '/assets/icons/compliance.svg',
-        description: 'Vérifications réglementaires diverses'
-    },
-    {
-        id: 'module-export-pdf',
-        title: 'Export PDF',
-        icon: '/assets/icons/pdf.svg',
-        description: 'Génération de rapports PDF'
-    },
-    {
-        id: 'module-preferences',
-        title: 'Préférences',
-        icon: '/assets/icons/settings.svg',
-        description: 'Configuration de l\'application'
-    }
-];
+// Configuration des modules - access from window object
+const modules = window.MODULES || [];
 
 // Initialisation de l'application
 function initializeModules() {
-    // Vérification de la connexion
-    updateOnlineStatus();
-    
-    // Chargement des modules
-    loadModule('module-puissance-chauffage');
-    
-    // Configuration de la recherche
-    setupSearch();
+    // Mise en place de la navigation
+    modules.forEach(module => {
+        try {
+            const moduleLink = document.createElement('a');
+            moduleLink.href = `#${module.id}`;
+            moduleLink.innerHTML = `
+                <img src="${module.icon}" alt="${module.title}" />
+                <span>${module.title}</span>
+            `;
+            moduleLink.addEventListener('click', e => {
+                e.preventDefault();
+                loadModule(module.id);
+            });
+
+            const moduleItem = document.createElement('li');
+            moduleItem.appendChild(moduleLink);
+            
+            const sidebar = document.querySelector('.sidebar-nav ul');
+            if (sidebar) {
+                sidebar.appendChild(moduleItem);
+            } else {
+                console.warn('Élément sidebar-nav non trouvé dans le DOM');
+            }
+        } catch (err) {
+            console.error(`Erreur lors de la création du module ${module.id}:`, err);
+        }
+    });
+
+    // Chargement du module par défaut
+    const defaultModule = window.APP_CONFIG?.defaultModule || (modules.length > 0 ? modules[0].id : null);
+    if (defaultModule) {
+        loadModule(defaultModule);
+    }
 }
 
 // Gestionnaires d'événements
 function initializeEventListeners() {
     // Navigation
-    document.querySelectorAll('.sidebar-nav a').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const moduleId = e.currentTarget.getAttribute('href').substring(1);
-            loadModule(moduleId);
+    const sidebarNavLinks = document.querySelectorAll('.sidebar-nav a');
+    if (sidebarNavLinks.length > 0) {
+        sidebarNavLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const moduleId = e.currentTarget.getAttribute('href')?.substring(1);
+                if (moduleId) {
+                    loadModule(moduleId);
+                }
+            });
         });
-    });
+    } else {
+        console.warn('Éléments sidebar-nav a non trouvés dans le DOM');
+    }
     
     // Déconnexion
-    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+    } else {
+        console.warn('Élément logoutBtn non trouvé dans le DOM');
+    }
     
     // Recherche
-    document.getElementById('search-modules').addEventListener('input', handleSearch);
+    const searchInput = document.getElementById('search-modules');
+    if (searchInput) {
+        searchInput.addEventListener('input', handleSearch);
+    } else {
+        console.warn('Élément search-modules non trouvé dans le DOM');
+    }
 
     // Gestion du basculement du menu
     const sidebarToggle = document.getElementById('sidebarToggle');
     const appContainer = document.querySelector('.app-container');
 
-    sidebarToggle.addEventListener('click', () => {
-        appContainer.classList.toggle('sidebar-hidden');
-        
-        // Sauvegarder l'état du menu dans le localStorage
-        const isHidden = appContainer.classList.contains('sidebar-hidden');
-        localStorage.setItem('sidebarHidden', isHidden);
-    });
+    if (sidebarToggle && appContainer) {
+        sidebarToggle.addEventListener('click', () => {
+            appContainer.classList.toggle('sidebar-hidden');
+            
+            // Sauvegarder l'état du menu dans le localStorage
+            const isHidden = appContainer.classList.contains('sidebar-hidden');
+            localStorage.setItem('sidebarHidden', isHidden);
+        });
+    } else {
+        console.warn('Éléments sidebarToggle ou appContainer non trouvés dans le DOM');
+    }
 }
 
 // Gestion de la connexion
 function updateOnlineStatus() {
     const statusIndicator = document.getElementById('status-indicator');
-    if (navigator.onLine) {
-        statusIndicator.classList.add('status-online');
-        statusIndicator.classList.remove('status-offline');
-        statusIndicator.title = 'Connecté';
+    
+    // Vérification si l'élément existe avant de l'utiliser
+    if (statusIndicator) {
+        if (navigator.onLine) {
+            statusIndicator.classList.add('status-online');
+            statusIndicator.classList.remove('status-offline');
+            statusIndicator.title = 'Connecté';
+        } else {
+            statusIndicator.classList.add('status-offline');
+            statusIndicator.classList.remove('status-online');
+            statusIndicator.title = 'Hors ligne';
+        }
     } else {
-        statusIndicator.classList.add('status-offline');
-        statusIndicator.classList.remove('status-online');
-        statusIndicator.title = 'Hors ligne';
+        console.warn("Élément 'status-indicator' non trouvé dans le DOM");
     }
+    
+    // Ajout d'événements pour mettre à jour le statut lorsque la connectivité change
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
 }
 
-// Chargement des modules
+// Chargement des modules - Utiliser fetch avec l'URL relative (cela fonctionnera avec Vite)
 function loadModule(moduleId) {
-    const moduleContainer = document.getElementById('module-container');
-    if (!moduleContainer) {
-        console.error('Container de module non trouvé');
+    console.log('Tentative de chargement du module:', moduleId);
+    const contentContainer = document.getElementById('content');
+    if (!contentContainer) {
+        console.error("Conteneur de contenu non trouvé");
         return;
     }
-    
-    moduleContainer.innerHTML = ''; // Nettoyage du conteneur
-    
-    // Chargement dynamique du module avec chemin relatif
-    fetch(`modules/${moduleId}.html`)
+
+    // Afficher un indicateur de chargement
+    contentContainer.innerHTML = '<div class="loading">Chargement...</div>';
+
+    // Trouver le chemin du module
+    const moduleConfig = modules.find(m => m.id === moduleId);
+    if (!moduleConfig) {
+        contentContainer.innerHTML = '<div class="error">Module non trouvé</div>';
+        console.error("Module non trouvé:", moduleId);
+        return;
+    }
+
+    // Utiliser un chemin absolu par rapport à la racine du projet
+    const modulePath = moduleId.includes('module-') 
+        ? `/modules/${moduleId.replace('module-', '')}/index.html`
+        : `/modules/${moduleId}/index.html`;
+
+    // Utiliser fetch avec une gestion d'erreur robuste
+    fetch(modulePath)
         .then(response => {
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`HTTP error! Status: ${response.status}`);
             }
             return response.text();
         })
         .then(html => {
-            moduleContainer.innerHTML = html;
+            contentContainer.innerHTML = html;
+            console.log(`Module ${moduleId} chargé avec succès`);
+            
+            // Initialiser les écouteurs d'événements spécifiques au module
             initializeModule(moduleId);
         })
         .catch(error => {
-            console.error('Erreur lors du chargement du module:', error);
-            moduleContainer.innerHTML = `<div class="error">Erreur lors du chargement du module: ${moduleId}</div>`;
+            console.error(`Erreur lors du chargement du module: ${moduleId}`, error);
+            contentContainer.innerHTML = `
+                <div class="error">
+                    <h2>Erreur de chargement du module</h2>
+                    <p>Impossible de charger le module "${moduleConfig.title}".</p>
+                    <p>Détail de l'erreur: ${error.message}</p>
+                    <button class="btn-retry" onclick="window.loadModule('${moduleId}')">Réessayer</button>
+                </div>
+            `;
         });
 }
 
-// Initialisation des modules
+// Initialise les écouteurs d'événements généraux
+function initGeneralListeners() {
+    // Navigation fluide pour les ancres
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return; // Ignore empty anchors
+            
+            const target = document.querySelector(targetId);
+            if (target) {
+                e.preventDefault();
+                window.scrollTo({
+                    top: target.offsetTop - 100,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+
+    // Gestion du type d'émetteur (si présent)
+    const radioEmetteurs = document.querySelectorAll('input[name="typeEmetteur"]');
+    if (radioEmetteurs.length > 0) {
+        radioEmetteurs.forEach(radio => {
+            radio.addEventListener('change', function() {
+                const radiateurParams = document.getElementById('radiateur-params');
+                const plancherParams = document.getElementById('plancher-params');
+                
+                if (radiateurParams) {
+                    radiateurParams.style.display = this.value === 'radiateur' ? 'block' : 'none';
+                }
+                
+                if (plancherParams) {
+                    plancherParams.style.display = this.value === 'plancher' ? 'block' : 'none';
+                }
+                
+                // Appeler calcule si elle existe
+                if (typeof calcule === 'function') {
+                    calcule();
+                }
+            });
+        });
+    }
+
+    // Gestion de l'affichage dark/light mode
+    const themeToggler = document.getElementById('theme-toggle');
+    if (themeToggler) {
+        themeToggler.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark);
+        });
+        
+        // Appliquer le thème stocké
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+        }
+    }
+}
+
+// Initialisation d'un module
 function initializeModule(moduleId) {
+    // Appeler les initialiseurs spécifiques en fonction de l'ID du module
     switch (moduleId) {
         case 'module-puissance-chauffage':
-            initializePuissanceChauffage();
+            if (typeof initializePuissanceChauffage === 'function') {
+                initializePuissanceChauffage();
+            }
             break;
         case 'module-vase-expansion':
-            initializeVaseExpansion();
+            if (typeof initializeVaseExpansion === 'function') {
+                initializeVaseExpansion();
+            }
             break;
         case 'module-vmc':
-            initializeVMC();
-            break;
-        // Ajouter les autres cas pour chaque module
-    }
-}
-
-// Module Puissance Chauffage
-function initializePuissanceChauffage() {
-    const form = document.getElementById('puissance-chauffage-form');
-    if (!form) return;
-    
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        calculatePuissanceChauffage();
-    });
-}
-
-function calculatePuissanceChauffage() {
-    const surface = parseFloat(document.getElementById('surface').value);
-    const hauteur = parseFloat(document.getElementById('hauteur').value);
-    const tempInt = parseFloat(document.getElementById('temp-int').value);
-    const tempExt = parseFloat(document.getElementById('temp-ext').value);
-    const coefficientG = parseFloat(document.getElementById('coefficient-g').value);
-    
-    const volume = surface * hauteur;
-    const deltaT = tempInt - tempExt;
-    const puissance = (coefficientG * volume * deltaT) / 1000;
-    
-    displayResult('puissance-result', {
-        volume: volume.toFixed(2),
-        deltaT: deltaT.toFixed(1),
-        puissance: puissance.toFixed(2)
-    });
-}
-
-// Module Vase d'Expansion
-function initializeVaseExpansion() {
-    const form = document.getElementById('vase-expansion-form');
-    if (!form) return;
-    
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        calculateVaseExpansion();
-    });
-}
-
-function calculateVaseExpansion() {
-    const hauteur = parseFloat(document.getElementById('hauteur-batiment').value);
-    const radiateurEloigne = document.getElementById('radiateur-eloigne').checked;
-    
-    const pressionTheorique = (hauteur / 10) + 0.3;
-    const reglageTours = Math.round(pressionTheorique * 2) / 2;
-    
-    displayResult('vase-expansion-result', {
-        pressionTheorique: pressionTheorique.toFixed(2),
-        reglageTours: reglageTours.toFixed(1),
-        radiateurEloigne: radiateurEloigne ? 'Oui' : 'Non'
-    });
-}
-
-// Module VMC
-function initializeVMC() {
-    const form = document.getElementById('vmc-form');
-    if (!form) return;
-    
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        verifyVMC();
-    });
-}
-
-function verifyVMC() {
-    const typeVMC = document.getElementById('typeVMC').value;
-    const nbBouches = parseInt(document.getElementById('nbBouches').value);
-    const debitMesure = parseFloat(document.getElementById('debitMesure').value);
-    const debitMS = parseFloat(document.getElementById('debitMS').value);
-    const modulesFenetre = document.getElementById('modulesFenetre').value === 'true';
-    const etalonnagePortes = document.getElementById('etalonnagePortes').value === 'true';
-    
-    // Normes VMC
-    const normesVMC = {
-        simple_flux: { debitMin: 15, debitMax: 30 },
-        sanitaire: { debitMin: 20, debitMax: 40 },
-        sekoia: { debitMin: 25, debitMax: 45 },
-        vti: { debitMin: 30, debitMax: 50 }
-    };
-    
-    // Vérifications
-    let messages = [];
-    let estConforme = true;
-    
-    // Vérification des champs obligatoires
-    if (isNaN(nbBouches) || isNaN(debitMesure) || isNaN(debitMS)) {
-        displayResult('vmc-result', { message: 'Veuillez remplir tous les champs numériques', type: 'error' });
-        return;
-    }
-    
-    // Vérification du débit
-    const norme = normesVMC[typeVMC];
-    const debitParBouche = debitMesure / nbBouches;
-    
-    if (debitParBouche < norme.debitMin) {
-        messages.push(`Le débit par bouche (${debitParBouche.toFixed(2)} m³/h) est inférieur au minimum requis (${norme.debitMin} m³/h).`);
-        estConforme = false;
-    }
-    
-    if (debitParBouche > norme.debitMax) {
-        messages.push(`Le débit par bouche (${debitParBouche.toFixed(2)} m³/h) est supérieur au maximum autorisé (${norme.debitMax} m³/h).`);
-        estConforme = false;
-    }
-    
-    // Vérification du débit en m/s
-    if (debitMS < 0.8 || debitMS > 2.5) {
-        messages.push(`Le débit en m/s (${debitMS.toFixed(1)}) est hors plage recommandée (0.8 - 2.5 m/s)`);
-        estConforme = false;
-    }
-    
-    // Vérification des modules aux fenêtres
-    if (!modulesFenetre) {
-        messages.push('Les modules aux fenêtres ne sont pas conformes');
-        estConforme = false;
-    }
-    
-    // Vérification de l'étalonnage des portes
-    if (!etalonnagePortes) {
-        messages.push("L'étalonnage des portes n'a pas été vérifié");
-        estConforme = false;
-    }
-    
-    // Affichage des résultats
-    if (estConforme) {
-        displayResult('vmc-result', { 
-            message: 'L\'installation VMC est conforme aux normes', 
-            type: 'success',
-            details: [
-                `Débit total: ${debitMesure.toFixed(1)} m³/h`,
-                `Débit par bouche: ${debitParBouche.toFixed(1)} m³/h`,
-                `Débit en m/s: ${debitMS.toFixed(1)} m/s`
-            ]
-        });
-    } else {
-        displayResult('vmc-result', { 
-            message: 'L\'installation VMC présente des non-conformités', 
-            type: 'error',
-            details: messages
-        });
-    }
-}
-
-// Affichage des résultats
-function displayResult(containerId, data) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    
-    const type = data.type || 'info';
-    const icons = {
-        'success': '✅',
-        'warning': '⚠️',
-        'error': '❌',
-        'info': 'ℹ️'
-    };
-    
-    let html = `<div class="result ${type}">`;
-    html += `<h3>${icons[type]} ${data.message}</h3>`;
-    
-    if (data.details && data.details.length > 0) {
-        html += '<ul>';
-        data.details.forEach(detail => {
-            html += `<li>${detail}</li>`;
-        });
-        html += '</ul>';
-    } else {
-        for (const [key, value] of Object.entries(data)) {
-            if (key !== 'message' && key !== 'type' && key !== 'details') {
-                html += `<p><strong>${formatLabel(key)}:</strong> ${value}</p>`;
+            if (typeof initializeVMC === 'function') {
+                initializeVMC();
             }
-        }
+            break;
+        // Ajoutez d'autres cas selon vos modules...
     }
     
-    html += '</div>';
-    
-    container.innerHTML = html;
-}
-
-// Utilitaires
-function formatLabel(key) {
-    const labels = {
-        'volume': 'Volume (m³)',
-        'deltaT': 'ΔT (°C)',
-        'puissance': 'Puissance (kW)',
-        'pressionTheorique': 'Pression théorique (bar)',
-        'reglageTours': 'Réglage (tours)',
-        'radiateurEloigne': 'Radiateur le plus éloigné'
-    };
-    return labels[key] || key;
-}
-
-// Gestion des préférences
-function initializePreferences() {
-    const prefs = JSON.parse(localStorage.getItem('userPreferences')) || {};
-    document.getElementById('technician-name').textContent = prefs.technicianName || 'Technicien';
-}
-
-// Gestion de la recherche
-function setupSearch() {
-    const searchInput = document.getElementById('search-modules');
-    if (!searchInput) return;
-    
-    searchInput.addEventListener('input', handleSearch);
-}
-
-function handleSearch(e) {
-    const searchTerm = e.target.value.toLowerCase();
-    const links = document.querySelectorAll('.sidebar-nav a');
-    
-    links.forEach(link => {
-        const text = link.textContent.toLowerCase();
-        link.parentElement.style.display = text.includes(searchTerm) ? 'block' : 'none';
-    });
-}
-
-// Gestion de la déconnexion
-function handleLogout() {
-    localStorage.removeItem('userPreferences');
-    window.location.href = '/auth.html';
-}
-
-// Rendu des modules
-function renderModules() {
-    const modulesGrid = document.getElementById('modulesGrid');
-    modulesGrid.innerHTML = '';
-
-    modules.forEach(module => {
-        const card = createModuleCard(module);
-        modulesGrid.appendChild(card);
-    });
-}
-
-// Création d'une carte de module
-function createModuleCard(module) {
-    const card = document.createElement('div');
-    card.className = 'module-card';
-    card.dataset.moduleId = module.id;
-
-    const isFavorite = isModuleFavorite(module.id);
-    if (isFavorite) {
-        card.classList.add('favorite');
-    }
-
-    card.innerHTML = `
-        <div class="module-card-header">
-            <div class="module-card-icon">
-                <img src="${module.icon}" alt="${module.title}">
-            </div>
-            <button class="module-card-favorite ${isFavorite ? 'active' : ''}" data-module-id="${module.id}">
-                <img src="/assets/icons/star.svg" alt="Favoris">
-            </button>
-        </div>
-        <h3 class="module-card-title">${module.title}</h3>
-        <p class="module-card-description">${module.description}</p>
-    `;
-
-    // Gestionnaire de clic pour ouvrir le module
-    card.addEventListener('click', (e) => {
-        if (!e.target.closest('.module-card-favorite')) {
-            loadModule(module.id);
+    // Attacher des gestionnaires d'événements génériques aux éléments du module
+    document.querySelectorAll('input, select').forEach(input => {
+        if (input.type === 'checkbox') {
+            input.addEventListener('change', event => {
+                if (typeof calcule === 'function') {
+                    calcule(event);
+                }
+            });
+        } else {
+            input.addEventListener('input', event => {
+                if (typeof calcule === 'function') {
+                    calcule(event);
+                }
+            });
         }
     });
-
-    // Gestionnaire de clic pour les favoris
-    const favoriteBtn = card.querySelector('.module-card-favorite');
-    favoriteBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleFavorite(module.id);
-    });
-
-    return card;
 }
 
 // Gestion des favoris
-function toggleFavorite(moduleId) {
-    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-    const index = favorites.indexOf(moduleId);
-
-    if (index === -1) {
-        favorites.push(moduleId);
-    } else {
-        favorites.splice(index, 1);
+function loadFavorites() {
+    try {
+        // Utiliser une variable pour stocker les favoris plutôt que de rappeler la fonction
+        const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        return favorites;
+    } catch (error) {
+        console.error('Erreur lors du chargement des favoris:', error);
+        return [];
     }
-
-    localStorage.setItem('favorites', JSON.stringify(favorites));
-    updateFavoriteUI(moduleId);
 }
 
-function isModuleFavorite(moduleId) {
-    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-    return favorites.includes(moduleId);
+// Fonction de déconnexion (définition de base)
+function handleLogout() {
+    console.log('Déconnexion demandée');
+    // Implémentation à compléter selon les besoins
+    localStorage.removeItem('user');
+    window.location.href = './login.html';
 }
 
-function updateFavoriteUI(moduleId) {
-    const card = document.querySelector(`.module-card[data-module-id="${moduleId}"]`);
-    const favoriteBtn = card.querySelector('.module-card-favorite');
-    const isFavorite = isModuleFavorite(moduleId);
-
-    card.classList.toggle('favorite', isFavorite);
-    favoriteBtn.classList.toggle('active', isFavorite);
-}
-
-// Filtre des favoris
-function setupFavoritesFilter() {
-    const toggleFavoritesBtn = document.getElementById('toggleFavorites');
-    const modulesGrid = document.getElementById('modulesGrid');
-    let showFavorites = false;
-
-    toggleFavoritesBtn.addEventListener('click', () => {
-        showFavorites = !showFavorites;
-        modulesGrid.classList.toggle('show-favorites', showFavorites);
-        toggleFavoritesBtn.classList.toggle('active', showFavorites);
+// Fonction de recherche (définition de base)
+function handleSearch(event) {
+    const searchTerm = event.target.value.toLowerCase();
+    const moduleElements = document.querySelectorAll('.sidebar-nav li a');
+    
+    moduleElements.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+            item.parentElement.style.display = '';
+        } else {
+            item.parentElement.style.display = 'none';
+        }
     });
 }
+
+// Expose necessary functions to window object for use in HTML
+window.loadModule = loadModule;
+window.handleLogout = handleLogout;
+window.initializeModule = initializeModule;
+window.calcule = function() {
+    console.log("Fonction calcule appelée mais pas encore implémentée");
+};

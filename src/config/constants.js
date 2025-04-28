@@ -9,39 +9,64 @@ export const FIREBASE_CONFIG = {
     measurementId: "G-DMLBP48V3R"
 };
 
-// Configuration des modules
-export const MODULES = {
-    VMC: {
-        name: "VMC",
-        path: "/vmc",
-        icon: "ventilation"
-    },
-    CHAUFFAGE: {
-        name: "Chauffage",
-        path: "/chauffage",
-        icon: "heating"
-    },
-    ECS: {
-        name: "ECS",
-        path: "/ecs",
-        icon: "water"
-    },
-    GAZ: {
-        name: "Test Gaz",
-        path: "/gaz",
-        icon: "gas"
-    },
-    REGLEMENTAIRE: {
-        name: "Réglementaire",
-        path: "/reglementaire",
-        icon: "rules"
-    },
-    RADIATEURS: {
-        name: "Radiateurs",
-        path: "/radiateurs",
-        icon: "radiator"
-    }
+// Configuration des modules disponibles dans l'application
+export const MODULES = [
+  {
+    id: 'module-puissance-chauffage',
+    path: '/puissance-chauffage',
+    title: 'Puissance Chauffage',
+    description: 'Calcul de la puissance de chauffage nécessaire'
+  },
+  {
+    id: 'module-vase-expansion',
+    path: '/vase-expansion',
+    title: 'Vase d\'Expansion',
+    description: 'Calcul du dimensionnement du vase d\'expansion'
+  },
+  {
+    id: 'module-equilibrage',
+    path: '/equilibrage',
+    title: 'Équilibrage Réseau',
+    description: 'Équilibrage du réseau de chauffage'
+  },
+  {
+    id: 'module-radiateurs',
+    path: '/radiateurs',
+    title: 'Radiateurs',
+    description: 'Dimensionnement des radiateurs'
+  },
+  {
+    id: 'module-vmc',
+    path: '/vmc',
+    title: 'VMC',
+    description: 'Vérification et calcul VMC'
+  }
+];
+
+// Paramètres pour les modules VMC
+export const VMC_CONFIG = {
+  minDebit: 15, // m³/h par pièce
+  minDebitMS: 0.5, // m/s minimum
+  maxDebitMS: 4, // m/s maximum
 };
+
+// Configuration générale de l'application
+export const APP_CONFIG = {
+  appName: 'Assistant Entretien Chaudière',
+  localStoragePrefix: 'assistant_chauffage_',
+  defaultModule: '/vmc'
+};
+
+// Fonction pour charger les favoris
+export function loadFavorites() {
+  try {
+    const favorites = localStorage.getItem(`${APP_CONFIG.localStoragePrefix}favorites`);
+    return favorites ? JSON.parse(favorites) : [];
+  } catch (error) {
+    console.error('Erreur lors du chargement des favoris:', error);
+    return [];
+  }
+}
 
 // Configuration des styles
 export const THEME = {
@@ -64,4 +89,4 @@ export const THEME = {
         tablet: "768px",
         desktop: "1024px"
     }
-}; 
+};
