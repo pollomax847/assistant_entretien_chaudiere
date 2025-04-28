@@ -43,8 +43,17 @@ class ModuleManager {
                 const modulePath = `./src/modules${path}/index.js`;
                 
                 // Utiliser loadScript pour charger le module
-                await window.helpers.loadScript(modulePath);
-                
+                if (window.helpers && typeof window.helpers.loadScript === 'function') {
+                    await window.helpers.loadScript(modulePath);
+                } else {
+                    throw new Error("window.helpers ou la méthode loadScript n'est pas définie.");
+                }
+                    console.log(`Script chargé avec succès: ${modulePath}`);
+                } catch (scriptError) {
+                    console.error(`Erreur lors du chargement du script ${modulePath}:`, scriptError);
+                    throw scriptError;
+                }
+
                 // Si le chargement a réussi, le module devrait être disponible dans window.modules[path]
                 if (window.modules && window.modules[path]) {
                     const module = window.modules[path];
@@ -106,6 +115,11 @@ class ModuleManager {
             try {
                 await module.render(this.container);
                 this.currentModule = path;
+                
+                // Vérifier l'initialisation des champs de saisie (particulièrement important pour TopGaz)
+                if (path.includes('topgaz')) {
+                    this.verifyInputFieldsInitialization();
+                }
                 
                 // Déclencher un événement pour signaler que le module est chargé
                 const event = new CustomEvent('moduleLoaded', { 
@@ -228,6 +242,78 @@ class ModuleManager {
                 }
             }
         };
+    }
+
+    /**
+     * Vérifie l'initialisation des champs de saisie
+     */
+    verifyInputFieldsInitialization() {
+        console.log("Vérification des champs de saisie...");
+        
+        // Sélectionner tous les champs de saisie dans le conteneur
+        const inputFields = this.container.querySelectorAll('input, textarea, select');
+        
+        if (inputFields.length === 0) {
+            console.warn("Aucun champ de saisie trouvé dans le module.");
+            return;
+        }
+        
+        console.log(`${inputFields.length} champs de saisie trouvés. Vérification des listeners...`);
+        
+        // Pour les modules TopGaz, appliquer une correction spécifique
+        if (this.currentModule && this.currentModule.includes('topgaz')) {
+            this.fixTopGazInputFields(inputFields);
+        }
+        
+        // Ajouter des vérificateurs de focus pour le débogage
+        inputFields.forEach((field, index) => {
+            const originalFocus = field.onfocus;
+            field.onfocus = function(e) {
+                console.log(`Champ ${index} a reçu le focus`, e.target);
+                if (originalFocus) originalFocus.call(this, e);
+            };
+            
+            // Vérifier si le champ est désactivé ou en lecture seule
+            if (field.disabled) {
+                console.warn(`Champ ${index} (${field.name || field.id || 'sans nom'}) est désactivé`);
+            }
+            
+            if (field.readOnly) {
+                console.warn(`Champ ${index} (${field.name || field.id || 'sans nom'}) est en lecture seule`);
+            }
+        });
+    }
+    
+    /**
+     * Correction spécifique pour les champs de saisie TopGaz
+     */
+    fixTopGazInputFields(inputFields) {
+        console.log("Application de correctifs pour les champs de saisie TopGaz...");
+        
+        inputFields.forEach((field) => {
+            // Réinitialiser les états qui pourraient bloquer la saisie
+            field.disabled = false;
+            field.readOnly = false;
+            
+            // S'assurer que les événements sont correctement liés
+            field.addEventListener('click', (e) => {
+                e.stopPropagation(); // Empêcher la propagation qui pourrait interférer
+            });
+            
+            // Forcer une mise à jour du modèle pour les frameworks réactifs
+            field.addEventListener('input', (e) => {
+                console.log(`Saisie détectée dans ${e.target.name || e.target.id || 'champ sans nom'}:`, e.target.value);
+                
+                // Déclencher un événement personnalisé que le module peut écouter
+                const inputEvent = new CustomEvent('topgazInput', {
+                    bubbles: true,
+                    detail: { field: e.target, value: e.target.value }
+                });
+                e.target.dispatchEvent(inputEvent);
+            });
+        });
+        
+        console.log("Correctifs appliqués aux champs de saisie TopGaz.");
     }
 
     /**
