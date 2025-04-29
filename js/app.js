@@ -349,6 +349,79 @@ function handleSearch(event) {
     });
 }
 
+/**
+ * Vérifie la cohérence de la puissance calculée pour les radiateurs
+ * @param {number} puissance - Puissance calculée en watts
+ * @param {number} surface - Surface du radiateur en m²
+ * @param {string} type - Type de radiateur
+ * @returns {object} - Résultat de la vérification avec message si incohérence
+ */
+function verifierCoherencePuissance(puissance, surface, type) {
+    const resultat = {
+        coherent: true,
+        message: ""
+    };
+    
+    // Seuils minimums et maximums par type de radiateur (W/m²)
+    const seuils = {
+        "Fonte": { min: 700, max: 1200 },
+        "Acier": { min: 800, max: 1400 },
+        "Aluminium": { min: 900, max: 1600 },
+        "Panneaux": { min: 850, max: 1500 },
+        "SecheServiette": { min: 600, max: 1000 },
+        "FonteAlu": { min: 800, max: 1400 },
+        "default": { min: 700, max: 1500 }
+    };
+    
+    // Obtenir les seuils pour ce type de radiateur
+    const seuilType = seuils[type] || seuils.default;
+    
+    // Calculer la puissance au m²
+    if (surface > 0) {
+        const puissanceParM2 = puissance / surface;
+        
+        if (puissanceParM2 < seuilType.min) {
+            resultat.coherent = false;
+            resultat.message = `La puissance calculée (${Math.round(puissanceParM2)} W/m²) est anormalement basse pour ce type de radiateur.`;
+        } else if (puissanceParM2 > seuilType.max) {
+            resultat.coherent = false;
+            resultat.message = `La puissance calculée (${Math.round(puissanceParM2)} W/m²) est anormalement élevée pour ce type de radiateur.`;
+        }
+    }
+    
+    return resultat;
+}
+
+/**
+ * Calcule la puissance d'un radiateur en fonction de ses dimensions et de son type
+ */
+function calculPuissanceRadiateur() {
+    // ...existing code...
+    
+    // Remplacer l'appel incorrect à verifierCohérencePuissance par verifierCoherencePuissance
+    const verification = verifierCoherencePuissance(puissance, surface, type);
+    
+    // Afficher un avertissement si la puissance n'est pas cohérente
+    if (!verification.coherent) {
+        document.getElementById("resRadiateur").innerHTML +=
+            `<p class="warning">${verification.message}</p>`;
+    }
+    
+    // ...existing code...
+}
+
+/**
+ * Vérifie la cohérence globale des calculs de radiateurs
+ */
+function verifierCoherenceGlobale() {
+    // ...existing code...
+    
+    // Remplacer l'appel incorrect à verifierCohérencePuissance par verifierCoherencePuissance
+    const verification = verifierCoherencePuissance(puissanceTotale, surfaceTotale, "mixed");
+    
+    // ...existing code...
+}
+
 // Expose necessary functions to window object for use in HTML
 window.loadModule = loadModule;
 window.handleLogout = handleLogout;
