@@ -356,40 +356,36 @@ function handleSearch(event) {
  * @param {string} type - Type de radiateur
  * @returns {object} - Résultat de la vérification avec message si incohérence
  */
-function verifierCoherencePuissance(puissance, surface, type) {
-    const resultat = {
-        coherent: true,
-        message: ""
+function verifierCohérencePuissance(puissance, surface, type) {
+    // Vérification de la cohérence entre la puissance et la surface
+    const puissanceParM2 = puissance / surface;
+    
+    // Valeurs de référence pour la puissance par m² selon le type d'émetteur
+    const references = {
+        'radiateur': { min: 50, max: 150 },
+        'plancher': { min: 30, max: 100 }
     };
     
-    // Seuils minimums et maximums par type de radiateur (W/m²)
-    const seuils = {
-        "Fonte": { min: 700, max: 1200 },
-        "Acier": { min: 800, max: 1400 },
-        "Aluminium": { min: 900, max: 1600 },
-        "Panneaux": { min: 850, max: 1500 },
-        "SecheServiette": { min: 600, max: 1000 },
-        "FonteAlu": { min: 800, max: 1400 },
-        "default": { min: 700, max: 1500 }
-    };
+    const ref = references[type] || references.radiateur;
     
-    // Obtenir les seuils pour ce type de radiateur
-    const seuilType = seuils[type] || seuils.default;
-    
-    // Calculer la puissance au m²
-    if (surface > 0) {
-        const puissanceParM2 = puissance / surface;
-        
-        if (puissanceParM2 < seuilType.min) {
-            resultat.coherent = false;
-            resultat.message = `La puissance calculée (${Math.round(puissanceParM2)} W/m²) est anormalement basse pour ce type de radiateur.`;
-        } else if (puissanceParM2 > seuilType.max) {
-            resultat.coherent = false;
-            resultat.message = `La puissance calculée (${Math.round(puissanceParM2)} W/m²) est anormalement élevée pour ce type de radiateur.`;
-        }
+    if (puissanceParM2 < ref.min) {
+        return {
+            valide: false,
+            message: `La puissance est trop faible (${Math.round(puissanceParM2)} W/m²). Minimum recommandé: ${ref.min} W/m²`
+        };
     }
     
-    return resultat;
+    if (puissanceParM2 > ref.max) {
+        return {
+            valide: false,
+            message: `La puissance est trop élevée (${Math.round(puissanceParM2)} W/m²). Maximum recommandé: ${ref.max} W/m²`
+        };
+    }
+    
+    return {
+        valide: true,
+        message: `Puissance correcte (${Math.round(puissanceParM2)} W/m²)`
+    };
 }
 
 /**
@@ -399,7 +395,7 @@ function calculPuissanceRadiateur() {
     // ...existing code...
     
     // Remplacer l'appel incorrect à verifierCohérencePuissance par verifierCoherencePuissance
-    const verification = verifierCoherencePuissance(puissance, surface, type);
+    const verification = verifierCohérencePuissance(puissance, surface, type);
     
     // Afficher un avertissement si la puissance n'est pas cohérente
     if (!verification.coherent) {
@@ -417,7 +413,7 @@ function verifierCoherenceGlobale() {
     // ...existing code...
     
     // Remplacer l'appel incorrect à verifierCohérencePuissance par verifierCoherencePuissance
-    const verification = verifierCoherencePuissance(puissanceTotale, surfaceTotale, "mixed");
+    const verification = verifierCohérencePuissance(puissanceTotale, surfaceTotale, "mixed");
     
     // ...existing code...
 }
@@ -426,6 +422,7 @@ function verifierCoherenceGlobale() {
 window.loadModule = loadModule;
 window.handleLogout = handleLogout;
 window.initializeModule = initializeModule;
+window.verifierCohérencePuissance = verifierCohérencePuissance;
 window.calcule = function() {
     console.log("Fonction calcule appelée mais pas encore implémentée");
 };
