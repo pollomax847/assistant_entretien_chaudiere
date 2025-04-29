@@ -48,13 +48,9 @@ class ModuleManager {
                 // Utiliser loadScript pour charger le module
                 if (window.helpers && typeof window.helpers.loadScript === 'function') {
                     await window.helpers.loadScript(modulePath);
+                    console.log(`Script chargé avec succès: ${modulePath}`);
                 } else {
                     throw new Error("window.helpers ou la méthode loadScript n'est pas définie.");
-                }
-                    console.log(`Script chargé avec succès: ${modulePath}`);
-                } catch (scriptError) {
-                    console.error(`Erreur lors du chargement du script ${modulePath}:`, scriptError);
-                    throw scriptError;
                 }
 
                 // Si le chargement a réussi, le module devrait être disponible dans window.modules[path]
