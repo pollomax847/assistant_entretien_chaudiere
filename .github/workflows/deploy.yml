@@ -1,95 +1,29 @@
-name: Deploy to Vercel
+name: Deploy to GitHub
 
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: [ main ]
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
+      run: npm install
       
-      - name: Install Vercel CLI locally
-        run: npm install --save-dev vercel@latest
+    - name: Build
+      run: npm run build
       
-      - name: Create project structure
-        run: |
-          # Ensure all necessary directories exist
-          mkdir -p public/css
-          mkdir -p public/js/modules
-          mkdir -p public/assets/Images
-          
-          # Move files to public directory if they're not already there
-          if [ -d "css" ] && [ ! -d "public/css" ]; then
-            cp -r css/* public/css/
-          fi
-          if [ -d "js" ] && [ ! -d "public/js" ]; then
-            cp -r js/* public/js/
-          fi
-          if [ -d "assets" ] && [ ! -d "public/assets" ]; then
-            cp -r assets/* public/assets/
-          fi
-          
-          # Move HTML files to public directory
-          find . -maxdepth 1 -name "*.html" -exec cp {} public/ \;
-          
-          # Ensure index.html exists in public
-          if [ ! -f "public/index.html" ]; then
-            if [ -f "index.html" ]; then
-              cp index.html public/
-            else
-              echo "<html><head><title>Chauffage Expert</title><meta http-equiv='refresh' content='0;url=./public/index.html'></head><body><p>Redirection...</p></body></html>" > public/index.html
-            fi
-          fi
-      
-      - name: Add Vercel configuration
-        run: |
-          echo '{
-            "version": 2,
-            "headers": [
-              {
-                "source": "/css/(.*)",
-                "headers": [
-                  {
-                    "key": "Content-Type",
-                    "value": "text/css"
-                  }
-                ]
-              },
-              {
-                "source": "/js/(.*)",
-                "headers": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/javascript"
-                  }
-                ]
-              },
-              {
-                "source": "/js/modules/(.*)",
-                "headers": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/javascript"
-                  }
-                ]
-              }
-            ],
-            "routes": [
-              { "src": "/css/(.*)", "dest": "/css/$1" },
-              { "src": "/js/(.*)", "dest": "/js/$1" },
-              { "src": "/assets/Images/(.*)", "dest": "/assets/Images/$1" },
-              { "src": "/(.*)", "dest": "/$1" }
-            ],
-            "outputDirectory": "public"
-          }' > vercel.json
-          
-      - name: Deploy to Vercel
-        run: npx vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+    - name: Deploy
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./dist
