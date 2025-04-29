@@ -1,9 +1,15 @@
 /**
  * Module de réglementation gaz - Conformité selon l'arrêté du 23 février 2018
  */
-(function() {
-    // Déclarer le module
-    if (!window.modules) window.modules = {};
+
+// Créer le module dans une variable pour pouvoir l'exporter correctement
+const reglementationGazModule = (function() {
+    // Détection de l'environnement (Node.js ou navigateur)
+    const isNode = typeof window === 'undefined' && typeof global !== 'undefined';
+    const globalObj = isNode ? global : window;
+    
+    // Déclarer le module dans l'espace global si on est dans un navigateur
+    if (!isNode && !globalObj.modules) globalObj.modules = {};
     
     const modulePath = '/reglementation-gaz';
     
@@ -92,7 +98,7 @@
     ];
     
     // Configuration du module
-    const reglementationGazModule = {
+    const moduleExport = {
         /**
          * État du questionnaire
          */
@@ -413,6 +419,9 @@
          * @returns {Promise<void>}
          */
         loadStyle: async function() {
+            // Ignorer en mode Node.js
+            if (isNode) return Promise.resolve();
+            
             return new Promise((resolve, reject) => {
                 // Vérifier si le style est déjà chargé
                 if (document.getElementById('reglementation-gaz-style')) {
@@ -772,6 +781,13 @@
         }
     };
     
-    // Exporter le module
-    window.modules[modulePath] = reglementationGazModule;
+    // Pour la compatibilité navigateur, attacher au global
+    if (!isNode) {
+        globalObj.modules[modulePath] = moduleExport;
+    }
+    
+    return moduleExport;
 })();
+
+// Export ES standard pour utilisation dans des imports ES modules
+export default reglementationGazModule;

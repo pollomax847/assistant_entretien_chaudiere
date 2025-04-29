@@ -589,5 +589,10 @@ class ModuleManager {
     }
 }
 
-// Exporter le gestionnaire de modules
-window.ModuleManager = ModuleManager;
+// Exporter le gestionnaire de modules pour ES modules
+export { ModuleManager };
+
+// Pour la rétrocompatibilité avec le code existant qui utilise window.moduleManager
+if (typeof window !== 'undefined') {
+    window.ModuleManager = ModuleManager;
+}
