@@ -1,7 +1,7 @@
 /**
  * Gestionnaire de modules pour l'application d'entretien de chaudière
  */
-class ModuleManager {
+export class ModuleManager {
     constructor(containerId) {
         this.container = document.getElementById(containerId);
         this.modules = new Map();
@@ -22,63 +22,69 @@ class ModuleManager {
     }
 
     /**
-     * Charge un module à partir de son chemin
-     * @param {string} path - Le chemin du module
-     * @returns {Promise<Object>} - Le module chargé
+     * Enregistrer un nouveau module
+     */
+    registerModule(module) {
+        if (!module.path || !module.load) {
+            console.error('Module invalide:', module);
+            return;
+        }
+        this.modules.set(module.path, module);
+    }
+
+    /**
+     * Charger un module
      */
     async loadModule(path) {
+        const module = this.modules.get(path);
+        if (!module) {
+            console.error(`Module non trouvé: ${path}`);
+            return;
+        }
+
         try {
-            // Normaliser le chemin pour la cohérence
-            if (!path.startsWith('/')) {
-                path = `/${path}`;
-            }
-            
-            // Vérifier si le module est déjà chargé
-            if (this.modules.has(path)) {
-                console.log(`Module ${path} déjà chargé, réutilisation.`);
-                return this.modules.get(path);
+            if (this.currentModule && this.currentModule.unload) {
+                await this.currentModule.unload();
             }
 
-            console.log(`Chargement du module: ${path}`);
-            
-            // Tenter de charger le module
-            try {
-                const modulePath = `./src/modules${path}/index.js`;
-                
-                // Utiliser loadScript pour charger le module
-                if (window.helpers && typeof window.helpers.loadScript === 'function') {
-                    await window.helpers.loadScript(modulePath);
-                    console.log(`Script chargé avec succès: ${modulePath}`);
-                } else {
-                    throw new Error("window.helpers ou la méthode loadScript n'est pas définie.");
-                }
+            this.container.innerHTML = '';
+            await module.load(this.container);
+            this.currentModule = module;
 
-                // Si le chargement a réussi, le module devrait être disponible dans window.modules[path]
-                if (window.modules && window.modules[path]) {
-                    const module = window.modules[path];
-                    
-                    // Vérifier que le module a une méthode render
-                    if (!module.render || typeof module.render !== 'function') {
-                        throw new Error(`Le module ${path} n'a pas de méthode render valide.`);
-                    }
-                    
-                    this.modules.set(path, module);
-                    return module;
-                } else {
-                    throw new Error(`Le module ${path} n'a pas été correctement enregistré.`);
-                }
-            } catch (importError) {
-                console.warn(`Impossible de charger le module ${path}, création d'un module de secours.`);
-                
-                // Créer un module d'erreur
-                const errorModule = this.createErrorModule(path, importError);
-                this.modules.set(path, errorModule);
-                return errorModule;
-            }
+            // Mettre à jour l'URL
+            window.location.hash = path;
         } catch (error) {
             console.error(`Erreur lors du chargement du module ${path}:`, error);
-            throw error;
+            this.container.innerHTML = `<div class="error">Erreur lors du chargement du module</div>`;
         }
+    }
+
+    /**
+     * Obtenir la liste des modules
+     */
+    getModulesList() {
+        return Array.from(this.modules.values());
+    }
+
+    /**
+     * Créer une carte de module
+     */
+    createModuleCard(module) {
+        const card = document.createElement('div');
+        card.className = 'module-card';
+        card.innerHTML = `
+            <div class="card-icon" style="background-color: ${module.color || '#607d8b'}">
+                <i class="fas ${module.icon || 'fa-cube'}"></i>
+            </div>
+            <div class="card-content">
+                <h3>${module.title}</h3>
+                <p>${module.description || ''}</p>
+            </div>
+            <div class="card-action">
+                <button onclick="window.moduleManager.loadModule('${module.path}')">Accéder</button>
+            </div>
+        `;
+        return card;
     }
 
     /**
@@ -426,34 +432,6 @@ class ModuleManager {
                 });
             }
         }, 0);
-    }
-
-    /**
-     * Crée un module d'erreur
-     */
-    createErrorModule(path, error) {
-        return {
-            render: async (container) => {
-                container.innerHTML = `
-                    <div class="error-module">
-                        <h2>Module non disponible</h2>
-                        <p>Le module que vous essayez de charger (${path}) n'est pas disponible.</p>
-                        <div class="error-details">
-                            <p><strong>Erreur:</strong> ${error.message}</p>
-                        </div>
-                        <button id="refresh-module-btn" class="btn-primary">Réessayer</button>
-                    </div>
-                `;
-                
-                const refreshBtn = container.querySelector('#refresh-module-btn');
-                if (refreshBtn) {
-                    refreshBtn.addEventListener('click', () => {
-                        this.modules.delete(path);
-                        this.renderModule(path);
-                    });
-                }
-            }
-        };
     }
 
     /**
