@@ -5,28 +5,32 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:server": "nodemon server/server.js",
-    "dev:client": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "start": "node server/server.js",
+    "dev:server": "nodemon web/server/server.js",
+    "dev:client": "cd web && vite",
+    "build": "cd web && vite build",
+    "preview": "cd web && vite preview",
+    "start": "node web/server/server.js",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "test": "jest"
+    "test": "jest",
+    "mobile": "cd mobile && flutter run",
+    "mobile:build": "cd mobile && flutter build apk"
   },
   "dependencies": {
-    "express": "^4.18.2",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
-    "helmet": "^7.0.0"
+    "express": "^4.18.2",
+    "helmet": "^7.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@types/node": "^22.15.2",
     "@types/express": "^4.17.17",
-    "vite": "^6.3.3",
-    "nodemon": "^3.0.1",
+    "@types/node": "^22.15.2",
     "concurrently": "^8.0.1",
     "eslint": "^8.40.0",
-    "jest": "^29.5.0"
+    "jest": "^29.5.0",
+    "nodemon": "^3.0.1",
+    "vite": "^6.3.3"
   },
   "engines": {
     "node": ">=14.0.0"

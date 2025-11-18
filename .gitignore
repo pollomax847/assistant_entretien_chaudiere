@@ -1,20 +1,14 @@
-# Dependency directories
+# Dependencies
 node_modules/
-dist/
-
-# Build files
-.next/
-out/
-build/
-
-# Cache & logs
-.cache/
-.npm/
-logs
-*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Build outputs
+dist/
+build/
+.next/
+out/
 
 # Environment variables
 .env
@@ -23,15 +17,55 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
-# Editor directories and files
-.idea/
+# IDE
 .vscode/
+.idea/
+*.swp
+*.swo
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
 
-# System Files
+# OS
 .DS_Store
 Thumbs.db
+
+# Logs
+*.log
+logs/
+.cache/
+.npm/
+
+# Runtime
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Temporary folders
+tmp/
+temp/
+
+# Vercel
+.vercel/
+
+# Private keys and certificates
+*.pem
+*.key
+*.crt
+
+# Database
+*.sqlite
+*.db
+
+# Mobile (Flutter)
+**/build/
+**/android/app/*.keystore
+**/ios/Flutter/flutter_assets/
+**/ios/Flutter/App.framework
+**/ios/Flutter/Flutter.framework
+**/ios/ServiceDefinitions.json
+**/ios/Runner/GeneratedPluginRegistrant.*

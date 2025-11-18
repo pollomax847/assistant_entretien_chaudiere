@@ -1,9 +1,33 @@
-# Chauffage Expert
+# Assistant Entretien Chaudière
 
-Application web professionnelle pour les techniciens de chauffage, permettant de vérifier la conformité, calculer des puissances, et générer des PDF d'intervention.
+Application complète (web + mobile) pour les techniciens de chauffage, permettant de vérifier la conformité, calculer des puissances, et générer des PDF d'intervention.
 
-## Fonctionnalités
+## 🏗️ Structure du Projet
 
+```
+assitant_entreiten_chaudiere/
+├── web/                    # Application web
+│   ├── src/               # Code source TypeScript/React
+│   ├── server/            # Serveur Node.js Express
+│   ├── config/            # Configuration
+│   ├── index.html         # Page principale
+│   ├── cgu.html          # Conditions générales
+│   ├── vite.config.ts    # Configuration Vite
+│   └── tsconfig.json     # Configuration TypeScript
+├── mobile/                # Application mobile Flutter
+│   ├── lib/              # Code source Dart
+│   ├── assets/           # Ressources
+│   ├── android/          # Configuration Android
+│   ├── ios/              # Configuration iOS
+│   └── pubspec.yaml      # Dépendances Flutter
+├── docs/                 # Documentation
+├── dist/                 # Build de production
+└── README.md            # Ce fichier
+```
+
+## ✨ Fonctionnalités
+
+### Application Web
 - **Module Puissance Chauffage** : Calcul de la puissance nécessaire en fonction de la surface, hauteur, températures et isolation
 - **Module Vase d'Expansion** : Calcul de la pression théorique et du réglage en tours
 - **Module Équilibrage Réseau** : Calcul du réglage en tours pour l'équilibrage
@@ -15,17 +39,69 @@ Application web professionnelle pour les techniciens de chauffage, permettant de
 - **Export PDF** : Génération de rapports d'intervention personnalisés
 - **Préférences** : Personnalisation de l'interface et des paramètres
 
-## Installation
+### Application Mobile
+- Interface native pour smartphones et tablettes
+- Synchronisation avec l'application web
+- Mode hors-ligne
+- Export PDF natif
 
-1. Cloner le dépôt :
+## 🚀 Installation et Démarrage
+
+### Prérequis
+- Node.js 14+
+- Flutter 3.0+ (pour l'application mobile)
+- Git
+
+### Installation
+
+1. **Cloner le dépôt :**
 ```bash
-git clone https://github.com/votre-username/chauffage-expert.git
-cd chauffage-expert
+git clone https://github.com/pollomax847/assitant_entreiten_chaudiere.git
+cd assitant_entreiten_chaudiere
 ```
 
-2. Installer les dépendances :
+2. **Installer les dépendances web :**
 ```bash
 npm install
+```
+
+3. **Installer les dépendances mobile :**
+```bash
+cd mobile
+flutter pub get
+cd ..
+```
+
+### Démarrage
+
+#### Application Web
+```bash
+# Développement (web + serveur)
+npm run dev
+
+# Développement web uniquement
+npm run dev:client
+
+# Développement serveur uniquement
+npm run dev:server
+
+# Build de production
+npm run build
+
+# Aperçu de production
+npm run preview
+
+# Production
+npm start
+```
+
+#### Application Mobile
+```bash
+# Lancer l'app mobile
+npm run mobile
+
+# Build APK Android
+npm run mobile:build
 ```
 
 3. Lancer l'application en mode développement :
