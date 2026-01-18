@@ -1,10 +1,10 @@
 class PuissanceChauffageCalculator {
-  // Coefficients selon l'isolation (W/m²)
+  // Coefficients selon l'isolation (W/m³)
   static const Map<String, double> coeffIsolation = {
-    'excellente': 25.0, // BBC, RT2012+
-    'bonne': 35.0,      // RT2005
-    'moyenne': 45.0,    // 1980-2000
-    'faible': 60.0,     // avant 1980
+    'excellente': 6.0, // BBC, RT2012+
+    'bonne': 9.0,      // RT2005
+    'moyenne': 12.0,    // 1980-2000
+    'faible': 15.0,     // avant 1980
   };
 
   // Coefficients selon la zone climatique
@@ -44,7 +44,7 @@ class PuissanceChauffageCalculator {
     }
 
     // Calcul de la puissance de base
-    double puissance = surface * 
+    double puissance = surface * hauteur * 
                       coeffIsolation[isolation]! * 
                       coeffZone[zone]!;
 
@@ -81,8 +81,8 @@ class PuissanceChauffageCalculator {
 
     // Valeurs de référence pour la puissance par m² selon le type d'émetteur
     Map<String, Map<String, double>> references = {
-      'radiateur': {'min': 50.0, 'max': 150.0},
-      'plancher': {'min': 30.0, 'max': 100.0},
+      'radiateur': {'min': 30.0, 'max': 150.0},
+      'plancher': {'min': 20.0, 'max': 100.0},
     };
 
     final ref = references[typeEmetteur] ?? references['radiateur']!;
