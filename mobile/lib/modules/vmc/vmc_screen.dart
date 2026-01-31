@@ -1,3 +1,6 @@
+// Ce fichier est obsolète. Toute la logique VMC est désormais dans vmc_integration_screen.dart.
+// Ce fichier sera supprimé.
+// ...existing code...
 import 'package:flutter/material.dart';
 import 'vmc_calculator.dart';
 

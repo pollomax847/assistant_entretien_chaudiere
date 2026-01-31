@@ -101,10 +101,10 @@ class _TopCompteurGazScreenState extends State<TopCompteurGazScreen> {
       _consommation = indexFin - indexDebut;
       
       // Calcul de la puissance en kW
-      // Formule: (Consommation en m³ × PCI du gaz × 3600) / durée en secondes
-      // PCI du gaz naturel ≈ 10.33 kWh/m³
-      double pciGaz = 10.33; // kWh/m³
-      _puissanceCalculee = (_consommation! * pciGaz * 3600) / duree;
+      // Formule: (Consommation en m³ × PCS du gaz × 3600) / durée en secondes
+      // PCS du gaz naturel ≈ 9.6 kWh/m³ (selon cahier des charges)
+      double pcsGaz = 9.6; // kWh/m³
+      _puissanceCalculee = (_consommation! * pcsGaz * 3600) / duree;
       
       // Détermination du type d'appareil selon la puissance
       if (_puissanceCalculee! < 10) {
@@ -449,7 +449,7 @@ class _TopCompteurGazScreenState extends State<TopCompteurGazScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'Calcul basé sur PCI du gaz naturel (10,33 kWh/m³)',
+                                'Calcul basé sur PCS du gaz naturel (9,6 kWh/m³)',
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ),

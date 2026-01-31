@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
@@ -59,7 +58,7 @@ class PDFGeneratorService {
           // Contenu du relevé par sections
           ...donnees.entries.map((section) => 
             _buildSection(section.key, section.value)
-          ).toList(),
+          ),
           
           pw.SizedBox(height: 30),
           
@@ -163,7 +162,7 @@ class PDFGeneratorService {
             child: pw.Row(
               children: [
                 pw.Icon(
-                  conforme ? pw.IconData(0xe876) : pw.IconData(0xe000),
+                  conforme ? const pw.IconData(0xe876) : const pw.IconData(0xe000),
                   color: conforme ? PdfColors.green : PdfColors.red,
                   size: 24,
                 ),
@@ -452,9 +451,9 @@ class PDFGeneratorService {
   static pw.Widget _buildNotesTechniques() {
     return pw.Container(
       padding: const pw.EdgeInsets.all(10),
-      decoration: pw.BoxDecoration(
+      decoration: const pw.BoxDecoration(
         color: PdfColors.grey100,
-        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
+        borderRadius: pw.BorderRadius.all(pw.Radius.circular(5)),
       ),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,

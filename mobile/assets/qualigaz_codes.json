@@ -1,0 +1,176 @@
+{
+  "codes": [
+    {
+      "code": "DGI",
+      "category": "Sécurité",
+      "description": "Défaut Grave Immédiat - Danger immédiat pour la sécurité",
+      "severity": "critical",
+      "actions": [
+        "Arrêt immédiat de l'installation",
+        "Intervention d'un professionnel qualifié obligatoire",
+        "Interdiction d'utilisation jusqu'à réparation"
+      ]
+    },
+    {
+      "code": "A2",
+      "category": "Sécurité",
+      "description": "Anomalie critique - Risque pour la sécurité des personnes",
+      "severity": "high",
+      "actions": [
+        "Réparation obligatoire dans les 8 jours",
+        "Contrôle après réparation requis"
+      ]
+    },
+    {
+      "code": "A1",
+      "category": "Sécurité",
+      "description": "Anomalie importante - Peut affecter la sécurité",
+      "severity": "medium",
+      "actions": [
+        "Réparation recommandée dans les 3 mois",
+        "Contrôle périodique conseillé"
+      ]
+    },
+    {
+      "code": "CNV",
+      "category": "Tuyauterie",
+      "description": "Conformité Non Vérifiée - État de la tuyauterie non vérifiable",
+      "severity": "medium",
+      "actions": [
+        "Nettoyage ou dégagement des canalisations",
+        "Contrôle visuel complet"
+      ]
+    },
+    {
+      "code": "V1",
+      "category": "Ventilation",
+      "description": "Défaut de ventilation mécanique - Absence ou insuffisance",
+      "severity": "high",
+      "actions": [
+        "Restauration de la ventilation",
+        "Contrôle des débits d'air"
+      ]
+    },
+    {
+      "code": "V2",
+      "category": "Ventilation",
+      "description": "Défaut d'aération naturelle - Ouvertures insuffisantes",
+      "severity": "medium",
+      "actions": [
+        "Aménagement d'ouvertures d'aération",
+        "Vérification des sections minimales"
+      ]
+    },
+    {
+      "code": "D1",
+      "category": "Détecteurs",
+      "description": "Absence de détecteur de CO - Non installé ou défaillant",
+      "severity": "high",
+      "actions": [
+        "Installation d'un détecteur de CO conforme",
+        "Contrôle annuel obligatoire"
+      ]
+    },
+    {
+      "code": "D2",
+      "category": "Détecteurs",
+      "description": "Détecteur de CO non alimenté - Batterie déchargée ou absente",
+      "severity": "medium",
+      "actions": [
+        "Remplacement de la batterie",
+        "Vérification du fonctionnement"
+      ]
+    },
+    {
+      "code": "T1",
+      "category": "Tuyauterie",
+      "description": "Tuyauterie endommagée - Corrosion ou perforation visible",
+      "severity": "high",
+      "actions": [
+        "Réparation ou remplacement de la partie endommagée",
+        "Contrôle d'étanchéité"
+      ]
+    },
+    {
+      "code": "T2",
+      "category": "Tuyauterie",
+      "description": "Tuyauterie mal fixée - Risque de déformation ou rupture",
+      "severity": "medium",
+      "actions": [
+        "Renforcement des fixations",
+        "Vérification de la stabilité"
+      ]
+    },
+    {
+      "code": "R1",
+      "category": "Raccordements",
+      "description": "Raccordement non étanche - Fuite de gaz détectée",
+      "severity": "high",
+      "actions": [
+        "Réparation immédiate de l'étanchéité",
+        "Test de pression"
+      ]
+    },
+    {
+      "code": "R2",
+      "category": "Raccordements",
+      "description": "Raccordement non conforme - Non aux normes en vigueur",
+      "severity": "medium",
+      "actions": [
+        "Mise aux normes des raccordements",
+        "Vérification de conformité"
+      ]
+    },
+    {
+      "code": "C1",
+      "category": "Combustion",
+      "description": "Combustion incomplète - Taux de CO trop élevé",
+      "severity": "high",
+      "actions": [
+        "Réglage de l'appareil",
+        "Nettoyage du brûleur",
+        "Contrôle des émissions"
+      ]
+    },
+    {
+      "code": "C2",
+      "category": "Combustion",
+      "description": "Combustion irrégulière - Fonctionnement instable",
+      "severity": "medium",
+      "actions": [
+        "Vérification des paramètres de combustion",
+        "Maintenance préventive"
+      ]
+    },
+    {
+      "code": "E1",
+      "category": "Évacuation",
+      "description": "Évacuation des fumées obstruée - Risque d'intoxication",
+      "severity": "critical",
+      "actions": [
+        "Dégagement immédiat des conduits",
+        "Contrôle de l'étanchéité",
+        "Test de tirage"
+      ]
+    },
+    {
+      "code": "E2",
+      "category": "Évacuation",
+      "description": "Évacuation insuffisante - Débit de fumées inadéquat",
+      "severity": "high",
+      "actions": [
+        "Vérification des dimensions des conduits",
+        "Contrôle du tirage naturel"
+      ]
+    }
+  ],
+  "categories": {
+    "Sécurité": ["DGI", "A2", "A1"],
+    "Tuyauterie": ["CNV", "T1", "T2"],
+    "Ventilation": ["V1", "V2"],
+    "Détecteurs": ["D1", "D2"],
+    "Raccordements": ["R1", "R2"],
+    "Combustion": ["C1", "C2"],
+    "Évacuation": ["E1", "E2"]
+  }
+}

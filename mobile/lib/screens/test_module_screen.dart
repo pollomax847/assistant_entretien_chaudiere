@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../modules/puissance_chauffage/puissance_chauffage_screen.dart';
+import '../modules/puissance_chauffage/gestion_pieces_screen.dart';
 import '../modules/tests/top_gaz_test_screen.dart';
 
 class TestModuleScreen extends StatelessWidget {
@@ -50,7 +50,7 @@ class TestModuleScreen extends StatelessWidget {
               () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const PuissanceChauffageScreen(),
+                  builder: (context) => const GestionPiecesScreen(),
                 ),
               ),
             ),
