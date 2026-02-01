@@ -4,6 +4,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:chauffage_expert/services/json_exporter.dart';
 
 class PDFGeneratorService {
   static const String _version = '1.0.0';
@@ -29,6 +30,62 @@ class PDFGeneratorService {
     final technicienNom = prefs.getString('technicienNom') ?? 'Technicien';
     final technicienQualification = prefs.getString('technicienQualification') ?? '';
     
+    // Construire une section "Réglementation Gaz" depuis SharedPreferences
+    final Map<String, String> reglementationSection = {
+      'Vase d\'expansion présent': prefs.getString('vasoPresent') ?? 'NC',
+      'Vase d\'expansion conforme': prefs.getString('vasoConforme') ?? 'NC',
+      'Observation vase': prefs.getString('vasoObservation') ?? '',
+      'ROAI présent': prefs.getString('roaiPresent') ?? 'NC',
+      'ROAI conforme': prefs.getString('roaiConforme') ?? 'NC',
+      'Observation ROAI': prefs.getString('roaiObservation') ?? '',
+      'Type hotte': prefs.getString('typeHotte') ?? '',
+      'Ventilation conforme': prefs.getString('ventilationConforme') ?? 'NC',
+      'Observation ventilation': prefs.getString('ventilationObservation') ?? '',
+      'VMC présent': prefs.getString('vmcPresent') ?? 'NC',
+      'VMC conforme': prefs.getString('vmcConforme') ?? 'NC',
+      'Observation VMC': prefs.getString('vmcObservation') ?? '',
+      'Détecteur CO': prefs.getString('detecteurCO') ?? 'NC',
+      'Détecteur Gaz': prefs.getString('detecteurGaz') ?? 'NC',
+      'Détecteurs conformes': prefs.getString('detecteursConformes') ?? 'NC',
+      'Distance fenêtre (m)': prefs.getString('distanceFenetre') ?? '',
+      'Distance porte (m)': prefs.getString('distancePorte') ?? '',
+      'Distance évacuation (m)': prefs.getString('distanceEvacuation') ?? '',
+      'Distance aspiration (m)': prefs.getString('distanceAspiration') ?? '',
+    };
+
+    // Fusionner la section réglementation au jeu de sections fourni (si non vide)
+    final sections = <String, Map<String, String>>{};
+    sections.addAll(donnees);
+    // Ajouter la section seulement si une valeur est présente (ou pour la visibilité)
+    sections['Réglementation Gaz'] = reglementationSection;
+
+    // Récupérer le diagnostic complet pour résumé et anomalies
+    final diagnosticGaz = await JSONExporter.collectDiagnosticGaz();
+    final Map<String, int> severityCounts = {};
+    final List<Map<String, dynamic>> anomalies = [];
+    try {
+      diagnosticGaz.forEach((sectionId, sec) {
+        final qs = (sec['questions'] as List<dynamic>?) ?? [];
+        for (final q in qs) {
+          final value = (q['value'] ?? '').toString();
+          final severity = (q['severity'] ?? 'low').toString();
+          if (value.toLowerCase() == 'non') {
+            anomalies.add({
+              'section': sec['titre'] ?? sectionId,
+              'id': q['id'],
+              'text': q['text'],
+              'value': value,
+              'observation': q['observation'] ?? '',
+              'severity': severity,
+            });
+            severityCounts[severity] = (severityCounts[severity] ?? 0) + 1;
+          }
+        }
+      });
+    } catch (e) {
+      // ignore
+    }
+
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
@@ -56,7 +113,7 @@ class PDFGeneratorService {
           pw.SizedBox(height: 20),
           
           // Contenu du relevé par sections
-          ...donnees.entries.map((section) => 
+          ...sections.entries.map((section) => 
             _buildSection(section.key, section.value)
           ),
           
@@ -107,7 +164,13 @@ class PDFGeneratorService {
           ),
           
           pw.SizedBox(height: 15),
-          
+          // Diagnostic résumé et anomalies
+          if (diagnosticGaz.isNotEmpty) ...[
+            _buildDiagnosticSummary(severityCounts),
+            pw.SizedBox(height: 12),
+            _buildAnomaliesList(anomalies),
+            pw.SizedBox(height: 20),
+          ],
           // Données d'entrée
           _buildDonneesEntree(donnees),
           
@@ -471,6 +534,63 @@ class PDFGeneratorService {
           ),
         ],
       ),
+    );
+  }
+
+  // Résumé diagnostic: compte par sévérité
+  static pw.Widget _buildDiagnosticSummary(Map<String, int> severityCounts) {
+    if (severityCounts.isEmpty) {
+      return pw.Container();
+    }
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(10),
+      decoration: pw.BoxDecoration(
+        color: PdfColors.grey100,
+        borderRadius: pw.BorderRadius.all(pw.Radius.circular(5)),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text('Résumé Diagnostic Gaz', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 8),
+          ...severityCounts.entries.map((e) => pw.Text('- ${e.key.toUpperCase()}: ${e.value} anomalies')),
+        ],
+      ),
+    );
+  }
+
+  // Liste des anomalies détectées
+  static pw.Widget _buildAnomaliesList(List<Map<String, dynamic>> anomalies) {
+    if (anomalies.isEmpty) return pw.Container();
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text('Anomalies détectées', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+        pw.SizedBox(height: 8),
+        pw.ListView.builder(
+          itemCount: anomalies.length,
+          itemBuilder: (context, idx) {
+            final a = anomalies[idx];
+            return pw.Container(
+              padding: const pw.EdgeInsets.all(8),
+              margin: const pw.EdgeInsets.only(bottom: 6),
+              decoration: pw.BoxDecoration(
+                border: pw.Border.all(color: PdfColors.grey300),
+                borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+              ),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text('${a['section']} — ${a['text']}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                  pw.SizedBox(height: 4),
+                  pw.Text('Sévérité: ${a['severity']} | Valeur: ${a['value']}'),
+                  if ((a['observation'] ?? '').toString().isNotEmpty) pw.Text('Observation: ${a['observation']}'),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 

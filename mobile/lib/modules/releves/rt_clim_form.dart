@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:chauffage_expert/services/pdf_generator.dart';
+import 'package:chauffage_expert/services/json_exporter.dart';
+import 'package:chauffage_expert/modules/releves/releve_technique_model.dart';
 
 class RTClimForm extends StatefulWidget {
   const RTClimForm({super.key});
@@ -109,7 +112,7 @@ class _RTClimFormState extends State<RTClimForm> {
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Relevé Clim enregistré')));
+                    _performExports();
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -159,5 +162,52 @@ class _RTClimFormState extends State<RTClimForm> {
         keyboardType: keyboardType,
       ),
     );
+  }
+
+  Future<void> _performExports() async {
+    final Map<String, Map<String, String>> sections = {
+      'Client': {
+        'Numéro client': _controllers['numClient']?.text ?? '',
+        'Nom client': _controllers['nomClient']?.text ?? '',
+        'Email': _controllers['email']?.text ?? '',
+        'Téléphone': _controllers['telMobile']?.text ?? '',
+      },
+      'Électrique': {
+        'Tableau conforme': _tableauConforme ? 'Oui' : 'Non',
+        'Distance tableau': _controllers['distTableau']?.text ?? '',
+        'Puissance abo': _controllers['puissanceAbo']?.text ?? '',
+        'Tension (V)': _controllers['tension']?.text ?? '',
+      },
+      'Installation': {
+        'Surface clim': _controllers['surfaceClim']?.text ?? '',
+        'Puissance unité': _controllers['puissanceUnite']?.text ?? '',
+        'Long. raccordement': _controllers['longRaccordement']?.text ?? '',
+      },
+    };
+
+    try {
+      final pdfFile = await PDFGeneratorService.genererReleveTechnique(donnees: sections, typeReleve: 'clim');
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('PDF généré: ${pdfFile.path}')));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Erreur génération PDF')));
+    }
+
+    final diagnosticGazMap = await JSONExporter.collectDiagnosticGaz();
+    final releve = ReleveTechnique(
+      clientNumber: _controllers['numClient']?.text,
+      clientName: _controllers['nomClient']?.text,
+      clientEmail: _controllers['email']?.text,
+      clientPhone: _controllers['telMobile']?.text,
+      surface: _controllers['surfaceClim']?.text,
+      anneeConstruction: _controllers['anneeConst']?.text,
+      diagnosticGaz: diagnosticGazMap,
+    );
+
+    try {
+      final jsonFile = await JSONExporter.exportReleveTechniqueJson(releve, 'clim');
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('JSON exporté: ${jsonFile.path}')));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Erreur export JSON')));
+    }
   }
 }

@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:chauffage_expert/services/pdf_generator.dart';
+import 'package:chauffage_expert/services/json_exporter.dart';
+import 'package:chauffage_expert/modules/releves/releve_technique_model.dart';
 
 class RTPACForm extends StatefulWidget {
   const RTPACForm({super.key});
@@ -35,12 +39,36 @@ class _RTPACFormState extends State<RTPACForm> {
   bool _vanne3Voies = false;
   bool _ballonDecouplage = false;
   String _typeEmetteur = 'Radiateur fonte';
+  // Réglementation Gaz
+  String _vasoPresent = 'NC';
+  String _vasoConforme = 'NC';
+  String _vasoObservation = '';
+  String _roaiPresent = 'NC';
+  String _roaiConforme = 'NC';
+  String _roaiObservation = '';
+  String _typeHotte = 'Non';
+  String _ventilationConforme = 'NC';
+  String _ventilationObservation = '';
+  String _vmcPresent = 'NC';
+  String _vmcConforme = 'NC';
+  String _vmcObservation = '';
+  String _detecteurCO = 'NC';
+  String _detecteurGaz = 'NC';
+  String _detecteursConformes = 'NC';
+  final _distanceFenetreController = TextEditingController();
+  final _distancePorteController = TextEditingController();
+  final _distanceEvacuationController = TextEditingController();
+  final _distanceAspirationController = TextEditingController();
 
   @override
   void dispose() {
     for (var controller in _controllers.values) {
       controller.dispose();
     }
+    _distanceFenetreController.dispose();
+    _distancePorteController.dispose();
+    _distanceEvacuationController.dispose();
+    _distanceAspirationController.dispose();
     super.dispose();
   }
 
@@ -71,6 +99,66 @@ class _RTPACFormState extends State<RTPACForm> {
                   onChanged: (v) => setState(() => _amiante = v),
                 ),
                 _buildTextField('surfaceChauffer', 'Surface à chauffer (m2)', keyboardType: TextInputType.number),
+              ]),
+              _buildSection('Réglementation Gaz', [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Réponses: Oui / Non / NC', style: TextStyle(color: Colors.grey)),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        value: _vasoPresent,
+                        decoration: const InputDecoration(labelText: 'Réglette VASO présente'),
+                        items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
+                        onChanged: (v) => setState(() => _vasoPresent = v!),
+                      ),
+                      if (_vasoPresent == 'Oui') ...[
+                        DropdownButtonFormField<String>(
+                          value: _vasoConforme,
+                          decoration: const InputDecoration(labelText: 'VASO conforme'),
+                          items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
+                          onChanged: (v) => setState(() => _vasoConforme = v!),
+                        ),
+                      ],
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        value: _roaiPresent,
+                        decoration: const InputDecoration(labelText: 'Robinet ROAI présent'),
+                        items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
+                        onChanged: (v) => setState(() => _roaiPresent = v!),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        value: _typeHotte,
+                        decoration: const InputDecoration(labelText: 'Type hotte'),
+                        items: const [DropdownMenuItem(value: 'Non', child: Text('Pas de hotte')), DropdownMenuItem(value: 'SimpleFlux', child: Text('Hotte simple flux')), DropdownMenuItem(value: 'DoubleFlux', child: Text('Hotte double flux'))],
+                        onChanged: (v) => setState(() => _typeHotte = v!),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        value: _vmcPresent,
+                        decoration: const InputDecoration(labelText: 'VMC présente'),
+                        items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
+                        onChanged: (v) => setState(() => _vmcPresent = v!),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        value: _detecteurCO,
+                        decoration: const InputDecoration(labelText: 'Détecteur CO présent'),
+                        items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
+                        onChanged: (v) => setState(() => _detecteurCO = v!),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _distanceFenetreController,
+                        decoration: const InputDecoration(labelText: 'Distance fenêtres (cm)'),
+                        keyboardType: TextInputType.number,
+                      ),
+                    ],
+                  ),
+                ),
               ]),
               _buildSection('Volumes & Émetteurs', [
                 DropdownButtonFormField<String>(
@@ -123,7 +211,7 @@ class _RTPACFormState extends State<RTPACForm> {
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Relevé PAC enregistré')));
+                    _performExports();
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -138,6 +226,96 @@ class _RTPACFormState extends State<RTPACForm> {
         ),
       ),
     );
+  }
+
+  Future<void> _saveReglementationToPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('vasoPresent', _vasoPresent);
+    await prefs.setString('vasoConforme', _vasoConforme);
+    await prefs.setString('vasoObservation', _vasoObservation);
+
+    await prefs.setString('roaiPresent', _roaiPresent);
+    await prefs.setString('roaiConforme', _roaiConforme);
+    await prefs.setString('roaiObservation', _roaiObservation);
+
+    await prefs.setString('typeHotte', _typeHotte);
+    await prefs.setString('ventilationConforme', _ventilationConforme);
+    await prefs.setString('ventilationObservation', _ventilationObservation);
+
+    await prefs.setString('vmcPresent', _vmcPresent);
+    await prefs.setString('vmcConforme', _vmcConforme);
+    await prefs.setString('vmcObservation', _vmcObservation);
+
+    await prefs.setString('detecteurCO', _detecteurCO);
+    await prefs.setString('detecteurGaz', _detecteurGaz);
+    await prefs.setString('detecteursConformes', _detecteursConformes);
+
+    await prefs.setString('distanceFenetre', _distanceFenetreController.text);
+    await prefs.setString('distancePorte', _distancePorteController.text);
+    await prefs.setString('distanceEvacuation', _distanceEvacuationController.text);
+    await prefs.setString('distanceAspiration', _distanceAspirationController.text);
+  }
+
+  Future<void> _performExports() async {
+    await _saveReglementationToPrefs();
+
+    final Map<String, Map<String, String>> sections = {
+      'Client': {
+        'Numéro client': _controllers['numClient']?.text ?? '',
+        'Nom client': _controllers['nomClient']?.text ?? '',
+        'Adresse facturation': _controllers['adresseFact']?.text ?? '',
+      },
+      'Habitation': {
+        'Année construction': _controllers['anneeConst']?.text ?? '',
+        'Surface à chauffer': _controllers['surfaceChauffer']?.text ?? '',
+      },
+      'PAC': {
+        'Type émetteur': _typeEmetteur,
+        'Nb radiateurs': _controllers['nbRadiateurs']?.text ?? '',
+      },
+    };
+
+    try {
+      final pdfFile = await PDFGeneratorService.genererReleveTechnique(donnees: sections, typeReleve: 'pac');
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('PDF généré: ${pdfFile.path}')));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Erreur génération PDF')));
+    }
+
+    final diagnosticGazMap = await JSONExporter.collectDiagnosticGaz();
+    final releve = ReleveTechnique(
+      clientNumber: _controllers['numClient']?.text,
+      clientName: _controllers['nomClient']?.text,
+      chantierAddress: _controllers['adresseFact']?.text,
+      anneeConstruction: _controllers['anneeConst']?.text,
+      surface: _controllers['surfaceChauffer']?.text,
+      equipementType: _typeEmetteur,
+      diagnosticGaz: diagnosticGazMap,
+      // Réglementation
+      vasoPresent: _vasoPresent,
+      vasoConforme: _vasoConforme,
+      vasoObservation: _vasoObservation,
+      roaiPresent: _roaiPresent,
+      roaiConforme: _roaiConforme,
+      roaiObservation: _roaiObservation,
+      typeHotte: _typeHotte,
+      ventilationConforme: _ventilationConforme,
+      ventilationObservation: _ventilationObservation,
+      vmcPresent: _vmcPresent,
+      vmcConforme: _vmcConforme,
+      vmcObservation: _vmcObservation,
+      detecteurCO: _detecteurCO,
+      detecteurGaz: _detecteurGaz,
+      detecteursConformes: _detecteursConformes,
+      distanceFenetre: _distanceFenetreController.text,
+    );
+
+    try {
+      final jsonFile = await JSONExporter.exportReleveTechniqueJson(releve, 'pac');
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('JSON exporté: ${jsonFile.path}')));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Erreur export JSON')));
+    }
   }
 
   Widget _buildHeader() {
