@@ -285,7 +285,7 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             // Gestion des fenêtres + entrées d'air détaillées
             Card(
               child: Padding(
@@ -335,7 +335,7 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
                           label: const Text('Ajouter une fenêtre'),
                           onPressed: _ajouterFenetre,
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: 12),
                         ElevatedButton.icon(
                           icon: const Icon(Icons.tune),
                           label: const Text('Utiliser entrées d\'air détaillées'),
@@ -346,7 +346,7 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
 
                     const Divider(),
                     Text('Entrées d\'air (détaillées)', style: Theme.of(context).textTheme.titleSmall),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     // Air inlets list
                     if (_airInlets.isEmpty)
                       Text('Aucune entrée d\'air détaillée. Cliquez sur "Utiliser entrées d\'air détaillées" pour en ajouter.'),
@@ -400,7 +400,7 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
                                       decoration: const InputDecoration(labelText: 'Type de pièce'),
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
+                                  SizedBox(width: 8),
                                   Expanded(
                                     child: DropdownButtonFormField<String>(
                                       value: ai.inletType,
@@ -423,10 +423,9 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
                                       decoration: const InputDecoration(labelText: 'Type d\'entrée d\'air'),
                                     ),
                                   ),
-                                  ),
                                 ],
                               ),
-                              const SizedBox(height: 8),
+                              SizedBox(height: 8),
                               Row(
                                 children: [
                                   Expanded(
@@ -445,7 +444,7 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
                                       decoration: const InputDecoration(labelText: 'Module entrée d\'air'),
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
+                                  SizedBox(width: 8),
                                   Expanded(
                                     child: DropdownButtonFormField<String>(
                                       value: ai.state,
@@ -459,14 +458,13 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
                                       decoration: const InputDecoration(labelText: 'État'),
                                     ),
                                   ),
-                                  ),
                                   IconButton(
                                     icon: const Icon(Icons.delete),
                                     onPressed: () { setState(() => _airInlets.removeAt(idx)); _diagnostiquer(); },
                                   )
                                 ],
                               ),
-                              const SizedBox(height: 8),
+                              SizedBox(height: 8),
                               Row(
                                 children: [
                                   Expanded(child: Text('Débit effectif : ${effectiveFlow.round()} m³/h')),
@@ -479,7 +477,7 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
                                       ],
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
+                                  SizedBox(width: 8),
                                   Text('${(eff * 100).round()}%')
                                 ],
                               ),
@@ -489,10 +487,10 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
                       );
                     }),
 
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     // Summary of air inlets
                     Builder(builder: (ctx) {
-                      if (_airInlets.isEmpty) return const SizedBox.shrink();
+                      if (_airInlets.isEmpty) return SizedBox.shrink();
                       double totalStandard = 0.0;
                       double totalHygroMin = 0.0;
                       double totalHygroMax = 0.0;
@@ -520,17 +518,17 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('Bilan entrées d\'air :', style: Theme.of(context).textTheme.titleSmall),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 6),
                           Text('Entrées autoréglables: ${totalStandard.round()} m³/h'),
                           if (totalHygroMax > 0) Text('Entrées hygroréglables: ${totalHygroMin.round()} à ${totalHygroMax.round()} m³/h'),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 6),
                           Text('Débit total estimé: ${totalMin} ${totalHygroMax > 0 ? 'à $totalMax' : ''} m³/h'),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 6),
                           Text('Ce débit doit correspondre à la somme des débits d\'extraction de votre VMC.'),
                         ],
                       );
                     }),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     // Button to add more air inlets
                     Align(
                       alignment: Alignment.centerLeft,
@@ -544,7 +542,7 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             // Mesures VMC
             Card(
               child: Padding(
@@ -595,7 +593,7 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             // Diagnostic
             Card(
               color: _statut == 'succès'
@@ -607,12 +605,12 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Diagnostic', style: Theme.of(context).textTheme.titleLarge),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Text('Type logement détecté : $_typeLogement'),
                     Text('Débit total fenêtres (ouvertes) : ${_debitTotalFenetres?.toStringAsFixed(1)} m³/h'),
                     Text('Débit total VMC : ${_debitTotalVMC?.toStringAsFixed(1)} m³/h'),
                     Text('Différence : ${_diff?.toStringAsFixed(1)} m³/h (${_diffPct?.toStringAsFixed(1)}%)'),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Text('Statut : $_statut', style: TextStyle(fontWeight: FontWeight.bold)),
                     Text('Message : $_message'),
                     Text('Recommandation : $_recommandation'),

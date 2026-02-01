@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import 'dart:math';
-import 'package:vibration/vibration.dart';
+// import 'package:vibration/vibration.dart';
 // import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 // import 'package:charts_flutter_new/charts_flutter_new.dart' as charts;
 import 'package:path_provider/path_provider.dart';

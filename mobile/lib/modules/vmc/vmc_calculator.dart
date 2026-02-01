@@ -255,4 +255,20 @@ class VMCCalculator {
       {'value': 'vmc-gaz', 'label': 'VMC Gaz'},
     ];
   }
+
+  static Map<String, dynamic> verifierConformite({
+    required String typeVMC,
+    required int nbBouches,
+    required double debitMesure,
+    required double debitMS,
+  }) {
+    // Simple conformity check
+    bool conforme = debitMesure >= debitMS * 0.9 && debitMesure <= debitMS * 1.1;
+    return {
+      'conforme': conforme,
+      'message': conforme ? 'Conforme' : 'Non conforme',
+      'debitMesure': debitMesure,
+      'debitMS': debitMS,
+    };
+  }
 }

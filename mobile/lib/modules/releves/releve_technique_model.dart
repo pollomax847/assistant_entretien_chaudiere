@@ -1,3 +1,10 @@
+/// Enum pour les types de relevé technique
+enum TypeReleve {
+  chaudiere,
+  pac,
+  clim,
+}
+
 /// Modèle de données pour un relevé technique (chaudière, PAC, clim, etc.)
 class ReleveTechnique {
   final String? clientNumber;

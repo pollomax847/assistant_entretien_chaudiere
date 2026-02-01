@@ -13,6 +13,7 @@ import 'modules/chaudiere/chaudiere_screen.dart';
 import 'modules/reglementation_gaz/reglementation_gaz_screen.dart';
 import 'modules/tests/enhanced_top_gaz_screen.dart';
 import 'modules/releves/releve_technique_screen.dart';
+import 'modules/releves/releve_technique_model.dart';
 
 void main() {
   runApp(const ChauffageExpertApp());
@@ -39,9 +40,9 @@ class ChauffageExpertApp extends StatelessWidget {
               '/puissance-simple': (context) => const GestionPiecesScreen(),
               '/vmc': (context) => const VMCIntegrationScreen(),
               '/test-compteur-gaz': (context) => const EnhancedTopGazScreen(),
-              '/releve-chaudiere': (context) => const ReleveTechniqueScreen(type: TypeReleve.chaudiere),
-              '/releve-pac': (context) => const ReleveTechniqueScreen(type: TypeReleve.pac),
-              '/releve-clim': (context) => const ReleveTechniqueScreen(type: TypeReleve.clim),
+              '/releve-chaudiere': (context) => ReleveTechniqueScreen(type: TypeReleve.chaudiere),
+              '/releve-pac': (context) => ReleveTechniqueScreen(type: TypeReleve.pac),
+              '/releve-clim': (context) => ReleveTechniqueScreen(type: TypeReleve.clim),
               '/ecs': (context) => const EcsScreen(),
               '/vase-expansion': (context) => const VaseExpansionScreen(),
               '/equilibrage': (context) => const EquilibrageScreen(),

@@ -118,6 +118,13 @@ class PDFGeneratorService {
           ),
           
           pw.SizedBox(height: 30),
+          // Diagnostic résumé et anomalies
+          if (diagnosticGaz.isNotEmpty) ...[
+            _buildDiagnosticSummary(severityCounts),
+            pw.SizedBox(height: 12),
+            _buildAnomaliesList(anomalies),
+            pw.SizedBox(height: 20),
+          ],
           
           // Signature
           _buildSignatureSection(),
@@ -164,13 +171,7 @@ class PDFGeneratorService {
           ),
           
           pw.SizedBox(height: 15),
-          // Diagnostic résumé et anomalies
-          if (diagnosticGaz.isNotEmpty) ...[
-            _buildDiagnosticSummary(severityCounts),
-            pw.SizedBox(height: 12),
-            _buildAnomaliesList(anomalies),
-            pw.SizedBox(height: 20),
-          ],
+          
           // Données d'entrée
           _buildDonneesEntree(donnees),
           
