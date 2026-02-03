@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
+import 'package:chauffageexpert/utils/widgets/app_snackbar.dart';
+import 'package:chauffageexpert/services/pdf_generator.dart';
 
 class TopCompteurGazScreen extends StatefulWidget {
   const TopCompteurGazScreen({super.key});
@@ -109,9 +111,7 @@ class _TopCompteurGazScreenState extends State<TopCompteurGazScreen> {
       }
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Test du compteur démarré')),
-    );
+    AppSnackBar.showInfo(context, 'Test du compteur démarré');
   }
 
   // ignore: unused_element
@@ -128,9 +128,7 @@ class _TopCompteurGazScreenState extends State<TopCompteurGazScreen> {
       _dureeController.text = elapsed.toString();
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Test du compteur arrêté')),
-    );
+    AppSnackBar.showInfo(context, 'Test du compteur arrêté');
   }
 
   void _stopFlame() {
@@ -164,16 +162,12 @@ class _TopCompteurGazScreenState extends State<TopCompteurGazScreen> {
       int duree = int.parse(_dureeController.text);
       
       if (indexFin <= indexDebut) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('L\'index de fin doit être supérieur à l\'index de début')),
-        );
+        AppSnackBar.showError(context, 'L\'index de fin doit être supérieur à l\'index de début');
         return;
       }
       
       if (duree <= 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('La durée doit être supérieure à 0')),
-        );
+        AppSnackBar.showError(context, 'La durée doit être supérieure à 0');
         return;
       }
       
@@ -200,9 +194,7 @@ class _TopCompteurGazScreenState extends State<TopCompteurGazScreen> {
       _sauvegarderResultats();
       
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur de calcul: $e')),
-      );
+      AppSnackBar.showError(context, 'Erreur de calcul: $e');
     }
   }
 
@@ -217,9 +209,7 @@ class _TopCompteurGazScreenState extends State<TopCompteurGazScreen> {
     }
     
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Résultats sauvegardés')),
-    );
+    AppSnackBar.showSuccess(context, 'Résultats sauvegardés');
   }
 
   void _reinitialiserTest() {

@@ -2,55 +2,58 @@ import 'dart:io';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:chauffageexpert/services/json_exporter.dart';
+import 'package:chauffageexpert/utils/app_utils.dart';
 
-class PDFGeneratorService {
+class PDFGeneratorService with PDFGeneratorMixin, SharedPreferencesMixin {
+  // Singleton pattern
+  PDFGeneratorService._();
+  static final PDFGeneratorService instance = PDFGeneratorService._();
+  
   static const String _version = '1.0.0';
   
   // Génération PDF pour relevé technique
-  static Future<File> genererReleveTechnique({
+  Future<File> genererReleveTechnique({
     required Map<String, Map<String, String>> donnees,
     required String typeReleve,
   }) async {
     final pdf = pw.Document();
-    final prefs = await SharedPreferences.getInstance();
     
     // Informations entreprise
-    final entrepriseNom = prefs.getString('entrepriseNom') ?? 'Entreprise';
-    final entrepriseAdresse = prefs.getString('entrepriseAdresse') ?? '';
-    final entrepriseVille = prefs.getString('entrepriseVille') ?? '';
-    final entrepriseCodePostal = prefs.getString('entrepriseCodePostal') ?? '';
-    final entrepriseTelephone = prefs.getString('entrepriseTelephone') ?? '';
-    final entrepriseEmail = prefs.getString('entrepriseEmail') ?? '';
-    final entrepriseSiret = prefs.getString('entrepriseSiret') ?? '';
+    final entrepriseNom = await loadString('entrepriseNom', defaultValue: 'Entreprise');
+    final entrepriseAdresse = await loadString('entrepriseAdresse', defaultValue: '');
+    final entrepriseVille = await loadString('entrepriseVille', defaultValue: '');
+    final entrepriseCodePostal = await loadString('entrepriseCodePostal', defaultValue: '');
+    final entrepriseTelephone = await loadString('entrepriseTelephone', defaultValue: '');
+    final entrepriseEmail = await loadString('entrepriseEmail', defaultValue: '');
+    final entrepriseSiret = await loadString('entrepriseSiret', defaultValue: '');
     
     // Informations technicien
-    final technicienNom = prefs.getString('technicienNom') ?? 'Technicien';
-    final technicienQualification = prefs.getString('technicienQualification') ?? '';
+    final technicienNom = await loadString('technicienNom', defaultValue: 'Technicien');
+    final technicienQualification = await loadString('technicienQualification', defaultValue: '');
     
     // Construire une section "Réglementation Gaz" depuis SharedPreferences
     final Map<String, String> reglementationSection = {
-      'Vase d\'expansion présent': prefs.getString('vasoPresent') ?? 'NC',
-      'Vase d\'expansion conforme': prefs.getString('vasoConforme') ?? 'NC',
-      'Observation vase': prefs.getString('vasoObservation') ?? '',
-      'ROAI présent': prefs.getString('roaiPresent') ?? 'NC',
-      'ROAI conforme': prefs.getString('roaiConforme') ?? 'NC',
-      'Observation ROAI': prefs.getString('roaiObservation') ?? '',
-      'Type hotte': prefs.getString('typeHotte') ?? '',
-      'Ventilation conforme': prefs.getString('ventilationConforme') ?? 'NC',
-      'Observation ventilation': prefs.getString('ventilationObservation') ?? '',
-      'VMC présent': prefs.getString('vmcPresent') ?? 'NC',
-      'VMC conforme': prefs.getString('vmcConforme') ?? 'NC',
-      'Observation VMC': prefs.getString('vmcObservation') ?? '',
-      'Détecteur CO': prefs.getString('detecteurCO') ?? 'NC',
-      'Détecteur Gaz': prefs.getString('detecteurGaz') ?? 'NC',
-      'Détecteurs conformes': prefs.getString('detecteursConformes') ?? 'NC',
-      'Distance fenêtre (m)': prefs.getString('distanceFenetre') ?? '',
-      'Distance porte (m)': prefs.getString('distancePorte') ?? '',
-      'Distance évacuation (m)': prefs.getString('distanceEvacuation') ?? '',
-      'Distance aspiration (m)': prefs.getString('distanceAspiration') ?? '',
+      'Vase d\'expansion présent': await loadString('vasoPresent', defaultValue: 'NC'),
+      'Vase d\'expansion conforme': await loadString('vasoConforme', defaultValue: 'NC'),
+      'Observation vase': await loadString('vasoObservation', defaultValue: ''),
+      'ROAI présent': await loadString('roaiPresent', defaultValue: 'NC'),
+      'ROAI conforme': await loadString('roaiConforme', defaultValue: 'NC'),
+      'Observation ROAI': await loadString('roaiObservation', defaultValue: ''),
+      'Type hotte': await loadString('typeHotte', defaultValue: ''),
+      'Ventilation conforme': await loadString('ventilationConforme', defaultValue: 'NC'),
+      'Observation ventilation': await loadString('ventilationObservation', defaultValue: ''),
+      'VMC présent': await loadString('vmcPresent', defaultValue: 'NC'),
+      'VMC conforme': await loadString('vmcConforme', defaultValue: 'NC'),
+      'Observation VMC': await loadString('vmcObservation', defaultValue: ''),
+      'Détecteur CO': await loadString('detecteurCO', defaultValue: 'NC'),
+      'Détecteur Gaz': await loadString('detecteurGaz', defaultValue: 'NC'),
+      'Détecteurs conformes': await loadString('detecteursConformes', defaultValue: 'NC'),
+      'Distance fenêtre (m)': await loadString('distanceFenetre', defaultValue: ''),
+      'Distance porte (m)': await loadString('distancePorte', defaultValue: ''),
+      'Distance évacuation (m)': await loadString('distanceEvacuation', defaultValue: ''),
+      'Distance aspiration (m)': await loadString('distanceAspiration', defaultValue: ''),
     };
 
     // Fusionner la section réglementation au jeu de sections fourni (si non vide)
@@ -90,31 +93,41 @@ class PDFGeneratorService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(20),
-        header: (context) => _buildHeader(
-          entrepriseNom,
-          typeReleve,
+        header: (context) => buildPDFHeader(
+          title: typeReleve,
+          entreprise: entrepriseNom,
         ),
-        footer: (context) => _buildFooter(context),
+        footer: (context) => buildPDFFooter(context, version: _version),
         build: (context) => [
-          // En-tête du relevé
-          _buildReleveHeader(
-            entrepriseNom,
-            entrepriseAdresse,
-            entrepriseVille,
-            entrepriseCodePostal,
-            entrepriseTelephone,
-            entrepriseEmail,
-            entrepriseSiret,
-            technicienNom,
-            technicienQualification,
-            typeReleve,
+          // En-tête du relevé - Informations entreprise et client
+          buildEntrepriseInfo(
+            nom: entrepriseNom,
+            adresse: entrepriseAdresse,
+            ville: entrepriseVille,
+            codePostal: entrepriseCodePostal,
+            telephone: entrepriseTelephone,
+            email: entrepriseEmail,
+            siret: entrepriseSiret,
+          ),
+          
+          buildSection(
+            title: 'Informations Technicien',
+            children: [
+              buildInfoRow('Nom', technicienNom),
+              buildInfoRow('Qualification', technicienQualification),
+            ],
           ),
           
           pw.SizedBox(height: 20),
           
           // Contenu du relevé par sections
           ...sections.entries.map((section) => 
-            _buildSection(section.key, section.value)
+            buildSection(
+              title: section.key,
+              children: section.value.entries.map((entry) =>
+                buildInfoRow(entry.key, entry.value)
+              ).toList(),
+            )
           ),
           
           pw.SizedBox(height: 30),
@@ -136,22 +149,24 @@ class PDFGeneratorService {
   }
 
   // Génération PDF pour calcul de puissance
-  static Future<File> genererCalculPuissance({
+  Future<File> genererCalculPuissance({
     required Map<String, dynamic> donnees,
     required double puissanceCalculee,
     required String methode,
   }) async {
     final pdf = pw.Document();
-    final prefs = await SharedPreferences.getInstance();
     
-    final entrepriseNom = prefs.getString('entrepriseNom') ?? 'Entreprise';
+    final entrepriseNom = await loadString('entrepriseNom', defaultValue: 'Entreprise');
     
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(20),
-        header: (context) => _buildHeader(entrepriseNom, 'Calcul de Puissance'),
-        footer: (context) => _buildFooter(context),
+        header: (context) => buildPDFHeader(
+          title: 'Calcul de Puissance',
+          entreprise: entrepriseNom,
+        ),
+        footer: (context) => buildPDFFooter(context, version: _version),
         build: (context) => [
           _buildCalculHeader(),
           
@@ -192,55 +207,35 @@ class PDFGeneratorService {
   }
 
   // Génération PDF pour test VMC
-  static Future<File> genererTestVMC({
+  Future<File> genererTestVMC({
     required Map<String, dynamic> donnees,
     required bool conforme,
   }) async {
     final pdf = pw.Document();
-    final prefs = await SharedPreferences.getInstance();
     
-    final entrepriseNom = prefs.getString('entrepriseNom') ?? 'Entreprise';
+    final entrepriseNom = await loadString('entrepriseNom', defaultValue: 'Entreprise');
     
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(20),
-        header: (context) => _buildHeader(entrepriseNom, 'Test VMC'),
-        footer: (context) => _buildFooter(context),
+        header: (context) => buildPDFHeader(
+          title: 'Test VMC',
+          entreprise: entrepriseNom,
+        ),
+        footer: (context) => buildPDFFooter(context, version: _version),
         build: (context) => [
           _buildVMCHeader(),
           
           pw.SizedBox(height: 20),
           
           // Statut de conformité
-          pw.Container(
-            padding: const pw.EdgeInsets.all(15),
-            decoration: pw.BoxDecoration(
-              color: conforme ? PdfColors.green100 : PdfColors.red100,
-              border: pw.Border.all(
-                color: conforme ? PdfColors.green : PdfColors.red,
-                width: 2,
-              ),
-              borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
-            ),
-            child: pw.Row(
-              children: [
-                pw.Icon(
-                  conforme ? const pw.IconData(0xe876) : const pw.IconData(0xe000),
-                  color: conforme ? PdfColors.green : PdfColors.red,
-                  size: 24,
-                ),
-                pw.SizedBox(width: 10),
-                pw.Text(
-                  conforme ? 'INSTALLATION CONFORME' : 'INSTALLATION NON CONFORME',
-                  style: pw.TextStyle(
-                    fontSize: 16,
-                    fontWeight: pw.FontWeight.bold,
-                    color: conforme ? PdfColors.green800 : PdfColors.red800,
-                  ),
-                ),
-              ],
-            ),
+          buildStatusCard(
+            title: conforme ? 'CONFORME' : 'NON CONFORME',
+            message: conforme 
+              ? 'L\'installation VMC est conforme aux normes'
+              : 'L\'installation VMC nécessite des corrections',
+            status: conforme ? 'success' : 'error',
           ),
           
           pw.SizedBox(height: 20),
@@ -257,168 +252,6 @@ class PDFGeneratorService {
     );
 
     return _saveAndReturnFile(pdf, 'test_vmc_${DateTime.now().millisecondsSinceEpoch}');
-  }
-
-  // Construction de l'en-tête
-  static pw.Widget _buildHeader(String entrepriseNom, String typeDocument) {
-    return pw.Container(
-      padding: const pw.EdgeInsets.only(bottom: 10),
-      decoration: const pw.BoxDecoration(
-        border: pw.Border(bottom: pw.BorderSide(color: PdfColors.blue, width: 2)),
-      ),
-      child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-        children: [
-          pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Text(
-                entrepriseNom,
-                style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
-              ),
-              pw.Text(
-                typeDocument,
-                style: const pw.TextStyle(fontSize: 14, color: PdfColors.grey700),
-              ),
-            ],
-          ),
-          pw.Text(
-            DateFormat('dd/MM/yyyy').format(DateTime.now()),
-            style: const pw.TextStyle(fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Construction du pied de page
-  static pw.Widget _buildFooter(pw.Context context) {
-    return pw.Container(
-      padding: const pw.EdgeInsets.only(top: 10),
-      decoration: const pw.BoxDecoration(
-        border: pw.Border(top: pw.BorderSide(color: PdfColors.grey, width: 1)),
-      ),
-      child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-        children: [
-          pw.Text(
-            'Généré par Chauffage Expert v$_version',
-            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
-          ),
-          pw.Text(
-            'Page ${context.pageNumber}/${context.pagesCount}',
-            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Construction d'une section de relevé
-  static pw.Widget _buildSection(String titre, Map<String, String> donnees) {
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.Text(
-          titre,
-          style: pw.TextStyle(
-            fontSize: 16,
-            fontWeight: pw.FontWeight.bold,
-            color: PdfColors.blue800,
-          ),
-        ),
-        pw.SizedBox(height: 10),
-        pw.Table(
-          border: pw.TableBorder.all(color: PdfColors.grey300),
-          children: donnees.entries.map((entry) =>
-            pw.TableRow(
-              children: [
-                pw.Padding(
-                  padding: const pw.EdgeInsets.all(8),
-                  child: pw.Text(
-                    entry.key,
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                  ),
-                ),
-                pw.Padding(
-                  padding: const pw.EdgeInsets.all(8),
-                  child: pw.Text(entry.value),
-                ),
-              ],
-            ),
-          ).toList(),
-        ),
-        pw.SizedBox(height: 15),
-      ],
-    );
-  }
-
-  // En-tête pour relevé technique
-  static pw.Widget _buildReleveHeader(
-    String entrepriseNom,
-    String entrepriseAdresse,
-    String entrepriseVille,
-    String entrepriseCodePostal,
-    String entrepriseTelephone,
-    String entrepriseEmail,
-    String entrepriseSiret,
-    String technicienNom,
-    String technicienQualification,
-    String typeReleve,
-  ) {
-    return pw.Container(
-      padding: const pw.EdgeInsets.all(15),
-      decoration: pw.BoxDecoration(
-        color: PdfColors.blue50,
-        border: pw.Border.all(color: PdfColors.blue),
-        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
-      ),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.Text(
-            'RELEVÉ TECHNIQUE - ${typeReleve.toUpperCase()}',
-            style: pw.TextStyle(
-              fontSize: 20,
-              fontWeight: pw.FontWeight.bold,
-              color: PdfColors.blue800,
-            ),
-          ),
-          pw.SizedBox(height: 10),
-          pw.Row(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Expanded(
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text('ENTREPRISE:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                    pw.Text(entrepriseNom),
-                    if (entrepriseAdresse.isNotEmpty) pw.Text(entrepriseAdresse),
-                    if (entrepriseCodePostal.isNotEmpty || entrepriseVille.isNotEmpty)
-                      pw.Text('$entrepriseCodePostal $entrepriseVille'),
-                    if (entrepriseTelephone.isNotEmpty) pw.Text('Tél: $entrepriseTelephone'),
-                    if (entrepriseEmail.isNotEmpty) pw.Text('Email: $entrepriseEmail'),
-                    if (entrepriseSiret.isNotEmpty) pw.Text('SIRET: $entrepriseSiret'),
-                  ],
-                ),
-              ),
-              pw.Expanded(
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text('TECHNICIEN:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                    pw.Text(technicienNom),
-                    if (technicienQualification.isNotEmpty)
-                      pw.Text('Qualification: $technicienQualification'),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
   }
 
   // Section signature

@@ -2,8 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:chauffageexpert/utils/mixins/shared_preferences_mixin.dart';
+import 'package:chauffageexpert/utils/widgets/app_snackbar.dart';
 
 class TirageScreen extends StatefulWidget {
   const TirageScreen({super.key});
@@ -12,7 +13,7 @@ class TirageScreen extends StatefulWidget {
   State<TirageScreen> createState() => _TirageScreenState();
 }
 
-class _TirageScreenState extends State<TirageScreen> {
+class _TirageScreenState extends State<TirageScreen> with SharedPreferencesMixin {
   double _tirage = -0.200; // hPa
   double _co = 150.0; // ppm
   double _o2 = 5.2; // %
@@ -32,8 +33,7 @@ class _TirageScreenState extends State<TirageScreen> {
   }
 
   Future<void> _charger() async {
-    final prefs = await SharedPreferences.getInstance();
-    final saved = prefs.getDouble(_prefKey);
+    final saved = await loadDouble(_prefKey);
     if (saved != null) {
       setState(() {
         _tirage = saved.clamp(-0.50, -0.05);
@@ -43,8 +43,7 @@ class _TirageScreenState extends State<TirageScreen> {
   }
 
   Future<void> _sauvegarder() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble(_prefKey, _tirage);
+    await saveDouble(_prefKey, _tirage);
   }
 
   void _updateSimu() {
@@ -256,7 +255,7 @@ class _TirageScreenState extends State<TirageScreen> {
                   onPressed: () {
                     final text = 'Tirage: ${_tirage.toStringAsFixed(3)} hPa | CO: ${_co.toStringAsFixed(0)} ppm | O₂: ${_o2.toStringAsFixed(1)} % | CO₂: ${_co2.toStringAsFixed(1)} %';
                     Clipboard.setData(ClipboardData(text: text));
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Copié !')));
+                    AppSnackBar.showCopied(context);
                   },
                 ),
               ],

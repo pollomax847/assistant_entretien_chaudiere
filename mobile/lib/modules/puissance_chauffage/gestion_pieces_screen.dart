@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:chauffageexpert/utils/app_utils.dart';
 import 'dart:math' as math;
 import 'dart:convert';
 
@@ -10,7 +10,8 @@ class GestionPiecesScreen extends StatefulWidget {
   State<GestionPiecesScreen> createState() => _GestionPiecesScreenState();
 }
 
-class _GestionPiecesScreenState extends State<GestionPiecesScreen> {
+class _GestionPiecesScreenState extends State<GestionPiecesScreen>
+    with SharedPreferencesMixin, JsonStorageMixin, CalculationMixin {
   final _formKey = GlobalKey<FormState>();
   final _nomController = TextEditingController();
   final _surfaceController = TextEditingController();
@@ -53,45 +54,46 @@ class _GestionPiecesScreenState extends State<GestionPiecesScreen> {
   }
 
   Future<void> _chargerDonnees() async {
-    final prefs = await SharedPreferences.getInstance();
+    final piecesData = await loadListFromJson('pieces');
     setState(() {
-      final piecesJson = prefs.getString('pieces') ?? '[]';
-      _pieces = List<Map<String, dynamic>>.from(json.decode(piecesJson));
-      _isolationMurs = prefs.getString('isolationMurs') ?? 'Standard';
-      _isolationCombles = prefs.getString('isolationCombles') ?? 'Standard';
-      _isolationSol = prefs.getBool('isolationSol') ?? true;
-      _plancherChauffant = prefs.getBool('plancherChauffant') ?? false;
-      _typeVitrage = prefs.getString('typeVitrage') ?? 'Double';
-      _typeVentilation =
-          prefs.getString('typeVentilation') ?? 'VMC simple flux';
-      _tempInt = prefs.getDouble('tempInt') ?? 19.0;
-      _tempExt = prefs.getDouble('tempExt') ?? 0.0;
-      _uMurs = prefs.getDouble('uMurs') ?? 0.5;
-      _uToit = prefs.getDouble('uToit') ?? 0.25;
-      _uFenetres = prefs.getDouble('uFenetres') ?? 2.8;
-      _windowFraction = prefs.getDouble('windowFraction') ?? 0.15;
-      _ventilationAch = prefs.getDouble('ventilationAch') ?? 0.5;
-      _safetyMargin = prefs.getDouble('safetyMargin') ?? 1.2;
+      _pieces = piecesData;
+      _isolationMurs = loadString('isolationMurs').then((v) => v ?? 'Standard') as String? ?? 'Standard';
+      _isolationCombles = loadString('isolationCombles').then((v) => v ?? 'Standard') as String? ?? 'Standard';
     });
+    
+    // Charger les autres paramètres
+    _isolationSol = await loadBool('isolationSol') ?? true;
+    _plancherChauffant = await loadBool('plancherChauffant') ?? false;
+    _typeVitrage = await loadString('typeVitrage') ?? 'Double';
+    _typeVentilation = await loadString('typeVentilation') ?? 'VMC simple flux';
+    _tempInt = await loadDouble('tempInt') ?? 19.0;
+    _tempExt = await loadDouble('tempExt') ?? 0.0;
+    _uMurs = await loadDouble('uMurs') ?? 0.5;
+    _uToit = await loadDouble('uToit') ?? 0.25;
+    _uFenetres = await loadDouble('uFenetres') ?? 2.8;
+    _windowFraction = await loadDouble('windowFraction') ?? 0.15;
+    _ventilationAch = await loadDouble('ventilationAch') ?? 0.5;
+    _safetyMargin = await loadDouble('safetyMargin') ?? 1.2;
+    
+    if (mounted) setState(() {});
   }
 
   Future<void> _sauvegarderDonnees() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('pieces', json.encode(_pieces));
-    await prefs.setString('isolationMurs', _isolationMurs);
-    await prefs.setString('isolationCombles', _isolationCombles);
-    await prefs.setBool('isolationSol', _isolationSol);
-    await prefs.setBool('plancherChauffant', _plancherChauffant);
-    await prefs.setString('typeVitrage', _typeVitrage);
-    await prefs.setString('typeVentilation', _typeVentilation);
-    await prefs.setDouble('tempInt', _tempInt);
-    await prefs.setDouble('tempExt', _tempExt);
-    await prefs.setDouble('uMurs', _uMurs);
-    await prefs.setDouble('uToit', _uToit);
-    await prefs.setDouble('uFenetres', _uFenetres);
-    await prefs.setDouble('windowFraction', _windowFraction);
-    await prefs.setDouble('ventilationAch', _ventilationAch);
-    await prefs.setDouble('safetyMargin', _safetyMargin);
+    await saveListAsJson('pieces', _pieces);
+    await saveString('isolationMurs', _isolationMurs);
+    await saveString('isolationCombles', _isolationCombles);
+    await saveBool('isolationSol', _isolationSol);
+    await saveBool('plancherChauffant', _plancherChauffant);
+    await saveString('typeVitrage', _typeVitrage);
+    await saveString('typeVentilation', _typeVentilation);
+    await saveDouble('tempInt', _tempInt);
+    await saveDouble('tempExt', _tempExt);
+    await saveDouble('uMurs', _uMurs);
+    await saveDouble('uToit', _uToit);
+    await saveDouble('uFenetres', _uFenetres);
+    await saveDouble('windowFraction', _windowFraction);
+    await saveDouble('ventilationAch', _ventilationAch);
+    await saveDouble('safetyMargin', _safetyMargin);
   }
 
   // legacy helper removed — calculations now use U‑values + ventilation

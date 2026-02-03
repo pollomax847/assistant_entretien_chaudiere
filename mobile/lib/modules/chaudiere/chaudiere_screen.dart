@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:chauffageexpert/utils/mixins/shared_preferences_mixin.dart';
+import 'package:chauffageexpert/utils/widgets/app_snackbar.dart';
 
 class ChaudiereScreen extends StatefulWidget {
   const ChaudiereScreen({super.key});
@@ -11,7 +12,7 @@ class ChaudiereScreen extends StatefulWidget {
   State<ChaudiereScreen> createState() => _ChaudiereScreenState();
 }
 
-class _ChaudiereScreenState extends State<ChaudiereScreen> {
+class _ChaudiereScreenState extends State<ChaudiereScreen> with SharedPreferencesMixin {
   double _tirage = -0.180; // hPa
   double _co = 150.0;      // ppm
   double _o2 = 5.2;        // %
@@ -30,8 +31,7 @@ class _ChaudiereScreenState extends State<ChaudiereScreen> {
   }
 
   Future<void> _charger() async {
-    final prefs = await SharedPreferences.getInstance();
-    final saved = prefs.getDouble(_prefKey);
+    final saved = await loadDouble(_prefKey);
     if (saved != null) {
       setState(() {
         _tirage = saved.clamp(-0.50, -0.05);
@@ -41,8 +41,7 @@ class _ChaudiereScreenState extends State<ChaudiereScreen> {
   }
 
   Future<void> _sauvegarder() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble(_prefKey, _tirage);
+    await saveDouble(_prefKey, _tirage);
   }
 
   void _updateSimu() {
@@ -273,7 +272,7 @@ class _ChaudiereScreenState extends State<ChaudiereScreen> {
                   onPressed: () {
                     final text = 'Tirage: ${_tirage.toStringAsFixed(3)} hPa | CO: ${_co.toStringAsFixed(0)} ppm | O₂: ${_o2.toStringAsFixed(1)} %';
                     Clipboard.setData(ClipboardData(text: text));
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Copié !')));
+                    AppSnackBar.showCopied(context);
                   },
                 ),
               ],

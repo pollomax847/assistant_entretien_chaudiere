@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:chauffageexpert/utils/mixins/shared_preferences_mixin.dart';
+import 'package:chauffageexpert/utils/mixins/calculation_mixin.dart';
 
 class EcsScreen extends StatefulWidget {
   const EcsScreen({super.key});
@@ -8,7 +9,8 @@ class EcsScreen extends StatefulWidget {
   State<EcsScreen> createState() => _EcsScreenState();
 }
 
-class _EcsScreenState extends State<EcsScreen> {
+class _EcsScreenState extends State<EcsScreen> 
+    with SharedPreferencesMixin, CalculationMixin {
   final _debitController = TextEditingController(text: '12');
   final _tempEauFroideController = TextEditingController(text: '15');
   final _tempEauChaudeController = TextEditingController(text: '55');
@@ -27,9 +29,8 @@ class _EcsScreenState extends State<EcsScreen> {
   }
 
   Future<void> _loadPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    final v = prefs.getDouble('seuil_orange') ?? 90.0;
-    final p = prefs.getDouble('puissance_chaudiere');
+    final v = await loadDouble('seuil_orange') ?? 90.0;
+    final p = await loadDouble('puissance_chaudiere');
     setState(() {
       _seuilOrangePercent = v;
       if (p != null) {
@@ -37,16 +38,6 @@ class _EcsScreenState extends State<EcsScreen> {
         _puissanceChaudiereController.text = p.toStringAsFixed(1);
       }
     });
-  }
-
-  Future<void> _saveSeuil(double v) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('seuil_orange', v);
-  }
-
-  Future<void> _savePuissance(double v) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('puissance_chaudiere', v);
   }
 
   void _calculer() {
@@ -100,40 +91,28 @@ class _EcsScreenState extends State<EcsScreen> {
           children: [
             Text('Calcul de la puissance instantanée nécessaire', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
-            TextField(
+            buildNumberField(
               controller: _debitController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Débit eau chaude (L/min)',
-                prefixIcon: Icon(Icons.water),
-                border: OutlineInputBorder(),
-                helperText: 'Exemple : 12 L/min',
-              ),
+              label: 'Débit eau chaude (L/min)',
+              hint: 'Exemple : 12 L/min',
+              icon: Icons.water,
             ),
             const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
-                  child: TextField(
+                  child: buildNumberField(
                     controller: _tempEauFroideController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Température eau froide (°C)',
-                      prefixIcon: Icon(Icons.ac_unit),
-                      border: OutlineInputBorder(),
-                    ),
+                    label: 'Température eau froide (°C)',
+                    icon: Icons.ac_unit,
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: TextField(
+                  child: buildNumberField(
                     controller: _tempEauChaudeController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Température eau chaude (°C)',
-                      prefixIcon: Icon(Icons.waves),
-                      border: OutlineInputBorder(),
-                    ),
+                    label: 'Température eau chaude (°C)',
+                    icon: Icons.waves,
                   ),
                 ),
               ],
@@ -142,20 +121,16 @@ class _EcsScreenState extends State<EcsScreen> {
             Row(
               children: [
                 Expanded(
-                  child: TextField(
+                  child: buildNumberField(
                     controller: _puissanceChaudiereController,
-                    keyboardType: TextInputType.number,
+                    label: 'Puissance chaudière installée (kW)',
+                    hint: 'Ex: 25',
+                    icon: Icons.local_fire_department,
                     onChanged: (s) {
                       final val = double.tryParse(s) ?? 0.0;
                       setState(() => _puissanceChaudiere = val);
-                      _savePuissance(val);
+                      saveDouble('puissance_chaudiere', val);
                     },
-                    decoration: const InputDecoration(
-                      labelText: 'Puissance chaudière installée (kW)',
-                      prefixIcon: Icon(Icons.local_fire_department),
-                      border: OutlineInputBorder(),
-                      helperText: 'Ex: 25',
-                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -176,7 +151,7 @@ class _EcsScreenState extends State<EcsScreen> {
                               label: '${_seuilOrangePercent.round()}%',
                               onChanged: (v) {
                                 setState(() => _seuilOrangePercent = v);
-                                _saveSeuil(v);
+                                saveDouble('seuil_orange', v);
                               },
                             ),
                           ),
@@ -194,10 +169,9 @@ class _EcsScreenState extends State<EcsScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.calculate),
-              label: const Text('Calculer'),
+            buildCalculateButton(
               onPressed: _calculer,
+              label: 'Calculer',
             ),
             const SizedBox(height: 24),
             if (_puissanceInstantanee != null)

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:chauffageexpert/utils/app_utils.dart';
 import '../utils/preferences_provider.dart';
 import '../modules/puissance_chauffage/gestion_pieces_screen.dart';
 import '../modules/vmc/vmc_integration_screen.dart';
-import '../modules/tests/enhanced_top_gaz_screen.dart';
+import '../modules/tests/top_compteur_gaz_screen.dart';
+import '../modules/tests/valeurs_sondes_screen.dart';
 import '../modules/releves/releve_technique_screen.dart';
 import '../modules/releves/releve_technique_model.dart';
 import '../modules/ecs/ecs_screen.dart';
@@ -13,7 +15,6 @@ import '../modules/vase_expansion/vase_expansion_screen.dart';
 import '../modules/chaudiere/chaudiere_screen.dart';
 import '../modules/tirage/tirage_screen.dart';
 import 'preferences_screen.dart';
-import 'modules_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -64,7 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
         'color': Colors.red,
         'onTap': () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const EnhancedTopGazScreen()),
+          MaterialPageRoute(builder: (context) => const TopCompteurGazScreen()),
         ),
       },
       {
@@ -72,7 +73,22 @@ class _HomeScreenState extends State<HomeScreen> {
         'title': 'Relevés',
         'icon': Icons.list_alt,
         'color': Colors.orange,
-        'onTap': () => _navigateToModulesList(context, 'Relevés Techniques', _getRelevesModules()),
+        'onTap': () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ReleveTechniqueScreen(type: TypeReleve.chaudiere),
+          ),
+        ),
+      },
+      {
+        'id': 'valeurs_sondes',
+        'title': 'Sondes',
+        'icon': Icons.thermostat,
+        'color': Colors.green,
+        'onTap': () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ValeursSondesScreen()),
+        ),
       },
       {
         'id': 'ecs',
@@ -302,16 +318,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           builder: (context) => const GestionPiecesScreen(),
                         ),
                       ),
-                      moduleId: 'puissance',
                     ),
                     _buildLargeModuleCard(
                       context,
                       'Tests',
-                      '1 module',
+                      '2 modules',
                       Icons.science,
                       Colors.green,
-                      () => _navigateToModulesList(context, 'Tests', _getTestModules()),
-                      moduleId: 'test_gaz',
+                      () {},
                     ),
                     _buildLargeModuleCard(
                       context,
@@ -319,8 +333,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       '3 modules',
                       Icons.list_alt,
                       Colors.orange,
-                      () => _navigateToModulesList(context, 'Relevés Techniques', _getRelevesModules()),
-                      moduleId: 'releves',
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ReleveTechniqueScreen(type: TypeReleve.chaudiere),
+                        ),
+                      ),
                     ),
                     _buildLargeModuleCard(
                       context,
@@ -328,8 +346,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       '5 modules',
                       Icons.check_circle,
                       Colors.purple,
-                      () => _navigateToModulesList(context, 'Contrôles', _getControlesModules()),
-                      moduleId: 'vmc',
+                      () {},
                     ),
                   ],
                 ),
@@ -389,135 +406,42 @@ class _HomeScreenState extends State<HomeScreen> {
     IconData icon,
     Color color,
     VoidCallback onTap,
-    {String? moduleId}
   ) {
-    return Consumer<PreferencesProvider>(
-      builder: (context, prefs, child) {
-        final isFavorite = moduleId != null && prefs.isFavorite(moduleId);
-        
-        return GestureDetector(
-          onTap: onTap,
-          onLongPress: moduleId != null 
-              ? () => prefs.toggleFavorite(moduleId)
-              : null,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
-                  blurRadius: 12,
-                  offset: const Offset(0, 8),
-                ),
-              ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 8),
             ),
-            padding: const EdgeInsets.all(20),
-            child: Stack(
-              children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(icon, size: 46, color: color),
-                    const SizedBox(height: 18),
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.titleMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      subtitle,
-                      style: Theme.of(context).textTheme.bodySmall,
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-                if (isFavorite)
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: Icon(
-                      Icons.star,
-                      color: Colors.amber,
-                      size: 20,
-                    ),
-                  ),
-              ],
+          ],
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 46, color: color),
+            const SizedBox(height: 18),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.center,
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  // Navigation vers la liste des modules
-  void _navigateToModulesList(BuildContext context, String title, List<Map<String, dynamic>> modules) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ModulesListScreen(
-          title: title,
-          modules: modules,
+            const SizedBox(height: 8),
+            Text(
+              subtitle,
+              style: Theme.of(context).textTheme.bodySmall,
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
       ),
     );
-  }
-
-  // Récupère les modules de tests
-  List<Map<String, dynamic>> _getTestModules() {
-    return _allModules.where((module) {
-      return ['test_gaz'].contains(module['id']);
-    }).toList();
-  }
-
-  // Récupère les modules de contrôles
-  List<Map<String, dynamic>> _getControlesModules() {
-    return _allModules.where((module) {
-      return ['vmc', 'reglementation', 'tirage', 'equilibrage', 'ecs'].contains(module['id']);
-    }).toList();
-  }
-
-  // Récupère les modules de relevés
-  List<Map<String, dynamic>> _getRelevesModules() {
-    return [
-      {
-        'title': 'Relevé Chaudière',
-        'subtitle': 'Relevé technique pour chaudière gaz',
-        'icon': Icons.fire_extinguisher,
-        'color': Colors.orange,
-        'onTap': () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const ReleveTechniqueScreen(type: TypeReleve.chaudiere),
-          ),
-        ),
-      },
-      {
-        'title': 'Relevé PAC',
-        'subtitle': 'Relevé technique pour pompe à chaleur',
-        'icon': Icons.ac_unit,
-        'color': Colors.blue,
-        'onTap': () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const ReleveTechniqueScreen(type: TypeReleve.pac),
-          ),
-        ),
-      },
-      {
-        'title': 'Relevé Climatisation',
-        'subtitle': 'Relevé technique pour climatisation',
-        'icon': Icons.air,
-        'color': Colors.cyan,
-        'onTap': () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const ReleveTechniqueScreen(type: TypeReleve.clim),
-          ),
-        ),
-      },
-    ];
   }
 }
 

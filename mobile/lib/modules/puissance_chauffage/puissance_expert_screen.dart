@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:chauffageexpert/utils/app_utils.dart';
 
 class PuissanceExpertScreen extends StatefulWidget {
   const PuissanceExpertScreen({super.key});
@@ -8,7 +8,8 @@ class PuissanceExpertScreen extends StatefulWidget {
   State<PuissanceExpertScreen> createState() => _PuissanceExpertScreenState();
 }
 
-class _PuissanceExpertScreenState extends State<PuissanceExpertScreen> {
+class _PuissanceExpertScreenState extends State<PuissanceExpertScreen>
+    with SharedPreferencesMixin {
   final _formKey = GlobalKey<FormState>();
 
   // Controllers
@@ -32,23 +33,20 @@ class _PuissanceExpertScreenState extends State<PuissanceExpertScreen> {
   }
 
   Future<void> _chargerPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _surfaceController.text = prefs.getString('surface') ?? '';
-      _hauteurController.text = prefs.getString('hauteur') ?? '';
-      _tempIntController.text = prefs.getString('tempInt') ?? '20';
-      _tempExtController.text = prefs.getString('tempExt') ?? '-5';
-      _isolationCombles = prefs.getBool('isolationCombles') ?? false;
-    });
+    _surfaceController.text = await loadString('surface') ?? '';
+    _hauteurController.text = await loadString('hauteur') ?? '';
+    _tempIntController.text = await loadString('tempInt') ?? '20';
+    _tempExtController.text = await loadString('tempExt') ?? '-5';
+    _isolationCombles = await loadBool('isolationCombles') ?? false;
+    if (mounted) setState(() {});
   }
 
   Future<void> _sauvegarderPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('surface', _surfaceController.text);
-    await prefs.setString('hauteur', _hauteurController.text);
-    await prefs.setString('tempInt', _tempIntController.text);
-    await prefs.setString('tempExt', _tempExtController.text);
-    await prefs.setBool('isolationCombles', _isolationCombles);
+    await saveString('surface', _surfaceController.text);
+    await saveString('hauteur', _hauteurController.text);
+    await saveString('tempInt', _tempIntController.text);
+    await saveString('tempExt', _tempExtController.text);
+    await saveBool('isolationCombles', _isolationCombles);
   }
 
   void _calculerPuissanceExpert() {

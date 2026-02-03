@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:provider/provider.dart' as provider;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'screens/home_screen.dart';
-import 'utils/app_theme.dart';
+import 'theme/app_theme.dart';
 import 'utils/preferences_provider.dart';
 import 'screens/preferences_screen.dart';
 import 'modules/equilibrage/equilibrage_screen.dart';
@@ -10,7 +11,7 @@ import 'modules/ecs/ecs_screen.dart';
 import 'modules/puissance_chauffage/gestion_pieces_screen.dart';
 import 'modules/vmc/vmc_integration_screen.dart';
 import 'modules/reglementation_gaz/reglementation_gaz_screen.dart';
-import 'modules/tests/enhanced_top_gaz_screen.dart';
+import 'modules/tests/top_compteur_gaz_screen.dart';
 import 'modules/releves/releve_technique_screen.dart';
 import 'modules/releves/releve_technique_model.dart';
 import 'modules/chaudiere/chaudiere_screen.dart';
@@ -18,7 +19,11 @@ import 'modules/tirage/tirage_screen.dart';
 import 'services/github_update_service.dart';
 
 void main() {
-  runApp(const ChauffageExpertApp());
+  runApp(
+    const ProviderScope(
+      child: ChauffageExpertApp(),
+    ),
+  );
 }
 
 class ChauffageExpertApp extends StatelessWidget {
@@ -26,9 +31,9 @@ class ChauffageExpertApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
+    return provider.ChangeNotifierProvider(
       create: (_) => PreferencesProvider()..loadPreferences(),
-      child: Consumer<PreferencesProvider>(
+      child: provider.Consumer<PreferencesProvider>(
         builder: (context, preferences, child) {
           return MaterialApp(
             title: 'Chauffage Expert',
@@ -41,7 +46,7 @@ class ChauffageExpertApp extends StatelessWidget {
               '/preferences': (context) => const PreferencesScreen(),
               '/puissance-simple': (context) => const GestionPiecesScreen(),
               '/vmc': (context) => const VMCIntegrationScreen(),
-              '/test-compteur-gaz': (context) => const EnhancedTopGazScreen(),
+              '/test-compteur-gaz': (context) => const TopCompteurGazScreen(),
               '/releve-chaudiere': (context) => const ReleveTechniqueScreen(type: TypeReleve.chaudiere),
               '/releve-pac': (context) => const ReleveTechniqueScreen(type: TypeReleve.pac),
               '/releve-clim': (context) => const ReleveTechniqueScreen(type: TypeReleve.clim),

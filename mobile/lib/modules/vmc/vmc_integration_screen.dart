@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'vmc_calculator.dart';
+import 'vmc_pdf_generator.dart';
+import 'vmc_documentation_screen.dart';
 
 /// Modèle pour une mesure VMC par pièce (cuisine, salle-de-bain, wc, autre-sdb)
 class MesurePiece {
@@ -21,12 +23,10 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
   String _typeVMC = 'simple-flux';
 
   // Mesures VMC par pièce
-  final List<MesurePiece> _mesuresPiece = [
-    MesurePiece(typePiece: 'cuisine'),
-    MesurePiece(typePiece: 'salle-de-bain'),
-    MesurePiece(typePiece: 'wc'),
-    MesurePiece(typePiece: 'autre-sdb'),
-  ];
+  List<MesurePiece> _mesuresPiece = [];
+  
+  // Controllers pour les champs de texte
+  final Map<String, TextEditingController> _controllers = {};
 
   // Résultats diagnostic
   String? _statut; // success, warning, error
@@ -46,7 +46,62 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
   @override
   void initState() {
     super.initState();
+    _initializeMesures();
     _verifierConformite();
+  }
+  
+  @override
+  void dispose() {
+    // Nettoyer les controllers
+    for (var controller in _controllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+  
+  void _initializeMesures() {
+    // Déterminer les pièces selon le type de logement
+    List<String> pieces;
+    switch (_typeLogement) {
+      case 'T1':
+      case 'T2':
+        pieces = ['cuisine', 'salle-de-bain', 'wc'];
+        break;
+      case 'T3':
+      case 'T4':
+      case 'T5+':
+      default:
+        pieces = ['cuisine', 'salle-de-bain', 'wc', 'autre-sdb'];
+        break;
+    }
+    
+    // Sauvegarder les valeurs existantes
+    final Map<String, double> savedValues = {};
+    for (var mesure in _mesuresPiece) {
+      savedValues[mesure.typePiece] = mesure.debitMesure;
+    }
+    
+    // Créer les nouvelles mesures
+    _mesuresPiece = pieces.map((piece) {
+      final savedValue = savedValues[piece] ?? 0.0;
+      
+      // Créer ou mettre à jour le controller
+      if (!_controllers.containsKey(piece)) {
+        _controllers[piece] = TextEditingController();
+      }
+      _controllers[piece]!.text = savedValue > 0 ? savedValue.toString() : '';
+      
+      return MesurePiece(typePiece: piece, debitMesure: savedValue);
+    }).toList();
+    
+    // Supprimer les controllers non utilisés
+    _controllers.removeWhere((key, value) {
+      if (!pieces.contains(key)) {
+        value.dispose();
+        return true;
+      }
+      return false;
+    });
   }
 
   void _verifierConformite() {
@@ -139,7 +194,23 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Vérification des Débits VMC')),
+      appBar: AppBar(
+        title: const Text('Vérification des Débits VMC'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            tooltip: 'Documentation VMC',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => VMCDocumentationScreen(typeVMC: _typeVMC),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -155,7 +226,6 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
                     Text('Type de logement', style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
-                      // ignore: deprecated_member_use
                       value: _typeLogement,
                       items: ['T1', 'T2', 'T3', 'T4', 'T5+'].map((t) {
                         String label = t;
@@ -173,8 +243,13 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
                         return DropdownMenuItem(value: t, child: Text(label));
                       }).toList(),
                       onChanged: (v) {
-                        setState(() => _typeLogement = v ?? _typeLogement);
-                        _verifierConformite();
+                        if (v != null) {
+                          setState(() {
+                            _typeLogement = v;
+                            _initializeMesures(); // Ajuster les mesures selon le nouveau type
+                          });
+                          _verifierConformite();
+                        }
                       },
                       decoration: const InputDecoration(labelText: 'Type de logement'),
                     ),
@@ -194,7 +269,6 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
                     Text('Type de VMC', style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
-                      // ignore: deprecated_member_use
                       value: _typeVMC,
                       items: VMCCalculator.getTypesVMC().map((t) {
                         return DropdownMenuItem(
@@ -203,10 +277,34 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
                         );
                       }).toList(),
                       onChanged: (v) {
-                        setState(() => _typeVMC = v ?? _typeVMC);
-                        _verifierConformite();
+                        if (v != null) {
+                          setState(() {
+                            _typeVMC = v;
+                          });
+                          _verifierConformite();
+                        }
                       },
                       decoration: const InputDecoration(labelText: 'Type de VMC'),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withAlpha(25),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.info, size: 16, color: Colors.blue),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _getVMCDescription(_typeVMC),
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -252,6 +350,7 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
                             Expanded(
                               flex: 1,
                               child: TextField(
+                                controller: _controllers[mesure.typePiece],
                                 keyboardType: TextInputType.number,
                                 decoration: const InputDecoration(
                                   labelText: 'm³/h',
@@ -286,7 +385,31 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Résultats', style: Theme.of(context).textTheme.titleMedium),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Résultats', style: Theme.of(context).textTheme.titleMedium),
+                        if (_resultatsParPiece.isNotEmpty)
+                          ElevatedButton.icon(
+                            onPressed: () async {
+                              await VMCPdfGenerator.instance.generateDiagnosticReport(
+                                context: context,
+                                typeLogement: _typeLogement,
+                                typeVMC: _typeVMC,
+                                resultatsParPiece: _resultatsParPiece,
+                                pourcentageConformite: _pourcentageConformite,
+                                message: _message ?? '',
+                                recommandation: _recommandation ?? '',
+                              );
+                            },
+                            icon: const Icon(Icons.picture_as_pdf, size: 18),
+                            label: const Text('Export PDF'),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            ),
+                          ),
+                      ],
+                    ),
                     const SizedBox(height: 8),
                     if (_resultatsParPiece.isNotEmpty) ...[
                       SingleChildScrollView(
@@ -394,5 +517,22 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
         rows: rows,
       ),
     );
+  }
+
+  String _getVMCDescription(String typeVMC) {
+    switch (typeVMC) {
+      case 'simple-flux':
+        return 'Extraction mécanique avec débit constant. Système de base fiable et économique.';
+      case 'hygro-a':
+        return 'Bouches d\'extraction hygroréglables. Économie d\'énergie de 15-20%.';
+      case 'hygro-b':
+        return 'Entrées et extractions hygroréglables. Économie maximale de 25-30%.';
+      case 'double-flux':
+        return 'Récupération de chaleur jusqu\'à 90%. Filtration complète de l\'air.';
+      case 'vmc-gaz':
+        return 'Ventilation + évacuation des fumées. Contrôle annuel obligatoire.';
+      default:
+        return '';
+    }
   }
 }

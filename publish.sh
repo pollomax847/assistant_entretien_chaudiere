@@ -114,21 +114,29 @@ echo ""
 
 # 5. Créer le tag Git
 cd "$PROJECT_ROOT"
-TAG_NAME="v$NEW_VERSION"
+TAG_NAME="v$NEW_VERSION-build$NEW_BUILD"
 
 info "Commit des changements..."
 git add mobile/pubspec.yaml
 git commit -m "Bump version to $NEW_VERSION build $NEW_BUILD" || warning "Aucun changement à commiter"
 
 info "Création du tag $TAG_NAME..."
+# Supprimer le tag s'il existe (localement et remote)
 if git tag -l | grep -q "^$TAG_NAME$"; then
-    warning "Le tag $TAG_NAME existe déjà, il sera supprimé"
+    warning "Le tag $TAG_NAME existe déjà localement, suppression..."
     git tag -d "$TAG_NAME"
-    git push origin :refs/tags/"$TAG_NAME" 2>/dev/null || true
 fi
+# Supprimer du remote aussi
+git push origin :refs/tags/"$TAG_NAME" 2>/dev/null || true
 
-git tag -a "$TAG_NAME" -m "Release $NEW_VERSION - $RELEASE_NOTES"
+# Créer le nouveau tag
+git tag -a "$TAG_NAME" -m "Release $NEW_VERSION build $NEW_BUILD - $RELEASE_NOTES"
 success "Tag créé"
+
+# Pusher le tag immédiatement
+info "Push du tag sur GitHub..."
+git push origin "$TAG_NAME"
+success "Tag poussé sur GitHub"
 echo ""
 
 # 6. Créer la GitHub Release et uploader l'APK
@@ -174,9 +182,8 @@ echo ""
 # 9. Commit et push
 info "Commit et push des modifications..."
 git add version.json
-git commit -m "Update version.json for release $NEW_VERSION"
+git commit -m "Update version.json for release $NEW_VERSION build $NEW_BUILD"
 git push origin main
-git push origin "$TAG_NAME"
 
 success "Modifications poussées sur GitHub"
 echo ""

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:chauffageexpert/utils/widgets/app_snackbar.dart';
 
 /// Service pour gérer les mises à jour in-app
 class UpdateService {
@@ -86,11 +87,9 @@ class UpdateService {
       debugPrint('Erreur lors de la mise à jour: $e');
       if (!context.mounted) return;
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Erreur lors de la mise à jour. Réessayez plus tard.'),
-          backgroundColor: Colors.red,
-        ),
+      AppSnackBar.showError(
+        context,
+        'Erreur lors de la mise à jour. Réessayez plus tard.',
       );
     }
   }
@@ -104,18 +103,9 @@ class UpdateService {
       InAppUpdate.completeFlexibleUpdate().then((_) {
         if (!context.mounted) return;
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Mise à jour installée ! Redémarrage...'),
-            backgroundColor: Colors.green,
-            action: SnackBarAction(
-              label: 'Redémarrer',
-              textColor: Colors.white,
-              onPressed: () {
-                // L'app va redémarrer automatiquement
-              },
-            ),
-          ),
+        AppSnackBar.showSuccess(
+          context,
+          'Mise à jour installée ! Redémarrage...',
         );
       });
     } catch (e) {
@@ -161,23 +151,18 @@ class UpdateService {
       if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
         await _showUpdateDialog(context, updateInfo);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✓ Vous avez la dernière version'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
+        AppSnackBar.showSuccess(
+          context,
+          '✓ Vous avez la dernière version',
         );
       }
     } catch (e) {
       if (!context.mounted) return;
       Navigator.pop(context);
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Impossible de vérifier les mises à jour'),
-          backgroundColor: Colors.orange,
-        ),
+      AppSnackBar.showWarning(
+        context,
+        'Impossible de vérifier les mises à jour',
       );
     }
   }

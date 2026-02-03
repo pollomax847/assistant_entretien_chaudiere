@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../modules/puissance_chauffage/gestion_pieces_screen.dart';
-import '../modules/tests/top_gaz_test_screen.dart';
+import '../modules/tests/top_compteur_gaz_screen.dart';
 
 class TestModuleScreen extends StatefulWidget {
   const TestModuleScreen({super.key});
@@ -104,7 +104,7 @@ class _TestModuleScreenState extends State<TestModuleScreen> with TickerProvider
               Colors.red,
               () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const TopGazTestScreen()),
+                MaterialPageRoute(builder: (context) => const TopCompteurGazScreen()),
               ),
             ),
             

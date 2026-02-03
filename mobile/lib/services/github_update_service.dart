@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:chauffageexpert/utils/widgets/app_snackbar.dart';
 
 /// Service de mise à jour via GitHub Releases
 class GitHubUpdateService {
@@ -151,15 +152,9 @@ class GitHubUpdateService {
         
         if (!context.mounted) return;
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Téléchargement lancé. Une fois terminé, ouvrez le fichier APK pour installer la mise à jour.',
-              maxLines: 3,
-            ),
-            backgroundColor: Colors.blue,
-            duration: Duration(seconds: 5),
-          ),
+        AppSnackBar.showInfo(
+          context,
+          'Téléchargement lancé. Une fois terminé, ouvrez le fichier APK pour installer la mise à jour.',
         );
       } else {
         throw 'Impossible d\'ouvrir le lien de téléchargement';
@@ -169,16 +164,9 @@ class GitHubUpdateService {
       
       if (!context.mounted) return;
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur lors du téléchargement: $e'),
-          backgroundColor: Colors.red,
-          action: SnackBarAction(
-            label: 'Réessayer',
-            textColor: Colors.white,
-            onPressed: () => _downloadUpdate(context, downloadUrl),
-          ),
-        ),
+      AppSnackBar.showError(
+        context,
+        'Erreur lors du téléchargement: $e',
       );
     }
   }
@@ -224,28 +212,18 @@ class GitHubUpdateService {
       if (updateInfo != null) {
         await showUpdateDialog(context, updateInfo);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✓ Vous utilisez la dernière version disponible'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
+        AppSnackBar.showSuccess(
+          context,
+          '✓ Vous utilisez la dernière version disponible',
         );
       }
     } catch (e) {
       if (!context.mounted) return;
       Navigator.pop(context);
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur de connexion: Vérifiez votre connexion internet'),
-          backgroundColor: Colors.red,
-          action: SnackBarAction(
-            label: 'Réessayer',
-            textColor: Colors.white,
-            onPressed: () => checkManually(context),
-          ),
-        ),
+      AppSnackBar.showError(
+        context,
+        'Erreur de connexion: Vérifiez votre connexion internet',
       );
     }
   }

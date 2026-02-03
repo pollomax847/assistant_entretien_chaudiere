@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:chauffageexpert/utils/app_utils.dart';
 import 'models/diagnostic_question.dart';
 
 // Small reusable radio group widget to consolidate radio options
@@ -17,14 +17,52 @@ class RadioGroup<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Row(
       children: options.map((opt) {
         final selected = groupValue == opt.value;
-        return ListTile(
-          leading: Icon(selected ? Icons.radio_button_checked : Icons.radio_button_off, color: Theme.of(context).colorScheme.primary),
-          title: Text(opt.label),
-          onTap: () => onChanged(opt.value),
-          dense: true,
+        return Expanded(
+          child: InkWell(
+            onTap: () => onChanged(opt.value),
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              decoration: BoxDecoration(
+                color: selected 
+                    ? Theme.of(context).colorScheme.primaryContainer 
+                    : Colors.transparent,
+                border: Border.all(
+                  color: selected 
+                      ? Theme.of(context).colorScheme.primary 
+                      : Colors.grey.shade300,
+                  width: selected ? 2 : 1,
+                ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    selected ? Icons.radio_button_checked : Icons.radio_button_off,
+                    color: selected 
+                        ? Theme.of(context).colorScheme.primary 
+                        : Colors.grey,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    opt.label,
+                    style: TextStyle(
+                      fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                      color: selected 
+                          ? Theme.of(context).colorScheme.primary 
+                          : null,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         );
       }).toList(),
     );
@@ -38,7 +76,8 @@ class DynamicReglementationForm extends StatefulWidget {
   State<DynamicReglementationForm> createState() => _DynamicReglementationFormState();
 }
 
-class _DynamicReglementationFormState extends State<DynamicReglementationForm> {
+class _DynamicReglementationFormState extends State<DynamicReglementationForm>
+    with SharedPreferencesMixin {
   ReglementationQuestions? _questions;
   final Map<String, dynamic> _answers = {}; // id -> value
   final Map<String, TextEditingController> _obsControllers = {};
@@ -52,13 +91,13 @@ class _DynamicReglementationFormState extends State<DynamicReglementationForm> {
 
   Future<void> _loadQuestions() async {
     final q = await ReglementationQuestions.loadFromAsset();
-    final prefs = await SharedPreferences.getInstance();
     // initialize answers from prefs or defaults
     for (final section in q.sections) {
       for (final quest in section.questions) {
         final key = quest.id;
-        if (prefs.containsKey(key)) {
-          _answers[key] = prefs.getString(key);
+        final saved = await loadString(key);
+        if (saved != null) {
+          _answers[key] = saved;
         } else {
           if (quest.type == 'select') {
             if (quest.options != null && quest.options!.isNotEmpty) {
@@ -73,7 +112,8 @@ class _DynamicReglementationFormState extends State<DynamicReglementationForm> {
         }
         // observation controller
         final obsKey = '${key}_obs';
-        _obsControllers[obsKey] = TextEditingController(text: prefs.getString(obsKey) ?? '');
+        final obsText = await loadString(obsKey);
+        _obsControllers[obsKey] = TextEditingController(text: obsText ?? '');
       }
     }
 
@@ -200,17 +240,16 @@ class _DynamicReglementationFormState extends State<DynamicReglementationForm> {
   }
 
   Future<void> _saveAll() async {
-    final prefs = await SharedPreferences.getInstance();
     for (final e in _answers.entries) {
       final key = e.key;
       final val = e.value?.toString() ?? '';
-      await prefs.setString(key, val);
+      await saveString(key, val);
     }
     for (final obs in _obsControllers.entries) {
-      await prefs.setString(obs.key, obs.value.text);
+      await saveString(obs.key, obs.value.text);
     }
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Réponses de la réglementation sauvegardées')));
+    AppSnackBar.showSuccess(context, 'Réponses de la réglementation sauvegardées');
   }
 
   @override

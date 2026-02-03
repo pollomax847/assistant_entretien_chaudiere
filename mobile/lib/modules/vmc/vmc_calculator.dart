@@ -138,7 +138,7 @@ class VMCCalculator {
       },
       'T2': {
         'cuisine': {'min': 45, 'max': 90, 'grand-debit': 105},
-        'salle-de-bain': {'min': 15, 'max': 15, 'grand-debit': 30},
+        'salle-de-bain': {'min': 15, 'max': 15, 'grand-debit': 15},
         'wc': {'min': 15, 'max': 15},
         'autre-sdb': {'min': 0, 'max': 15}
       },

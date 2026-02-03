@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:chauffageexpert/services/pdf_generator.dart';
 import 'package:chauffageexpert/services/json_exporter.dart';
 import 'package:chauffageexpert/modules/releves/releve_technique_model.dart';
+import 'package:chauffageexpert/modules/releves/mixins/reglementation_gaz_mixin.dart';
+import 'package:chauffageexpert/modules/releves/widgets/common_form_widgets.dart';
 
 class RTPACForm extends StatefulWidget {
   const RTPACForm({super.key});
@@ -11,7 +12,7 @@ class RTPACForm extends StatefulWidget {
   State<RTPACForm> createState() => _RTPACFormState();
 }
 
-class _RTPACFormState extends State<RTPACForm> {
+class _RTPACFormState extends State<RTPACForm> with ReglementationGazMixin {
   final _formKey = GlobalKey<FormState>();
 
   // --- CONTROLLERS ---
@@ -40,36 +41,20 @@ class _RTPACFormState extends State<RTPACForm> {
   bool _vanne3Voies = false;
   bool _ballonDecouplage = false;
   String _typeEmetteur = 'Radiateur fonte';
-  // Réglementation Gaz
-  String _vasoPresent = 'NC';
-  String _vasoConforme = 'NC';
-  final String _vasoObservation = '';
-  String _roaiPresent = 'NC';
-  final String _roaiConforme = 'NC';
-  final String _roaiObservation = '';
-  String _typeHotte = 'Non';
-  final String _ventilationConforme = 'NC';
-  final String _ventilationObservation = '';
-  String _vmcPresent = 'NC';
-  final String _vmcConforme = 'NC';
-  final String _vmcObservation = '';
-  String _detecteurCO = 'NC';
-  final String _detecteurGaz = 'NC';
-  final String _detecteursConformes = 'NC';
-  final _distanceFenetreController = TextEditingController();
-  final _distancePorteController = TextEditingController();
-  final _distanceEvacuationController = TextEditingController();
-  final _distanceAspirationController = TextEditingController();
+  // Réglementation Gaz (maintenant dans ReglementationGazMixin)
+
+  @override
+  void initState() {
+    super.initState();
+    loadReglementationQuestions();
+  }
 
   @override
   void dispose() {
     for (var controller in _controllers.values) {
       controller.dispose();
     }
-    _distanceFenetreController.dispose();
-    _distancePorteController.dispose();
-    _distanceEvacuationController.dispose();
-    _distanceAspirationController.dispose();
+    disposeReglementationControllers();
     super.dispose();
   }
 
@@ -86,13 +71,24 @@ class _RTPACFormState extends State<RTPACForm> {
           padding: const EdgeInsets.all(12.0),
           child: Column(
             children: [
-              _buildHeader(),
-              _buildSection('Client', [
+              CommonFormWidgets.buildHeader(
+                icon: Icons.heat_pump,
+                title: 'RELEVÉ TECHNIQUE PAC',
+                color: Colors.indigo,
+                context: context,
+              ),
+              CommonFormWidgets.buildSection(
+                title: 'Client',
+                color: Colors.indigo,
+                children: [
                 _buildTextField('numClient', 'Numéro client (gazelle)'),
                 _buildTextField('nomClient', 'Nom du client'),
                 _buildTextField('adresseFact', 'Adresse de facturation', maxLines: 2),
               ]),
-              _buildSection('Description de l\'habitation', [
+              CommonFormWidgets.buildSection(
+                title: 'Description de l\'habitation',
+                color: Colors.indigo,
+                children: [
                 _buildTextField('anneeConst', 'Année de construction', keyboardType: TextInputType.number),
                 SwitchListTile(
                   title: const Text('Repérage amiante établi'),
@@ -101,67 +97,15 @@ class _RTPACFormState extends State<RTPACForm> {
                 ),
                 _buildTextField('surfaceChauffer', 'Surface à chauffer (m2)', keyboardType: TextInputType.number),
               ]),
-              _buildSection('Réglementation Gaz', [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Réponses: Oui / Non / NC', style: TextStyle(color: Colors.grey)),
-                      const SizedBox(height: 8),
-                      DropdownButtonFormField<String>(
-                        initialValue: _vasoPresent,
-                        decoration: const InputDecoration(labelText: 'Réglette VASO présente'),
-                        items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
-                        onChanged: (v) => setState(() => _vasoPresent = v!),
-                      ),
-                      if (_vasoPresent == 'Oui') ...[
-                        DropdownButtonFormField<String>(
-                          initialValue: _vasoConforme,
-                          decoration: const InputDecoration(labelText: 'VASO conforme'),
-                          items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
-                          onChanged: (v) => setState(() => _vasoConforme = v!),
-                        ),
-                      ],
-                      const SizedBox(height: 8),
-                      DropdownButtonFormField<String>(
-                        initialValue: _roaiPresent,
-                        decoration: const InputDecoration(labelText: 'Robinet ROAI présent'),
-                        items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
-                        onChanged: (v) => setState(() => _roaiPresent = v!),
-                      ),
-                      const SizedBox(height: 8),
-                      DropdownButtonFormField<String>(
-                        initialValue: _typeHotte,
-                        decoration: const InputDecoration(labelText: 'Type hotte'),
-                        items: const [DropdownMenuItem(value: 'Non', child: Text('Pas de hotte')), DropdownMenuItem(value: 'SimpleFlux', child: Text('Hotte simple flux')), DropdownMenuItem(value: 'DoubleFlux', child: Text('Hotte double flux'))],
-                        onChanged: (v) => setState(() => _typeHotte = v!),
-                      ),
-                      const SizedBox(height: 8),
-                      DropdownButtonFormField<String>(
-                        initialValue: _vmcPresent,
-                        decoration: const InputDecoration(labelText: 'VMC présente'),
-                        items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
-                        onChanged: (v) => setState(() => _vmcPresent = v!),
-                      ),
-                      const SizedBox(height: 8),
-                      DropdownButtonFormField<String>(
-                        initialValue: _detecteurCO,
-                        decoration: const InputDecoration(labelText: 'Détecteur CO présent'),
-                        items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
-                        onChanged: (v) => setState(() => _detecteurCO = v!),
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _distanceFenetreController,
-                        decoration: const InputDecoration(labelText: 'Distance fenêtres (cm)'),
-                        keyboardType: TextInputType.number,
-                      ),
-                    ],
-                  ),
-                ),
-              ]),
-              _buildSection('Volumes & Émetteurs', [
+              CommonFormWidgets.buildSection(
+                title: 'Réglementation Gaz',
+                color: Colors.indigo,
+                children: [buildSectionReglementation(showAllFields: false)],
+              ),
+              CommonFormWidgets.buildSection(
+                title: 'Volumes & Émetteurs',
+                color: Colors.indigo,
+                children: [
                 DropdownButtonFormField<String>(
                   initialValue: _typeEmetteur,
                   decoration: const InputDecoration(labelText: 'Type d\'émetteur zone 1', contentPadding: EdgeInsets.symmetric(horizontal: 16)),
@@ -170,7 +114,10 @@ class _RTPACFormState extends State<RTPACForm> {
                 ),
                 _buildTextField('nbRadiateurs', 'Nombre total de radiateurs', keyboardType: TextInputType.number),
               ]),
-              _buildSection('Système Actuel', [
+              CommonFormWidgets.buildSection(
+                title: 'Système Actuel',
+                color: Colors.indigo,
+                children: [
                 SwitchListTile(
                   title: const Text('Production ECS indépendante'),
                   value: _ecsIndependante,
@@ -178,7 +125,10 @@ class _RTPACFormState extends State<RTPACForm> {
                 ),
                 _buildTextField('consoFuel', 'Consommation Fuel annuelle (L)', keyboardType: TextInputType.number),
               ]),
-              _buildSection('Caractéristiques Électriques', [
+              CommonFormWidgets.buildSection(
+                title: 'Caractéristiques Électriques',
+                color: Colors.indigo,
+                children: [
                 SwitchListTile(
                   title: const Text('Tableau électrique conforme'),
                   value: _tableauConforme,
@@ -192,7 +142,10 @@ class _RTPACFormState extends State<RTPACForm> {
                   onChanged: (v) => setState(() => _besoinTableauSupp = v!),
                 ),
               ]),
-              _buildSection('Hydraulique', [
+              CommonFormWidgets.buildSection(
+                title: 'Hydraulique',
+                color: Colors.indigo,
+                children: [
                 CheckboxListTile(
                   title: const Text('Vanne 3 voies'),
                   value: _vanne3Voies,
@@ -204,22 +157,21 @@ class _RTPACFormState extends State<RTPACForm> {
                   onChanged: (v) => setState(() => _ballonDecouplage = v!),
                 ),
               ]),
-              _buildSection('Dimensionnement', [
+              CommonFormWidgets.buildSection(
+                title: 'Dimensionnement',
+                color: Colors.indigo,
+                children: [
                 _buildTextField('deperditionTotale', 'Déperdition totale (kW)', keyboardType: TextInputType.number),
                 _buildTextField('tauxCouverture', 'Taux de couverture (%)', keyboardType: TextInputType.number),
               ]),
-              const SizedBox(height: 24),
-              ElevatedButton(
+              CommonFormWidgets.buildSubmitButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     _performExports();
                   }
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.indigo,
-                  minimumSize: const Size.fromHeight(50),
-                ),
-                child: const Text('ENREGISTRER LE RELEVÉ PAC', style: TextStyle(color: Colors.white)),
+                label: 'ENREGISTRER LE RELEVÉ PAC',
+                backgroundColor: Colors.indigo,
               ),
               const SizedBox(height: 40),
             ],
@@ -229,36 +181,8 @@ class _RTPACFormState extends State<RTPACForm> {
     );
   }
 
-  Future<void> _saveReglementationToPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('vasoPresent', _vasoPresent);
-    await prefs.setString('vasoConforme', _vasoConforme);
-    await prefs.setString('vasoObservation', _vasoObservation);
-
-    await prefs.setString('roaiPresent', _roaiPresent);
-    await prefs.setString('roaiConforme', _roaiConforme);
-    await prefs.setString('roaiObservation', _roaiObservation);
-
-    await prefs.setString('typeHotte', _typeHotte);
-    await prefs.setString('ventilationConforme', _ventilationConforme);
-    await prefs.setString('ventilationObservation', _ventilationObservation);
-
-    await prefs.setString('vmcPresent', _vmcPresent);
-    await prefs.setString('vmcConforme', _vmcConforme);
-    await prefs.setString('vmcObservation', _vmcObservation);
-
-    await prefs.setString('detecteurCO', _detecteurCO);
-    await prefs.setString('detecteurGaz', _detecteurGaz);
-    await prefs.setString('detecteursConformes', _detecteursConformes);
-
-    await prefs.setString('distanceFenetre', _distanceFenetreController.text);
-    await prefs.setString('distancePorte', _distancePorteController.text);
-    await prefs.setString('distanceEvacuation', _distanceEvacuationController.text);
-    await prefs.setString('distanceAspiration', _distanceAspirationController.text);
-  }
-
   Future<void> _performExports() async {
-    await _saveReglementationToPrefs();
+    await saveReglementationToPrefs();
 
     final Map<String, Map<String, String>> sections = {
       'Client': {
@@ -277,10 +201,10 @@ class _RTPACFormState extends State<RTPACForm> {
     };
 
     try {
-      final pdfFile = await PDFGeneratorService.genererReleveTechnique(donnees: sections, typeReleve: 'pac');
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('PDF généré: ${pdfFile.path}')));
+      final pdfFile = await PDFGeneratorService.instance.genererReleveTechnique(donnees: sections, typeReleve: 'pac');
+      if (mounted) CommonFormWidgets.showSuccessSnackBar(context, 'PDF généré: ${pdfFile.path}');
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Erreur génération PDF')));
+      if (mounted) CommonFormWidgets.showErrorSnackBar(context, 'Erreur génération PDF');
     }
 
     final diagnosticGazMap = await JSONExporter.collectDiagnosticGaz();
@@ -293,65 +217,38 @@ class _RTPACFormState extends State<RTPACForm> {
       equipementType: _typeEmetteur,
       diagnosticGaz: diagnosticGazMap,
       // Réglementation
-      vasoPresent: _vasoPresent,
-      vasoConforme: _vasoConforme,
-      vasoObservation: _vasoObservation,
-      roaiPresent: _roaiPresent,
-      roaiConforme: _roaiConforme,
-      roaiObservation: _roaiObservation,
-      typeHotte: _typeHotte,
-      ventilationConforme: _ventilationConforme,
-      ventilationObservation: _ventilationObservation,
-      vmcPresent: _vmcPresent,
-      vmcConforme: _vmcConforme,
-      vmcObservation: _vmcObservation,
-      detecteurCO: _detecteurCO,
-      detecteurGaz: _detecteurGaz,
-      detecteursConformes: _detecteursConformes,
-      distanceFenetre: _distanceFenetreController.text,
+      vasoPresent: vasoPresent,
+      vasoConforme: vasoConforme,
+      vasoObservation: vasoObservation,
+      roaiPresent: roaiPresent,
+      roaiConforme: roaiConforme,
+      roaiObservation: roaiObservation,
+      typeHotte: typeHotte,
+      ventilationConforme: ventilationConforme,
+      ventilationObservation: ventilationObservation,
+      vmcPresent: vmcPresent,
+      vmcConforme: vmcConforme,
+      vmcObservation: vmcObservation,
+      detecteurCO: detecteurCO,
+      detecteurGaz: detecteurGaz,
+      detecteursConformes: detecteursConformes,
+      distanceFenetre: distanceFenetreController.text,
     );
 
     try {
       final jsonFile = await JSONExporter.exportReleveTechniqueJson(releve, 'pac');
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('JSON exporté: ${jsonFile.path}')));
+      if (mounted) CommonFormWidgets.showSuccessSnackBar(context, 'JSON exporté: ${jsonFile.path}');
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Erreur export JSON')));
+      if (mounted) CommonFormWidgets.showErrorSnackBar(context, 'Erreur export JSON');
     }
   }
 
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      child: const Column(
-        children: [
-          Icon(Icons.heat_pump, size: 50, color: Colors.indigo),
-          SizedBox(height: 10),
-          Text('RELEVÉ TECHNIQUE PAC', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          Divider(thickness: 2, color: Colors.indigo),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSection(String title, List<Widget> children) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: ExpansionTile(
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo)),
-        children: children,
-      ),
-    );
-  }
-
   Widget _buildTextField(String key, String label, {TextInputType keyboardType = TextInputType.text, int maxLines = 1}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: TextFormField(
-        controller: _controllers[key],
-        decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
-        keyboardType: keyboardType,
-        maxLines: maxLines,
-      ),
+    return CommonFormWidgets.buildTextField(
+      controller: _controllers[key]!,
+      label: label,
+      keyboardType: keyboardType,
+      maxLines: maxLines,
     );
   }
 }
