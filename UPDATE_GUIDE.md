@@ -9,7 +9,41 @@ Ce système permet de distribuer des mises à jour de l'application sans passer 
 3. **Notification** : Si une nouvelle version existe, affiche un dialogue
 4. **Téléchargement** : Redirige vers le lien de téléchargement GitHub Release
 
-## 🚀 Publier une mise à jour
+---
+
+## 🚀 MÉTHODE RECOMMANDÉE : Publication Automatique
+
+**Un script fait tout pour vous en une seule commande !**
+
+Voir le guide complet : [PUBLISH_GUIDE.md](PUBLISH_GUIDE.md)
+
+**Installation (une seule fois) :**
+```bash
+# Installer GitHub CLI
+sudo apt install gh
+
+# S'authentifier
+gh auth login
+```
+
+**Publier une nouvelle version :**
+```bash
+./publish.sh "Description de la mise à jour"
+```
+
+Le script fait automatiquement :
+- ✅ Incrémentation de version
+- ✅ Compilation de l'APK
+- ✅ Création de la GitHub Release
+- ✅ Upload de l'APK
+- ✅ Mise à jour de version.json
+- ✅ Commit et push
+
+---
+
+## 📝 Méthode Manuelle (si besoin)
+
+### 🚀 Publier une mise à jour manuellement
 
 ### Étape 1 : Augmenter la version
 
