@@ -6,12 +6,16 @@ class PreferencesProvider extends ChangeNotifier {
   String _technician = '';
   String _company = '';
   String _defaultModule = 'home';
+  bool _isFirstLaunch = true;
+  List<String> _favoriteModules = [];
 
   // Getters
   bool get isDarkMode => _isDarkMode;
   String get technician => _technician;
   String get company => _company;
   String get defaultModule => _defaultModule;
+  bool get isFirstLaunch => _isFirstLaunch;
+  List<String> get favoriteModules => _favoriteModules;
 
   // Charger les préférences
   Future<void> loadPreferences() async {
@@ -20,6 +24,8 @@ class PreferencesProvider extends ChangeNotifier {
     _technician = prefs.getString('technician') ?? '';
     _company = prefs.getString('company') ?? '';
     _defaultModule = prefs.getString('defaultModule') ?? 'home';
+    _isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
+    _favoriteModules = prefs.getStringList('favoriteModules') ?? [];
     notifyListeners();
   }
 
@@ -53,5 +59,45 @@ class PreferencesProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('defaultModule', value);
     notifyListeners();
+  }
+
+  // Marquer que ce n'est plus le premier lancement
+  Future<void> setFirstLaunchCompleted() async {
+    _isFirstLaunch = false;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isFirstLaunch', false);
+    notifyListeners();
+  }
+
+  // Ajouter un module aux favoris
+  Future<void> addFavorite(String moduleId) async {
+    if (!_favoriteModules.contains(moduleId)) {
+      _favoriteModules.add(moduleId);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList('favoriteModules', _favoriteModules);
+      notifyListeners();
+    }
+  }
+
+  // Retirer un module des favoris
+  Future<void> removeFavorite(String moduleId) async {
+    _favoriteModules.remove(moduleId);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('favoriteModules', _favoriteModules);
+    notifyListeners();
+  }
+
+  // Basculer un module dans les favoris
+  Future<void> toggleFavorite(String moduleId) async {
+    if (_favoriteModules.contains(moduleId)) {
+      await removeFavorite(moduleId);
+    } else {
+      await addFavorite(moduleId);
+    }
+  }
+
+  // Vérifier si un module est favori
+  bool isFavorite(String moduleId) {
+    return _favoriteModules.contains(moduleId);
   }
 }

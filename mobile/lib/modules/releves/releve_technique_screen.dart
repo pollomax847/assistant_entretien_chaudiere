@@ -13,11 +13,11 @@ class ReleveTechniqueScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (type) {
       case TypeReleve.chaudiere:
-        return RTChaudiereForm();
+        return const RTChaudiereForm();
       case TypeReleve.pac:
-        return RTPACForm();
+        return const RTPACForm();
       case TypeReleve.clim:
-        return RTClimForm();
+        return const RTClimForm();
     }
   }
 }

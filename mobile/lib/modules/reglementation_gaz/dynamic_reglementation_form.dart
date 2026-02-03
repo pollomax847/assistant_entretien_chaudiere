@@ -2,6 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'models/diagnostic_question.dart';
 
+// Small reusable radio group widget to consolidate radio options
+class RadioOption<T> {
+  final T value;
+  final String label;
+  const RadioOption(this.value, this.label);
+}
+
+class RadioGroup<T> extends StatelessWidget {
+  final T? groupValue;
+  final ValueChanged<T?> onChanged;
+  final List<RadioOption<T>> options;
+  const RadioGroup({super.key, required this.groupValue, required this.onChanged, required this.options});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: options.map((opt) {
+        final selected = groupValue == opt.value;
+        return ListTile(
+          leading: Icon(selected ? Icons.radio_button_checked : Icons.radio_button_off, color: Theme.of(context).colorScheme.primary),
+          title: Text(opt.label),
+          onTap: () => onChanged(opt.value),
+          dense: true,
+        );
+      }).toList(),
+    );
+  }
+}
+
 class DynamicReglementationForm extends StatefulWidget {
   const DynamicReglementationForm({super.key});
 
@@ -74,7 +103,7 @@ class _DynamicReglementationFormState extends State<DynamicReglementationForm> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           DropdownButtonFormField<String>(
-            value: (value is String && value.isNotEmpty) ? value : null,
+            initialValue: (value is String && value.isNotEmpty) ? value : null,
             decoration: InputDecoration(labelText: q.text),
             items: items,
             onChanged: (v) {
@@ -95,26 +124,14 @@ class _DynamicReglementationFormState extends State<DynamicReglementationForm> {
       children: [
         Text(q.text, style: const TextStyle(fontWeight: FontWeight.w600)),
         if (q.description != null) Padding(padding: const EdgeInsets.only(top:4.0), child: Text(q.description!, style: const TextStyle(color: Colors.grey))),
-        RadioListTile<String>(
-          title: const Text('Oui'),
-          value: 'Oui',
-          groupValue: value as String?,
-          onChanged: (v) => setState(() => _answers[id] = v),
-          dense: true,
-        ),
-        RadioListTile<String>(
-          title: const Text('Non'),
-          value: 'Non',
-          groupValue: value as String?,
-          onChanged: (v) => setState(() => _answers[id] = v),
-          dense: true,
-        ),
-        RadioListTile<String>(
-          title: const Text('NC'),
-          value: 'NC',
+        RadioGroup<String>(
           groupValue: value as String?,
           onChanged: (v) => setState(() => _onAnswerChanged(id, v)),
-          dense: true,
+          options: const [
+            RadioOption('Oui', 'Oui'),
+            RadioOption('Non', 'Non'),
+            RadioOption('NC', 'NC'),
+          ],
         ),
         const SizedBox(height: 6),
         TextFormField(
@@ -222,7 +239,7 @@ class _DynamicReglementationFormState extends State<DynamicReglementationForm> {
                     children: [
                       Row(children: [ if (section.icone!=null) Text(section.icone!), const SizedBox(width:8), Text(section.titre, style: const TextStyle(fontSize:18, fontWeight: FontWeight.bold)) ]),
                       const SizedBox(height:8),
-                      ...section.questions.map((q) => _buildQuestionTile(q)).toList(),
+                      ...section.questions.map((q) => _buildQuestionTile(q)),
                     ],
                   ),
                 ),

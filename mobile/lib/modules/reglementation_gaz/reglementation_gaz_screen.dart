@@ -8,9 +8,9 @@ class ReglementationGazScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Column(
+        title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
             Text('Réglementation Gaz'),
             SizedBox(height: 2),
             Text('Réf. réglementation 23/02/2018', style: TextStyle(fontSize: 12)),

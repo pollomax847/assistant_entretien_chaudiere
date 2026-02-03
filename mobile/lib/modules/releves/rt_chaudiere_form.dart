@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:chauffage_expert/services/pdf_generator.dart';
-import 'package:chauffage_expert/services/json_exporter.dart';
-import 'package:chauffage_expert/modules/releves/releve_technique_model.dart';
+import 'package:chauffageexpert/services/pdf_generator.dart';
+import 'package:chauffageexpert/services/json_exporter.dart';
+import 'package:chauffageexpert/modules/releves/releve_technique_model.dart';
 
 class RTChaudiereForm extends StatefulWidget {
   const RTChaudiereForm({super.key});
@@ -43,13 +43,19 @@ class _RTChaudiereFormState extends State<RTChaudiereForm> {
   // --- BOOLEANS / DROPDOWNS ---
   bool _isAppartement = false;
   bool _isPavillon = false;
-  bool _amiante = false;
-  bool _accordCoPro = false;
+  // some fields reserved for future UI use
+  // ignore: unused_field
+  final bool _amiante = false;
+  // ignore: unused_field
+  final bool _accordCoPro = false;
   bool _chauffageSeul = false;
   bool _mixteInstantanee = true;
-  bool _avecBallon = false;
-  bool _radiateur = true;
-  bool _plancherChauffant = false;
+  // ignore: unused_field
+  final bool _avecBallon = false;
+  // ignore: unused_field
+  final bool _radiateur = true;
+  // ignore: unused_field
+  final bool _plancherChauffant = false;
 
   // Conformité (Simplified list for example)
   final Map<String, bool> _conformite = {
@@ -165,14 +171,14 @@ class _RTChaudiereFormState extends State<RTChaudiereForm> {
                       const Text('Réponses: Oui / Non / NC', style: TextStyle(color: Colors.grey)),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value: _vasoPresent,
+                        initialValue: _vasoPresent,
                         decoration: const InputDecoration(labelText: 'Réglette VASO présente'),
                         items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
                         onChanged: (v) => setState(() => _vasoPresent = v!),
                       ),
                       if (_vasoPresent == 'Oui') ...[
                         DropdownButtonFormField<String>(
-                          value: _vasoConforme,
+                          initialValue: _vasoConforme,
                           decoration: const InputDecoration(labelText: 'VASO conforme'),
                           items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
                           onChanged: (v) => setState(() => _vasoConforme = v!),
@@ -186,14 +192,14 @@ class _RTChaudiereFormState extends State<RTChaudiereForm> {
 
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value: _roaiPresent,
+                        initialValue: _roaiPresent,
                         decoration: const InputDecoration(labelText: 'Robinet ROAI présent'),
                         items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
                         onChanged: (v) => setState(() => _roaiPresent = v!),
                       ),
                       if (_roaiPresent == 'Oui') ...[
                         DropdownButtonFormField<String>(
-                          value: _roaiConforme,
+                          initialValue: _roaiConforme,
                           decoration: const InputDecoration(labelText: 'ROAI conforme'),
                           items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
                           onChanged: (v) => setState(() => _roaiConforme = v!),
@@ -207,14 +213,14 @@ class _RTChaudiereFormState extends State<RTChaudiereForm> {
 
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value: _typeHotte,
+                        initialValue: _typeHotte,
                         decoration: const InputDecoration(labelText: 'Type hotte'),
                         items: const [DropdownMenuItem(value: 'Non', child: Text('Pas de hotte')), DropdownMenuItem(value: 'SimpleFlux', child: Text('Hotte simple flux')), DropdownMenuItem(value: 'DoubleFlux', child: Text('Hotte double flux'))],
                         onChanged: (v) => setState(() => _typeHotte = v!),
                       ),
                       if (_typeHotte != 'Non') ...[
                         DropdownButtonFormField<String>(
-                          value: _ventilationConforme,
+                          initialValue: _ventilationConforme,
                           decoration: const InputDecoration(labelText: 'Ventilation conforme'),
                           items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
                           onChanged: (v) => setState(() => _ventilationConforme = v!),
@@ -228,14 +234,14 @@ class _RTChaudiereFormState extends State<RTChaudiereForm> {
 
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value: _vmcPresent,
+                        initialValue: _vmcPresent,
                         decoration: const InputDecoration(labelText: 'VMC présente'),
                         items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
                         onChanged: (v) => setState(() => _vmcPresent = v!),
                       ),
                       if (_vmcPresent == 'Oui') ...[
                         DropdownButtonFormField<String>(
-                          value: _vmcConforme,
+                          initialValue: _vmcConforme,
                           decoration: const InputDecoration(labelText: 'VMC conforme'),
                           items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
                           onChanged: (v) => setState(() => _vmcConforme = v!),
@@ -249,20 +255,20 @@ class _RTChaudiereFormState extends State<RTChaudiereForm> {
 
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value: _detecteurCO,
+                        initialValue: _detecteurCO,
                         decoration: const InputDecoration(labelText: 'Détecteur CO présent'),
                         items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
                         onChanged: (v) => setState(() => _detecteurCO = v!),
                       ),
                       DropdownButtonFormField<String>(
-                        value: _detecteurGaz,
+                        initialValue: _detecteurGaz,
                         decoration: const InputDecoration(labelText: 'Détecteur Gaz présent'),
                         items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
                         onChanged: (v) => setState(() => _detecteurGaz = v!),
                       ),
                       if (_detecteurCO == 'Oui' && _detecteurGaz == 'Oui') ...[
                         DropdownButtonFormField<String>(
-                          value: _detecteursConformes,
+                          initialValue: _detecteursConformes,
                           decoration: const InputDecoration(labelText: 'Détecteurs conformes'),
                           items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
                           onChanged: (v) => setState(() => _detecteursConformes = v!),

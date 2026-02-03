@@ -261,14 +261,70 @@ class VMCCalculator {
     required int nbBouches,
     required double debitMesure,
     required double debitMS,
+    bool modulesFenetre = true,
+    bool etalonnagePortes = true,
   }) {
-    // Simple conformity check
-    bool conforme = debitMesure >= debitMS * 0.9 && debitMesure <= debitMS * 1.1;
+    // Backward-compatible: accept additional simple checks for UI
+    return verifierConformiteExtended(
+      typeVMC: typeVMC,
+      nbBouches: nbBouches,
+      debitMesure: debitMesure,
+      debitMS: debitMS,
+      modulesFenetre: modulesFenetre,
+      etalonnagePortes: etalonnagePortes,
+    );
+  }
+
+  static Map<String, dynamic> verifierConformiteExtended({
+    required String typeVMC,
+    required int nbBouches,
+    required double debitMesure,
+    required double debitMS,
+    bool modulesFenetre = true,
+    bool etalonnagePortes = true,
+  }) {
+    final debitParBouche = nbBouches > 0 ? debitMesure / nbBouches : 0.0;
+
+    // Try to extract a sensible norme (fallback values used if not available)
+    double normeMin = 10.0;
+    double normeMax = 100.0;
+    final ref = getReference(typeVMC, 'T3');
+    if (ref != null && ref.isNotEmpty) {
+      try {
+        final first = (ref.values.first as Map).values.first;
+        if (first is Map && first['min'] is num && first['max'] is num) {
+          normeMin = (first['min'] as num).toDouble();
+          normeMax = (first['max'] as num).toDouble();
+        }
+      } catch (_) {
+        // ignore and use fallback
+      }
+    }
+
+    final debitParBoucheConforme = debitParBouche >= normeMin && debitParBouche <= normeMax;
+    final debitMSConforme = debitMS >= 0.8 && debitMS <= 2.5;
+
+    final messages = <String>[];
+    messages.add(debitParBoucheConforme ? '✅ Débit par bouche OK' : '❌ Débit par bouche hors plage');
+    messages.add(debitMSConforme ? '✅ Débit en m/s OK' : '❌ Débit en m/s hors plage');
+    messages.add(modulesFenetre ? '✅ Modules fenêtres présents' : '❌ Modules fenêtres manquants ou non conformes');
+    messages.add(etalonnagePortes ? '✅ Étalonnage portes effectué' : '❌ Étalonnage portes non vérifié');
+
+    final conforme = debitParBoucheConforme && debitMSConforme && modulesFenetre && etalonnagePortes;
+
     return {
       'conforme': conforme,
       'message': conforme ? 'Conforme' : 'Non conforme',
       'debitMesure': debitMesure,
       'debitMS': debitMS,
+      'debitParBouche': debitParBouche,
+      'debitParBoucheConforme': debitParBoucheConforme,
+      'normeMin': normeMin,
+      'normeMax': normeMax,
+      'debitMSConforme': debitMSConforme,
+      'modulesFenetreConformes': modulesFenetre,
+      'etalonnagePortesOk': etalonnagePortes,
+      'messages': messages,
     };
   }
 }

@@ -11,16 +11,55 @@ class TopGazTestScreen extends StatefulWidget {
 class _TopGazTestScreenState extends State<TopGazTestScreen> {
   bool _isTestRunning = false;
   int _countdown = 0;
-  late Timer _timer;
+  Timer? _timer;
   String _testResult = '';
   bool _flameExtinguished = false;
   bool _gazCutOff = false;
 
+  // Index inputs
+  final TextEditingController _indexBeforeController = TextEditingController();
+  final TextEditingController _indexAfterController = TextEditingController();
+
+  // Gas types with PCS values (kWh/m³) and pressure info
+  final Map<String, Map<String, dynamic>> _gasTypes = {
+    'Gaz naturel H': {
+      'pcs': 9.6,
+      'pressure': '20-25 mbar',
+      'description': 'Haute pression'
+    },
+    'Gaz naturel B': {
+      'pcs': 10.0,
+      'pressure': '150-300 mbar', 
+      'description': 'Moyenne pression'
+    },
+    'Gaz naturel L': {
+      'pcs': 6.5,
+      'pressure': '25-30 mbar',
+      'description': 'Basse pression'
+    },
+    'Propane': {
+      'pcs': 12.8,
+      'pressure': '30-50 mbar',
+      'description': 'GPL en bouteille'
+    },
+    'Butane': {
+      'pcs': 12.8,
+      'pressure': '30-50 mbar',
+      'description': 'GPL en bouteille'
+    },
+  };
+  String _selectedGasType = 'Gaz naturel H';
+
+  // Results
+  double? _gasFlow;
+  double? _power;
+  double? _efficiency;
+
   @override
   void dispose() {
-    if (_timer.isActive) {
-      _timer.cancel();
-    }
+    _timer?.cancel();
+    _indexBeforeController.dispose();
+    _indexAfterController.dispose();
     super.dispose();
   }
 
@@ -61,7 +100,7 @@ class _TopGazTestScreenState extends State<TopGazTestScreen> {
       setState(() {
         _gazCutOff = true;
         _isTestRunning = false;
-        _timer.cancel();
+        _timer?.cancel();
         
         int timeElapsed = 36 - _countdown;
         if (timeElapsed <= 36) {
@@ -73,32 +112,183 @@ class _TopGazTestScreenState extends State<TopGazTestScreen> {
     }
   }
 
-  void _resetTest() {
-    if (_timer.isActive) {
-      _timer.cancel();
+  void _calculateResults() {
+    if (_indexAfterController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez entrer l\'index APRÈS')),
+      );
+      return;
     }
+
+    try {
+      double indexBefore = double.parse(_indexBeforeController.text.replaceAll(',', '.'));
+      double indexAfter = double.parse(_indexAfterController.text.replaceAll(',', '.'));
+
+      if (indexAfter <= indexBefore) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('L\'index APRÈS doit être supérieur à l\'index AVANT')),
+        );
+        return;
+      }
+
+      // Calculate consumption in m³
+      double consumption = indexAfter - indexBefore;
+
+      // Calculate gas flow in m³/h (assuming 36 seconds test)
+      _gasFlow = consumption * (3600.0 / 36.0);
+
+      // Calculate power in kW using PCS
+      double pcs = _gasTypes[_selectedGasType]!['pcs'];
+      _power = _gasFlow! * pcs;
+
+      // Calculate efficiency (assuming 90% default)
+      _efficiency = 90.0;
+
+      setState(() {});
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur de calcul: $e')),
+      );
+    }
+  }
+
+  void _resetTest() {
+    _timer?.cancel();
     setState(() {
       _isTestRunning = false;
       _countdown = 0;
       _testResult = '';
       _flameExtinguished = false;
       _gazCutOff = false;
+      _gasFlow = null;
+      _power = null;
+      _efficiency = null;
     });
+    _indexAfterController.clear();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Test TOP Gaz'),
+        title: const Text('TOP GAZ'),
         backgroundColor: Colors.red[700],
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              // TODO: Navigate to settings
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.history),
+            onPressed: () {
+              // TODO: Navigate to history
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Gas type selection
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Type de gaz',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      initialValue: _selectedGasType,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                      ),
+                      items: _gasTypes.keys.map((type) {
+                        final gasInfo = _gasTypes[type]!;
+                        return DropdownMenuItem(
+                          value: type,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('$type (${gasInfo['pcs']} kWh/m³)'),
+                              Text(
+                                '${gasInfo['description']} - ${gasInfo['pressure']}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: !_isTestRunning ? (value) {
+                        setState(() => _selectedGasType = value!);
+                      } : null,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Index inputs
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Relevé des index',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _indexBeforeController,
+                            decoration: const InputDecoration(
+                              labelText: 'Index AVANT (m³)',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.start),
+                            ),
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            enabled: !_isTestRunning,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _indexAfterController,
+                            decoration: const InputDecoration(
+                              labelText: 'Index APRÈS (m³)',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.stop),
+                            ),
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            enabled: !_isTestRunning,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
             // En-tête réglementaire
             Card(
               elevation: 4,
@@ -219,9 +409,9 @@ class _TopGazTestScreenState extends State<TopGazTestScreen> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: _countdown <= 10 ? Colors.red : Colors.orange,
-                          boxShadow: [
+                            boxShadow: [
                             BoxShadow(
-                              color: (_countdown <= 10 ? Colors.red : Colors.orange).withOpacity(0.3),
+                              color: (_countdown <= 10 ? Colors.red : Colors.orange).withAlpha((0.3 * 255).round()),
                               blurRadius: 20,
                               spreadRadius: 5,
                             ),
@@ -298,8 +488,78 @@ class _TopGazTestScreenState extends State<TopGazTestScreen> {
 
             const SizedBox(height: 24),
 
-            // Résultats
+            // Calculate button
+            if (!_isTestRunning)
+              Center(
+                child: ElevatedButton.icon(
+                  onPressed: _calculateResults,
+                  icon: const Icon(Icons.calculate),
+                  label: const Text('Calculer les résultats'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  ),
+                ),
+              ),
+
+            const SizedBox(height: 16),
+
+            // Results
+            if (_gasFlow != null && _power != null) ...[
+              Card(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.assessment, size: 32),
+                          const SizedBox(width: 16),
+                          Text(
+                            'Résultats du test',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      _buildResultRow('Type de gaz', _selectedGasType),
+                      _buildResultRow('Débit gaz', '${_gasFlow!.toStringAsFixed(3)} m³/h'),
+                      _buildResultRow('Puissance', '${_power!.toStringAsFixed(1)} kW'),
+                      _buildResultRow('Rendement', '${_efficiency!.toStringAsFixed(1)}%'),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                // TODO: Share results
+                              },
+                              icon: const Icon(Icons.share),
+                              label: const Text('Partager'),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                // TODO: Save to history
+                              },
+                              icon: const Icon(Icons.save),
+                              label: const Text('Sauvegarder'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+
+            // Test result message
             if (_testResult.isNotEmpty) ...[
+              const SizedBox(height: 16),
               Card(
                 elevation: 4,
                 child: Container(
@@ -316,7 +576,7 @@ class _TopGazTestScreenState extends State<TopGazTestScreen> {
                   child: Column(
                     children: [
                       Text(
-                        'Résultat du test',
+                        'Résultat du test de sécurité',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -327,8 +587,7 @@ class _TopGazTestScreenState extends State<TopGazTestScreen> {
                       Text(
                         _testResult,
                         style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
                           color: _testResult.contains('✅') ? Colors.green[700] : Colors.red[700],
                         ),
                         textAlign: TextAlign.center,
@@ -337,19 +596,22 @@ class _TopGazTestScreenState extends State<TopGazTestScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-              Center(
-                child: ElevatedButton.icon(
-                  onPressed: _resetTest,
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Nouveau test'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                  ),
+            ],
+
+            const SizedBox(height: 16),
+
+            // Reset button
+            Center(
+              child: ElevatedButton.icon(
+                onPressed: _resetTest,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Nouveau test'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
                 ),
               ),
-            ],
+            ),
 
             const SizedBox(height: 24),
 
@@ -380,6 +642,19 @@ class _TopGazTestScreenState extends State<TopGazTestScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildResultRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+        ],
       ),
     );
   }

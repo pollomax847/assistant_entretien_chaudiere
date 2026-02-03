@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:chauffage_expert/services/pdf_generator.dart';
-import 'package:chauffage_expert/services/json_exporter.dart';
-import 'package:chauffage_expert/modules/releves/releve_technique_model.dart';
+import 'package:chauffageexpert/services/pdf_generator.dart';
+import 'package:chauffageexpert/services/json_exporter.dart';
+import 'package:chauffageexpert/modules/releves/releve_technique_model.dart';
 
 class RTPACForm extends StatefulWidget {
   const RTPACForm({super.key});
@@ -35,26 +35,27 @@ class _RTPACFormState extends State<RTPACForm> {
   bool _ecsIndependante = false;
   bool _tableauConforme = false;
   bool _besoinTableauSupp = false;
-  bool _uiEmplacementChaudiere = true;
+  // ignore: unused_field
+  final bool _uiEmplacementChaudiere = true;
   bool _vanne3Voies = false;
   bool _ballonDecouplage = false;
   String _typeEmetteur = 'Radiateur fonte';
   // Réglementation Gaz
   String _vasoPresent = 'NC';
   String _vasoConforme = 'NC';
-  String _vasoObservation = '';
+  final String _vasoObservation = '';
   String _roaiPresent = 'NC';
-  String _roaiConforme = 'NC';
-  String _roaiObservation = '';
+  final String _roaiConforme = 'NC';
+  final String _roaiObservation = '';
   String _typeHotte = 'Non';
-  String _ventilationConforme = 'NC';
-  String _ventilationObservation = '';
+  final String _ventilationConforme = 'NC';
+  final String _ventilationObservation = '';
   String _vmcPresent = 'NC';
-  String _vmcConforme = 'NC';
-  String _vmcObservation = '';
+  final String _vmcConforme = 'NC';
+  final String _vmcObservation = '';
   String _detecteurCO = 'NC';
-  String _detecteurGaz = 'NC';
-  String _detecteursConformes = 'NC';
+  final String _detecteurGaz = 'NC';
+  final String _detecteursConformes = 'NC';
   final _distanceFenetreController = TextEditingController();
   final _distancePorteController = TextEditingController();
   final _distanceEvacuationController = TextEditingController();
@@ -109,14 +110,14 @@ class _RTPACFormState extends State<RTPACForm> {
                       const Text('Réponses: Oui / Non / NC', style: TextStyle(color: Colors.grey)),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value: _vasoPresent,
+                        initialValue: _vasoPresent,
                         decoration: const InputDecoration(labelText: 'Réglette VASO présente'),
                         items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
                         onChanged: (v) => setState(() => _vasoPresent = v!),
                       ),
                       if (_vasoPresent == 'Oui') ...[
                         DropdownButtonFormField<String>(
-                          value: _vasoConforme,
+                          initialValue: _vasoConforme,
                           decoration: const InputDecoration(labelText: 'VASO conforme'),
                           items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
                           onChanged: (v) => setState(() => _vasoConforme = v!),
@@ -124,28 +125,28 @@ class _RTPACFormState extends State<RTPACForm> {
                       ],
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value: _roaiPresent,
+                        initialValue: _roaiPresent,
                         decoration: const InputDecoration(labelText: 'Robinet ROAI présent'),
                         items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
                         onChanged: (v) => setState(() => _roaiPresent = v!),
                       ),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value: _typeHotte,
+                        initialValue: _typeHotte,
                         decoration: const InputDecoration(labelText: 'Type hotte'),
                         items: const [DropdownMenuItem(value: 'Non', child: Text('Pas de hotte')), DropdownMenuItem(value: 'SimpleFlux', child: Text('Hotte simple flux')), DropdownMenuItem(value: 'DoubleFlux', child: Text('Hotte double flux'))],
                         onChanged: (v) => setState(() => _typeHotte = v!),
                       ),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value: _vmcPresent,
+                        initialValue: _vmcPresent,
                         decoration: const InputDecoration(labelText: 'VMC présente'),
                         items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
                         onChanged: (v) => setState(() => _vmcPresent = v!),
                       ),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value: _detecteurCO,
+                        initialValue: _detecteurCO,
                         decoration: const InputDecoration(labelText: 'Détecteur CO présent'),
                         items: const [DropdownMenuItem(value: 'Oui', child: Text('Oui')), DropdownMenuItem(value: 'Non', child: Text('Non')), DropdownMenuItem(value: 'NC', child: Text('NC'))],
                         onChanged: (v) => setState(() => _detecteurCO = v!),
@@ -162,7 +163,7 @@ class _RTPACFormState extends State<RTPACForm> {
               ]),
               _buildSection('Volumes & Émetteurs', [
                 DropdownButtonFormField<String>(
-                  value: _typeEmetteur,
+                  initialValue: _typeEmetteur,
                   decoration: const InputDecoration(labelText: 'Type d\'émetteur zone 1', contentPadding: EdgeInsets.symmetric(horizontal: 16)),
                   items: ['Radiateur fonte', 'Radiateur acier', 'Plancher chauffant'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
                   onChanged: (v) => setState(() => _typeEmetteur = v!),

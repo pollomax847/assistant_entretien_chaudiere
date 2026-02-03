@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import '../modules/puissance_chauffage/gestion_pieces_screen.dart';
 import '../modules/tests/top_gaz_test_screen.dart';
 
-class TestModuleScreen extends StatelessWidget {
+class TestModuleScreen extends StatefulWidget {
   const TestModuleScreen({super.key});
 
+  @override
+  State<TestModuleScreen> createState() => _TestModuleScreenState();
+}
+
+class _TestModuleScreenState extends State<TestModuleScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,7 +90,7 @@ class TestModuleScreen extends StatelessWidget {
               'Tester la sauvegarde des données',
               Icons.storage,
               Colors.purple,
-              () => _testLocalStorage(context),
+              () => _testLocalStorage(),
             ),
             
             const SizedBox(height: 12),
@@ -110,7 +115,7 @@ class TestModuleScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceVariant,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -136,7 +141,6 @@ class TestModuleScreen extends StatelessWidget {
       ),
     );
   }
-
   Widget _buildTestButton(
     BuildContext context,
     String title,
@@ -157,7 +161,7 @@ class TestModuleScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withAlpha((0.1 * 255).round()),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -215,9 +219,10 @@ class TestModuleScreen extends StatelessWidget {
     );
   }
 
-  void _testLocalStorage(BuildContext context) {
+  void _testLocalStorage() {
     // Simulation de test de stockage
     Future.delayed(const Duration(seconds: 1), () {
+      if (!mounted) return;
       _showTestDialog(context, 'Stockage local testé avec succès !');
     });
   }

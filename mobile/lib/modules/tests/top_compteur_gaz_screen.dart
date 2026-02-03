@@ -16,11 +16,46 @@ class _TopCompteurGazScreenState extends State<TopCompteurGazScreen> {
   final _dureeController = TextEditingController();
   final _observationsController = TextEditingController();
   
-  // Timer et chronométrage
+  // Gas types with PCS values (kWh/m³) and pressure info
+  final Map<String, Map<String, dynamic>> _gasTypes = {
+    'Gaz naturel H': {
+      'pcs': 9.6,
+      'pressure': '20-25 mbar',
+      'description': 'Haute pression'
+    },
+    'Gaz naturel B': {
+      'pcs': 10.0,
+      'pressure': '150-300 mbar', 
+      'description': 'Moyenne pression'
+    },
+    'Gaz naturel L': {
+      'pcs': 6.5,
+      'pressure': '25-30 mbar',
+      'description': 'Basse pression'
+    },
+    'Propane': {
+      'pcs': 12.8,
+      'pressure': '30-50 mbar',
+      'description': 'GPL en bouteille'
+    },
+    'Butane': {
+      'pcs': 12.8,
+      'pressure': '30-50 mbar',
+      'description': 'GPL en bouteille'
+    },
+  };
+  String _selectedGasType = 'Gaz naturel H';
+  
+  // Timer et chronométrage (compte à rebours)
   Timer? _timer;
-  int _secondes = 0;
-  bool _chronometerActive = false;
+  int _countdown = 0;
   bool _testEnCours = false;
+  String _testResult = '';
+  bool _flameExtinguished = false;
+  bool _gazCutOff = false;
+  // Chronomètre auxiliaire
+  bool _chronometerActive = false;
+  int _secondes = 0;
   
   // Résultats
   double? _consommation;
@@ -28,7 +63,9 @@ class _TopCompteurGazScreenState extends State<TopCompteurGazScreen> {
   String? _typeAppareil;
   
   // Données de test
+  // ignore: unused_field
   DateTime? _heureDebut;
+  // ignore: unused_field
   DateTime? _heureFin;
   String _technicien = '';
   
@@ -48,33 +85,76 @@ class _TopCompteurGazScreenState extends State<TopCompteurGazScreen> {
   void _demarrerTest() {
     setState(() {
       _testEnCours = true;
-      _chronometerActive = true;
       _heureDebut = DateTime.now();
-      _secondes = 0;
+      _countdown = 36;
+      _testResult = '';
+      _flameExtinguished = false;
+      _gazCutOff = false;
     });
-    
+
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
+        _countdown--;
         _secondes++;
       });
+
+      if (_countdown <= 0) {
+        timer.cancel();
+        setState(() {
+          _testEnCours = false;
+          if (!_gazCutOff) {
+            _testResult = '❌ ÉCHEC - Arrêt gaz > 36 secondes - NON CONFORME';
+          }
+        });
+      }
     });
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Test du compteur démarré')),
     );
   }
 
+  // ignore: unused_element
   void _arreterTest() {
     _timer?.cancel();
     setState(() {
       _chronometerActive = false;
+      _testEnCours = false;
       _heureFin = DateTime.now();
-      _dureeController.text = _secondes.toString();
+      int elapsed = 36 - _countdown;
+      if (elapsed < 0) elapsed = 0;
+      _secondes = elapsed;
+      if (elapsed < 0) elapsed = 0;
+      _dureeController.text = elapsed.toString();
     });
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Test du compteur arrêté')),
     );
+  }
+
+  void _stopFlame() {
+    setState(() {
+      _flameExtinguished = true;
+    });
+  }
+
+  void _confirmGazCutOff() {
+    if (_testEnCours && _flameExtinguished) {
+      setState(() {
+        _gazCutOff = true;
+        _testEnCours = false;
+        _timer?.cancel();
+        int timeElapsed = 36 - _countdown;
+        if (timeElapsed < 0) timeElapsed = 0;
+        _secondes = timeElapsed;
+        if (timeElapsed <= 36) {
+          _testResult = '✅ CONFORME - Arrêt gaz en $timeElapsed secondes';
+        } else {
+          _testResult = '❌ NON CONFORME - Arrêt gaz en $timeElapsed secondes (> 36s)';
+        }
+      });
+    }
   }
 
   void _calculerConsommation() {
@@ -102,8 +182,7 @@ class _TopCompteurGazScreenState extends State<TopCompteurGazScreen> {
       
       // Calcul de la puissance en kW
       // Formule: (Consommation en m³ × PCS du gaz × 3600) / durée en secondes
-      // PCS du gaz naturel ≈ 9.6 kWh/m³ (selon cahier des charges)
-      double pcsGaz = 9.6; // kWh/m³
+      double pcsGaz = _gasTypes[_selectedGasType]!['pcs']; // kWh/m³
       _puissanceCalculee = (_consommation! * pcsGaz * 3600) / duree;
       
       // Détermination du type d'appareil selon la puissance
@@ -137,6 +216,7 @@ class _TopCompteurGazScreenState extends State<TopCompteurGazScreen> {
       await prefs.setString('dernierTest_date', DateTime.now().toIso8601String());
     }
     
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Résultats sauvegardés')),
     );
@@ -219,10 +299,56 @@ class _TopCompteurGazScreenState extends State<TopCompteurGazScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Chronométrage
+            // Sélection du type de gaz
             Card(
-              color: _chronometerActive 
-                  ? Colors.green.withOpacity(0.1)
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Type de gaz',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      initialValue: _selectedGasType,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                      ),
+                      items: _gasTypes.keys.map((type) {
+                        final gasInfo = _gasTypes[type]!;
+                        return DropdownMenuItem(
+                          value: type,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('$type (${gasInfo['pcs']} kWh/m³)'),
+                              Text(
+                                '${gasInfo['description']} - ${gasInfo['pressure']}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: !_testEnCours ? (value) {
+                        setState(() => _selectedGasType = value!);
+                      } : null,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Chronométrage (compte à rebours)
+            Card(
+              color: _chronometerActive
+                  ? Colors.orange.withAlpha((0.06 * 255).round())
                   : Theme.of(context).cardColor,
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -237,39 +363,77 @@ class _TopCompteurGazScreenState extends State<TopCompteurGazScreen> {
                     Center(
                       child: Column(
                         children: [
-                          Text(
-                            _formatDuree(_secondes),
-                            style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                              fontFamily: 'monospace',
-                              color: _chronometerActive ? Colors.green : null,
+                          if (_testEnCours) ...[
+                            Container(
+                              width: 120,
+                              height: 120,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: _countdown <= 10 ? Colors.red : Colors.orange,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: (_countdown <= 10 ? Colors.red : Colors.orange).withAlpha((0.3 * 255).round()),
+                                    blurRadius: 20,
+                                    spreadRadius: 5,
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '$_countdown',
+                                  style: const TextStyle(
+                                    fontSize: 36,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              if (!_testEnCours && !_chronometerActive)
-                                ElevatedButton.icon(
-                                  onPressed: _demarrerTest,
-                                  icon: const Icon(Icons.play_arrow),
-                                  label: const Text('Démarrer'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
-                                    foregroundColor: Colors.white,
-                                  ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'secondes restantes',
+                              style: TextStyle(fontSize: 16, color: Colors.orange[700]),
+                            ),
+                            const SizedBox(height: 12),
+                            if (!_flameExtinguished)
+                              ElevatedButton.icon(
+                                onPressed: _stopFlame,
+                                icon: const Icon(Icons.local_fire_department),
+                                label: const Text('Flamme éteinte'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.orange,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                                 ),
-                              if (_chronometerActive)
-                                ElevatedButton.icon(
-                                  onPressed: _arreterTest,
-                                  icon: const Icon(Icons.stop),
-                                  label: const Text('Arrêter'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red,
-                                    foregroundColor: Colors.white,
-                                  ),
+                              )
+                            else if (!_gazCutOff)
+                              ElevatedButton.icon(
+                                onPressed: _confirmGazCutOff,
+                                icon: const Icon(Icons.block),
+                                label: const Text('Gaz coupé'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                                 ),
-                            ],
-                          ),
+                              ),
+                          ] else ...[
+                            Text(
+                              'Prêt pour le test',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue[800]),
+                            ),
+                            const SizedBox(height: 12),
+                            ElevatedButton.icon(
+                              onPressed: _demarrerTest,
+                              icon: const Icon(Icons.play_arrow),
+                              label: const Text('Démarrer'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -277,7 +441,42 @@ class _TopCompteurGazScreenState extends State<TopCompteurGazScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+
+            if (_testResult.isNotEmpty) ...[
+              Card(
+                elevation: 4,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: _testResult.contains('✅') ? Colors.green[50] : Colors.red[50],
+                    border: Border.all(
+                      color: _testResult.contains('✅') ? Colors.green : Colors.red,
+                      width: 1.5,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Résultat du test',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: _testResult.contains('✅') ? Colors.green[800] : Colors.red[800],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _testResult,
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
 
             // Relevé des index
             Card(
@@ -439,7 +638,7 @@ class _TopCompteurGazScreenState extends State<TopCompteurGazScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.1),
+                          color: Colors.blue.withAlpha((0.1 * 255).round()),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: Colors.blue),
                         ),

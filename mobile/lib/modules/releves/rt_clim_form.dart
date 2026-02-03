@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:chauffage_expert/services/pdf_generator.dart';
-import 'package:chauffage_expert/services/json_exporter.dart';
-import 'package:chauffage_expert/modules/releves/releve_technique_model.dart';
+import 'package:chauffageexpert/services/pdf_generator.dart';
+import 'package:chauffageexpert/services/json_exporter.dart';
+import 'package:chauffageexpert/modules/releves/releve_technique_model.dart';
 
 class RTClimForm extends StatefulWidget {
   const RTClimForm({super.key});
@@ -33,9 +33,11 @@ class _RTClimFormState extends State<RTClimForm> {
   };
 
   // --- STATES ---
-  bool _isAppartement = false;
+  // ignore: unused_field
+  final bool _isAppartement = false;
   bool _tableauConforme = false;
-  bool _diff30ma = true;
+  // ignore: unused_field
+  final bool _diff30ma = true;
   bool _besoinTableauSupp = false;
   bool _groupeSurChaise = false;
   bool _pompeRelevageInt = false;
@@ -79,7 +81,7 @@ class _RTClimFormState extends State<RTClimForm> {
                 _buildTextField('puissanceAbo', 'Puissance abonnement (kVA)', keyboardType: TextInputType.number),
                 _buildTextField('tension', 'Mesure de la tension (V)', keyboardType: TextInputType.number),
                 DropdownButtonFormField<String>(
-                  value: _typeRaccordement,
+                  initialValue: _typeRaccordement,
                   decoration: const InputDecoration(labelText: 'Type de raccordement', contentPadding: EdgeInsets.symmetric(horizontal: 16)),
                   items: ['Monophasé', 'Triphasé'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
                   onChanged: (v) => setState(() => _typeRaccordement = v!),

@@ -1,0 +1,9 @@
+{
+  "version": "1.0.0",
+  "buildNumber": "1",
+  "downloadUrl": "https://github.com/pollomax847/assitant_entreiten_chaudiere/releases/download/v1.0.0/app-release.apk",
+  "releaseNotes": "Version initiale\n- Interface avec favoris dynamiques\n- Module Tirage amélioré avec CO2\n- Corrections diverses",
+  "minVersion": "1.0.0",
+  "forceUpdate": false,
+  "releaseDate": "2026-02-03"
+}

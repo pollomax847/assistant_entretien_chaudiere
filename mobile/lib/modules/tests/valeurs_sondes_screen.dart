@@ -10,7 +10,7 @@ class ValeursSondesScreen extends StatelessWidget {
         title: const Text('Valeurs Sondes'),
       ),
       body: const Center(
-        child: Text('Écran des valeurs de sondes - À implémenter'),
+        child: Text('Module Valeurs Sondes - À implémenter'),
       ),
     );
   }

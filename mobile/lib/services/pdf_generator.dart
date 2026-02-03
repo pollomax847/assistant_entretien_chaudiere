@@ -4,7 +4,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
-import 'package:chauffage_expert/services/json_exporter.dart';
+import 'package:chauffageexpert/services/json_exporter.dart';
 
 class PDFGeneratorService {
   static const String _version = '1.0.0';
@@ -545,7 +545,7 @@ class PDFGeneratorService {
     }
     return pw.Container(
       padding: const pw.EdgeInsets.all(10),
-      decoration: pw.BoxDecoration(
+      decoration: const pw.BoxDecoration(
         color: PdfColors.grey100,
         borderRadius: pw.BorderRadius.all(pw.Radius.circular(5)),
       ),
