@@ -4,7 +4,6 @@ import '../utils/preferences_provider.dart';
 import '../modules/puissance_chauffage/gestion_pieces_screen.dart';
 import '../modules/vmc/vmc_integration_screen.dart';
 import '../modules/tests/enhanced_top_gaz_screen.dart';
-import '../modules/tests/valeurs_sondes_screen.dart';
 import '../modules/releves/releve_technique_screen.dart';
 import '../modules/releves/releve_technique_model.dart';
 import '../modules/ecs/ecs_screen.dart';
@@ -14,6 +13,7 @@ import '../modules/vase_expansion/vase_expansion_screen.dart';
 import '../modules/chaudiere/chaudiere_screen.dart';
 import '../modules/tirage/tirage_screen.dart';
 import 'preferences_screen.dart';
+import 'modules_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -72,22 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
         'title': 'Relevés',
         'icon': Icons.list_alt,
         'color': Colors.orange,
-        'onTap': () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const ReleveTechniqueScreen(type: TypeReleve.chaudiere),
-          ),
-        ),
-      },
-      {
-        'id': 'valeurs_sondes',
-        'title': 'Sondes',
-        'icon': Icons.thermostat,
-        'color': Colors.green,
-        'onTap': () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ValeursSondesScreen()),
-        ),
+        'onTap': () => _navigateToModulesList(context, 'Relevés Techniques', _getRelevesModules()),
       },
       {
         'id': 'ecs',
@@ -322,10 +307,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     _buildLargeModuleCard(
                       context,
                       'Tests',
-                      '2 modules',
+                      '1 module',
                       Icons.science,
                       Colors.green,
-                      () {},
+                      () => _navigateToModulesList(context, 'Tests', _getTestModules()),
                       moduleId: 'test_gaz',
                     ),
                     _buildLargeModuleCard(
@@ -334,12 +319,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       '3 modules',
                       Icons.list_alt,
                       Colors.orange,
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ReleveTechniqueScreen(type: TypeReleve.chaudiere),
-                        ),
-                      ),
+                      () => _navigateToModulesList(context, 'Relevés Techniques', _getRelevesModules()),
                       moduleId: 'releves',
                     ),
                     _buildLargeModuleCard(
@@ -348,7 +328,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       '5 modules',
                       Icons.check_circle,
                       Colors.purple,
-                      () {},
+                      () => _navigateToModulesList(context, 'Contrôles', _getControlesModules()),
                       moduleId: 'vmc',
                     ),
                   ],
@@ -469,6 +449,75 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
+  }
+
+  // Navigation vers la liste des modules
+  void _navigateToModulesList(BuildContext context, String title, List<Map<String, dynamic>> modules) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ModulesListScreen(
+          title: title,
+          modules: modules,
+        ),
+      ),
+    );
+  }
+
+  // Récupère les modules de tests
+  List<Map<String, dynamic>> _getTestModules() {
+    return _allModules.where((module) {
+      return ['test_gaz'].contains(module['id']);
+    }).toList();
+  }
+
+  // Récupère les modules de contrôles
+  List<Map<String, dynamic>> _getControlesModules() {
+    return _allModules.where((module) {
+      return ['vmc', 'reglementation', 'tirage', 'equilibrage', 'ecs'].contains(module['id']);
+    }).toList();
+  }
+
+  // Récupère les modules de relevés
+  List<Map<String, dynamic>> _getRelevesModules() {
+    return [
+      {
+        'title': 'Relevé Chaudière',
+        'subtitle': 'Relevé technique pour chaudière gaz',
+        'icon': Icons.fire_extinguisher,
+        'color': Colors.orange,
+        'onTap': () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ReleveTechniqueScreen(type: TypeReleve.chaudiere),
+          ),
+        ),
+      },
+      {
+        'title': 'Relevé PAC',
+        'subtitle': 'Relevé technique pour pompe à chaleur',
+        'icon': Icons.ac_unit,
+        'color': Colors.blue,
+        'onTap': () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ReleveTechniqueScreen(type: TypeReleve.pac),
+          ),
+        ),
+      },
+      {
+        'title': 'Relevé Climatisation',
+        'subtitle': 'Relevé technique pour climatisation',
+        'icon': Icons.air,
+        'color': Colors.cyan,
+        'onTap': () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ReleveTechniqueScreen(type: TypeReleve.clim),
+          ),
+        ),
+      },
+    ];
   }
 }
 
