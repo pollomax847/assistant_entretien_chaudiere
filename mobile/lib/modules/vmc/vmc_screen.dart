@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/pdf_generator_service.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../utils/mixins/controller_dispose_mixin.dart';
+import '../../utils/mixins/snackbar_mixin.dart';
 
 class VmcScreen extends StatefulWidget {
   const VmcScreen({super.key});
@@ -10,11 +12,12 @@ class VmcScreen extends StatefulWidget {
   State<VmcScreen> createState() => _VmcScreenState();
 }
 
-class _VmcScreenState extends State<VmcScreen> {
+class _VmcScreenState extends State<VmcScreen> 
+    with ControllerDisposeMixin, SnackBarMixin {
   // Données de base
-  final _nomClientController = TextEditingController();
-  final _adresseController = TextEditingController();
-  final _technicienController = TextEditingController();
+  late final _nomClientController = registerController(TextEditingController());
+  late final _adresseController = registerController(TextEditingController());
+  late final _technicienController = registerController(TextEditingController());
 
   // Paramètres VMC
   int _nbBouches = 1;
@@ -37,9 +40,7 @@ class _VmcScreenState extends State<VmcScreen> {
 
   @override
   void dispose() {
-    _nomClientController.dispose();
-    _adresseController.dispose();
-    _technicienController.dispose();
+    disposeControllers();
     super.dispose();
   }
 
@@ -124,13 +125,9 @@ class _VmcScreenState extends State<VmcScreen> {
         text: 'Rapport de contrôle VMC',
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('PDF généré et partagé avec succès')),
-      );
+      showSuccess('PDF généré et partagé avec succès');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors de la génération du PDF: $e')),
-      );
+      showError('Erreur lors de la génération du PDF: $e');
     }
   }
 

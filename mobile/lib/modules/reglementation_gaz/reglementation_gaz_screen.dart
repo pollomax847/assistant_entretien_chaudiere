@@ -4,6 +4,7 @@ import '../../services/pdf_generator_service.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
+import '../../utils/widgets/app_snackbar.dart';
 
 class ReglementationGazScreen extends StatefulWidget {
   const ReglementationGazScreen({super.key});
@@ -160,12 +161,16 @@ class _ReglementationGazScreenState extends State<ReglementationGazScreen> {
         text: 'Rapport de contrôle régulation gaz',
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('PDF généré et partagé avec succès')),
+      if (!mounted) return;
+      AppSnackBar.showSuccess(
+        context,
+        'PDF généré et partagé avec succès',
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors de la génération du PDF: $e')),
+      if (!mounted) return;
+      AppSnackBar.showError(
+        context,
+        'Erreur lors de la génération du PDF: $e',
       );
     }
   }

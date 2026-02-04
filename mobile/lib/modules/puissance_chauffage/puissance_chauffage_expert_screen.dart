@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/pdf_generator_service.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../utils/mixins/mixins.dart';
 
 class PuissanceChauffageExpertScreen extends StatefulWidget {
   const PuissanceChauffageExpertScreen({super.key});
@@ -11,28 +12,29 @@ class PuissanceChauffageExpertScreen extends StatefulWidget {
   State<PuissanceChauffageExpertScreen> createState() => _PuissanceChauffageExpertScreenState();
 }
 
-class _PuissanceChauffageExpertScreenState extends State<PuissanceChauffageExpertScreen> {
+class _PuissanceChauffageExpertScreenState extends State<PuissanceChauffageExpertScreen>
+    with ControllerDisposeMixin, SnackBarMixin, SharedPreferencesMixin {
   bool _isExpertMode = false;
   final _formKey = GlobalKey<FormState>();
 
   // Données générales
-  final _surfaceController = TextEditingController(text: '100');
-  final _hauteurController = TextEditingController(text: '2.5');
-  final _nbOccupantsController = TextEditingController(text: '4');
-  final _tempExterieureController = TextEditingController(text: '-5');
-  final _tempInterieureController = TextEditingController(text: '19');
+  late final _surfaceController = registerController(TextEditingController(text: '100'));
+  late final _hauteurController = registerController(TextEditingController(text: '2.5'));
+  late final _nbOccupantsController = registerController(TextEditingController(text: '4'));
+  late final _tempExterieureController = registerController(TextEditingController(text: '-5'));
+  late final _tempInterieureController = registerController(TextEditingController(text: '19'));
 
   // Coefficients d'isolation (valeurs par défaut)
-  final _coeffMurController = TextEditingController(text: '0.36');
-  final _coeffToitController = TextEditingController(text: '0.22');
-  final _coeffPlancherController = TextEditingController(text: '0.25');
-  final _coeffFenetresController = TextEditingController(text: '2.5');
+  late final _coeffMurController = registerController(TextEditingController(text: '0.36'));
+  late final _coeffToitController = registerController(TextEditingController(text: '0.22'));
+  late final _coeffPlancherController = registerController(TextEditingController(text: '0.25'));
+  late final _coeffFenetresController = registerController(TextEditingController(text: '2.5'));
 
   // Surfaces des éléments
-  final _surfaceMurController = TextEditingController(text: '150');
-  final _surfaceToitController = TextEditingController(text: '100');
-  final _surfacePlancherController = TextEditingController(text: '100');
-  final _surfaceFenetresController = TextEditingController(text: '20');
+  late final _surfaceMurController = registerController(TextEditingController(text: '150'));
+  late final _surfaceToitController = registerController(TextEditingController(text: '100'));
+  late final _surfacePlancherController = registerController(TextEditingController(text: '100'));
+  late final _surfaceFenetresController = registerController(TextEditingController(text: '20'));
 
   // Résultats
   double? _deperditionsTotales;
@@ -49,60 +51,45 @@ class _PuissanceChauffageExpertScreenState extends State<PuissanceChauffageExper
 
   @override
   void dispose() {
-    _surfaceController.dispose();
-    _hauteurController.dispose();
-    _nbOccupantsController.dispose();
-    _tempExterieureController.dispose();
-    _tempInterieureController.dispose();
-    _coeffMurController.dispose();
-    _coeffToitController.dispose();
-    _coeffPlancherController.dispose();
-    _coeffFenetresController.dispose();
-    _surfaceMurController.dispose();
-    _surfaceToitController.dispose();
-    _surfacePlancherController.dispose();
-    _surfaceFenetresController.dispose();
+    disposeControllers();
     super.dispose();
   }
 
   Future<void> _chargerDonnees() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _surfaceController.text = prefs.getString('surface_habitable') ?? '100';
-      _hauteurController.text = prefs.getString('hauteur_sous_plafond') ?? '2.5';
-      _nbOccupantsController.text = prefs.getString('nb_occupants') ?? '4';
-      _tempExterieureController.text = prefs.getString('temp_exterieure') ?? '-5';
-      _tempInterieureController.text = prefs.getString('temp_interieure') ?? '19';
+    _surfaceController.text = await loadString('surface_habitable') ?? '100';
+    _hauteurController.text = await loadString('hauteur_sous_plafond') ?? '2.5';
+    _nbOccupantsController.text = await loadString('nb_occupants') ?? '4';
+    _tempExterieureController.text = await loadString('temp_exterieure') ?? '-5';
+    _tempInterieureController.text = await loadString('temp_interieure') ?? '19';
 
-      _coeffMurController.text = prefs.getString('coeff_mur') ?? '0.36';
-      _coeffToitController.text = prefs.getString('coeff_toit') ?? '0.22';
-      _coeffPlancherController.text = prefs.getString('coeff_plancher') ?? '0.25';
-      _coeffFenetresController.text = prefs.getString('coeff_fenetres') ?? '2.5';
+    _coeffMurController.text = await loadString('coeff_mur') ?? '0.36';
+    _coeffToitController.text = await loadString('coeff_toit') ?? '0.22';
+    _coeffPlancherController.text = await loadString('coeff_plancher') ?? '0.25';
+    _coeffFenetresController.text = await loadString('coeff_fenetres') ?? '2.5';
 
-      _surfaceMurController.text = prefs.getString('surface_mur') ?? '150';
-      _surfaceToitController.text = prefs.getString('surface_toit') ?? '100';
-      _surfacePlancherController.text = prefs.getString('surface_plancher') ?? '100';
-      _surfaceFenetresController.text = prefs.getString('surface_fenetres') ?? '20';
-    });
+    _surfaceMurController.text = await loadString('surface_mur') ?? '150';
+    _surfaceToitController.text = await loadString('surface_toit') ?? '100';
+    _surfacePlancherController.text = await loadString('surface_plancher') ?? '100';
+    _surfaceFenetresController.text = await loadString('surface_fenetres') ?? '20';
+    if (mounted) setState(() {});
   }
 
   Future<void> _sauvegarderDonnees() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('surface_habitable', _surfaceController.text);
-    await prefs.setString('hauteur_sous_plafond', _hauteurController.text);
-    await prefs.setString('nb_occupants', _nbOccupantsController.text);
-    await prefs.setString('temp_exterieure', _tempExterieureController.text);
-    await prefs.setString('temp_interieure', _tempInterieureController.text);
+    await saveString('surface_habitable', _surfaceController.text);
+    await saveString('hauteur_sous_plafond', _hauteurController.text);
+    await saveString('nb_occupants', _nbOccupantsController.text);
+    await saveString('temp_exterieure', _tempExterieureController.text);
+    await saveString('temp_interieure', _tempInterieureController.text);
 
-    await prefs.setString('coeff_mur', _coeffMurController.text);
-    await prefs.setString('coeff_toit', _coeffToitController.text);
-    await prefs.setString('coeff_plancher', _coeffPlancherController.text);
-    await prefs.setString('coeff_fenetres', _coeffFenetresController.text);
+    await saveString('coeff_mur', _coeffMurController.text);
+    await saveString('coeff_toit', _coeffToitController.text);
+    await saveString('coeff_plancher', _coeffPlancherController.text);
+    await saveString('coeff_fenetres', _coeffFenetresController.text);
 
-    await prefs.setString('surface_mur', _surfaceMurController.text);
-    await prefs.setString('surface_toit', _surfaceToitController.text);
-    await prefs.setString('surface_plancher', _surfacePlancherController.text);
-    await prefs.setString('surface_fenetres', _surfaceFenetresController.text);
+    await saveString('surface_mur', _surfaceMurController.text);
+    await saveString('surface_toit', _surfaceToitController.text);
+    await saveString('surface_plancher', _surfacePlancherController.text);
+    await saveString('surface_fenetres', _surfaceFenetresController.text);
   }
 
   void _calculerPuissance() {
@@ -201,9 +188,7 @@ class _PuissanceChauffageExpertScreenState extends State<PuissanceChauffageExper
 
   Future<void> _genererPDF() async {
     if (_puissanceChauffage == null || _detailDeperditions == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Aucun résultat à exporter')),
-      );
+      showWarning('Aucun résultat à exporter');
       return;
     }
 
@@ -233,13 +218,9 @@ class _PuissanceChauffageExpertScreenState extends State<PuissanceChauffageExper
         text: 'Rapport de calcul puissance chauffage',
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('PDF généré et partagé avec succès')),
-      );
+      showSuccess('PDF généré et partagé avec succès');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors de la génération du PDF: $e')),
-      );
+      showError('Erreur lors de la génération du PDF: $e');
     }
   }
 

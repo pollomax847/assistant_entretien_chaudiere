@@ -1,34 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'mixins/theme_state_mixin.dart';
 
-class PreferencesProvider extends ChangeNotifier {
-  bool _isDarkMode = false;
+/// Provider pour la gestion des préférences utilisateur de l'application
+class PreferencesProvider with ChangeNotifier, ThemeStateMixin {
+  static const String _themeKey = 'isDarkMode';
+  
   String _technician = '';
   String _company = '';
   String _defaultModule = 'home';
 
   // Getters
-  bool get isDarkMode => _isDarkMode;
   String get technician => _technician;
   String get company => _company;
   String get defaultModule => _defaultModule;
 
   // Charger les préférences
   Future<void> loadPreferences() async {
+    await loadTheme(_themeKey);
     final prefs = await SharedPreferences.getInstance();
-    _isDarkMode = prefs.getBool('isDarkMode') ?? false;
     _technician = prefs.getString('technician') ?? '';
     _company = prefs.getString('company') ?? '';
     _defaultModule = prefs.getString('defaultModule') ?? 'home';
-    notifyListeners();
   }
 
   // Sauvegarder le mode sombre
   Future<void> setDarkMode(bool value) async {
-    _isDarkMode = value;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isDarkMode', value);
-    notifyListeners();
+    await saveTheme(_themeKey, value);
   }
 
   // Sauvegarder le technicien

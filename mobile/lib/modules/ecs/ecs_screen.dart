@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/pdf_generator_service.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../utils/mixins/mixins.dart';
 
 class EcsScreen extends StatefulWidget {
   const EcsScreen({super.key});
@@ -10,7 +11,8 @@ class EcsScreen extends StatefulWidget {
   State<EcsScreen> createState() => _EcsScreenState();
 }
 
-class _EcsScreenState extends State<EcsScreen> {
+class _EcsScreenState extends State<EcsScreen> 
+    with ControllerDisposeMixin, SnackBarMixin, SharedPreferencesMixin {
   final _formKey = GlobalKey<FormState>();
 
   // Contrôleurs pour les équipements
@@ -18,8 +20,8 @@ class _EcsScreenState extends State<EcsScreen> {
   final List<TextEditingController> _coeffControllers = [];
 
   // Températures
-  final _tempFroideController = TextEditingController(text: '10');
-  final _tempChaudeController = TextEditingController(text: '45');
+  late final _tempFroideController = registerController(TextEditingController(text: '10'));
+  late final _tempChaudeController = registerController(TextEditingController(text: '45'));
 
   // Résultats
   double? _debitSimultaneLmin;
@@ -44,38 +46,34 @@ class _EcsScreenState extends State<EcsScreen> {
     for (var controller in _coeffControllers) {
       controller.dispose();
     }
-    _tempFroideController.dispose();
-    _tempChaudeController.dispose();
+    disposeControllers();
     super.dispose();
   }
 
   Future<void> _chargerDonnees() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _tempFroideController.text = prefs.getString('tempFroide') ?? '10';
-      _tempChaudeController.text = prefs.getString('tempChaude') ?? '45';
+    _tempFroideController.text = await loadString('tempFroide') ?? '10';
+    _tempChaudeController.text = await loadString('tempChaude') ?? '45';
 
-      // Charger les équipements sauvegardés
-      int nbEquipements = prefs.getInt('nbEquipements') ?? 0;
-      for (int i = 0; i < nbEquipements; i++) {
-        if (i >= _equipements.length) {
-          _ajouterEquipement();
-        }
-        _debitControllers[i].text = prefs.getString('debit_$i') ?? '';
-        _coeffControllers[i].text = prefs.getString('coeff_$i') ?? '1.0';
+    // Charger les équipements sauvegardés
+    int nbEquipements = await loadInt('nbEquipements') ?? 0;
+    for (int i = 0; i < nbEquipements; i++) {
+      if (i >= _equipements.length) {
+        _ajouterEquipement();
       }
-    });
+      _debitControllers[i].text = await loadString('debit_$i') ?? '';
+      _coeffControllers[i].text = await loadString('coeff_$i') ?? '1.0';
+    }
+    if (mounted) setState(() {});
   }
 
   Future<void> _sauvegarderDonnees() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('tempFroide', _tempFroideController.text);
-    await prefs.setString('tempChaude', _tempChaudeController.text);
-    await prefs.setInt('nbEquipements', _equipements.length);
+    await saveString('tempFroide', _tempFroideController.text);
+    await saveString('tempChaude', _tempChaudeController.text);
+    await saveInt('nbEquipements', _equipements.length);
 
     for (int i = 0; i < _equipements.length; i++) {
-      await prefs.setString('debit_$i', _debitControllers[i].text);
-      await prefs.setString('coeff_$i', _coeffControllers[i].text);
+      await saveString('debit_$i', _debitControllers[i].text);
+      await saveString('coeff_$i', _coeffControllers[i].text);
     }
   }
 

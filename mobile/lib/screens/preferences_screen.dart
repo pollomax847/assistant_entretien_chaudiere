@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../utils/preferences_provider.dart';
+import '../utils/mixins/controller_dispose_mixin.dart';
+import '../services/github_update_service.dart';
 
 class PreferencesScreen extends StatefulWidget {
   const PreferencesScreen({super.key});
@@ -9,9 +12,12 @@ class PreferencesScreen extends StatefulWidget {
   State<PreferencesScreen> createState() => _PreferencesScreenState();
 }
 
-class _PreferencesScreenState extends State<PreferencesScreen> {
-  final _technicianController = TextEditingController();
-  final _companyController = TextEditingController();
+class _PreferencesScreenState extends State<PreferencesScreen> 
+    with ControllerDisposeMixin {
+  late final _technicianController = registerController(TextEditingController());
+  late final _companyController = registerController(TextEditingController());
+  String _appVersion = 'Chargement...';
+  String _buildNumber = '';
 
   @override
   void initState() {
@@ -19,12 +25,20 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
     final preferences = Provider.of<PreferencesProvider>(context, listen: false);
     _technicianController.text = preferences.technician;
     _companyController.text = preferences.company;
+    _loadVersionInfo();
+  }
+
+  Future<void> _loadVersionInfo() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    setState(() {
+      _appVersion = packageInfo.version;
+      _buildNumber = packageInfo.buildNumber;
+    });
   }
 
   @override
   void dispose() {
-    _technicianController.dispose();
-    _companyController.dispose();
+    disposeControllers();
     super.dispose();
   }
 
@@ -158,15 +172,25 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 16),
-                        const ListTile(
-                          leading: Icon(Icons.info),
-                          title: Text('Version'),
-                          subtitle: Text('1.0.0'),
+                        ListTile(
+                          leading: const Icon(Icons.info),
+                          title: const Text('Version'),
+                          subtitle: Text('$_appVersion (build $_buildNumber)'),
                         ),
                         const ListTile(
                           leading: Icon(Icons.code),
                           title: Text('Développé avec'),
                           subtitle: Text('Flutter & Dart'),
+                        ),
+                        const Divider(),
+                        ListTile(
+                          leading: const Icon(Icons.system_update),
+                          title: const Text('Vérifier les mises à jour'),
+                          subtitle: const Text('Rechercher une nouvelle version'),
+                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                          onTap: () {
+                            GitHubUpdateService().checkManually(context);
+                          },
                         ),
                       ],
                     ),

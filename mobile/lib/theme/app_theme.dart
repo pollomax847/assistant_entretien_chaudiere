@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// Palette de couleurs de l'application
 class AppColors {
   // Couleurs principales
-  static const primary = Color(0xFF2196F3);
+  static const primary = Color(0xFF2F5BB7); // Bleu foncé moderne
   static const primaryDark = Color(0xFF1976D2);
   static const primaryLight = Color(0xFF64B5F6);
   
@@ -218,7 +218,7 @@ class AppTheme {
       appBarTheme: const AppBarTheme(
         elevation: 0,
         centerTitle: false,
-        backgroundColor: AppColors.primary,
+        backgroundColor: Color(0xFF2F5BB7), // Bleu foncé moderne
         foregroundColor: AppColors.white,
         titleTextStyle: TextStyle(
           fontSize: 20,

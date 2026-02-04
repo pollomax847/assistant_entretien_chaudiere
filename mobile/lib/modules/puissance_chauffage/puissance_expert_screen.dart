@@ -9,17 +9,17 @@ class PuissanceExpertScreen extends StatefulWidget {
 }
 
 class _PuissanceExpertScreenState extends State<PuissanceExpertScreen>
-    with SharedPreferencesMixin {
+    with SharedPreferencesMixin, ControllerDisposeMixin {
   final _formKey = GlobalKey<FormState>();
 
   // Controllers
-  final _surfaceController = TextEditingController();
-  final _hauteurController = TextEditingController();
-  final _tempIntController = TextEditingController();
-  final _tempExtController = TextEditingController();
-  final _isolationController = TextEditingController(text: '1.0');
-  final _ventilationController = TextEditingController(text: '0.5');
-  final _orientationController = TextEditingController(text: '1.0');
+  late final _surfaceController = registerController(TextEditingController());
+  late final _hauteurController = registerController(TextEditingController());
+  late final _tempIntController = registerController(TextEditingController());
+  late final _tempExtController = registerController(TextEditingController());
+  late final _isolationController = registerController(TextEditingController(text: '1.0'));
+  late final _ventilationController = registerController(TextEditingController(text: '0.5'));
+  late final _orientationController = registerController(TextEditingController(text: '1.0'));
 
   // Variables d'état
   bool _isolationCombles = false;
@@ -343,13 +343,7 @@ class _PuissanceExpertScreenState extends State<PuissanceExpertScreen>
 
   @override
   void dispose() {
-    _surfaceController.dispose();
-    _hauteurController.dispose();
-    _tempIntController.dispose();
-    _tempExtController.dispose();
-    _isolationController.dispose();
-    _ventilationController.dispose();
-    _orientationController.dispose();
+    disposeControllers();
     super.dispose();
   }
 }
