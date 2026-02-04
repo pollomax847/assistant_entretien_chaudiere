@@ -1,0 +1,251 @@
+import 'package:flutter/material.dart';
+import '../modules/puissance_chauffage/puissance_chauffage_expert_screen.dart';
+import '../modules/reglementation_gaz/reglementation_gaz_screen.dart';
+import '../modules/vmc/vmc_screen.dart';
+import '../modules/reglementation_gaz/reglementation_gaz_screen.dart';
+import '../services/github_update_service.dart';
+import '../modules/tests/enhanced_top_gaz_screen.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Vérifier les mises à jour au démarrage
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      GitHubUpdateService().checkOnAppStart(context);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Assistant Entretien Chaudière'),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () => Navigator.pushNamed(context, '/preferences'),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // En-tête
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Bienvenue',
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Outil professionnel pour les techniciens de chauffage',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Modules disponibles
+            Text(
+              'Modules disponibles',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+
+            const SizedBox(height: 16),
+
+            // Grille des modules
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              children: [
+                _buildModuleCard(
+                  context,
+                  'Puissance Chauffage',
+                  'Calculs thermiques avancés',
+                  Icons.thermostat,
+                  Colors.orange,
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PuissanceChauffageExpertScreen(),
+                    ),
+                  ),
+                ),
+
+                _buildModuleCard(
+                  context,
+                  'Réglementation Gaz',
+                  'Contrôles Qualigaz',
+                  Icons.gas_meter,
+                  Colors.red,
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ReglementationGazScreen(),
+                    ),
+                  ),
+                ),
+
+                _buildModuleCard(
+                  context,
+                  'VMC',
+                  'Vérification ventilation',
+                  Icons.air,
+                  Colors.blue,
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const VmcScreen(),
+                    ),
+                  ),
+                ),
+
+                _buildModuleCard(
+                  context,
+                  'Chaudière',
+                  'Paramètres chaudière',
+                  Icons.fireplace,
+                  Colors.deepOrange,
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ReglementationGazScreen(),
+                    ),
+                  ),
+                ),
+
+                _buildModuleCard(
+                  context,
+                  'Tests',
+                  'Contrôles et diagnostics',
+                  Icons.build,
+                  Colors.green,
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EnhancedTopGazScreen(),
+                    ),
+                  ),
+                ),
+
+                _buildModuleCard(
+                  context,
+                  'Rapports',
+                  'Génération de rapports',
+                  Icons.description,
+                  Colors.purple,
+                  () => Navigator.pushNamed(context, '/rapports'),
+                ),
+                _buildModuleCard(
+                  context,
+                  'Simulation Tirage',
+                  'Simulation tirage chaudière',
+                  Icons.air,
+                  Colors.orange,
+                  () => Navigator.pushNamed(context, '/tirage'),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            // Informations récentes
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Dernières interventions',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 12),
+                    const Text('Aucune intervention récente'),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModuleCard(
+    BuildContext context,
+    String title,
+    String description,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return Card(
+      elevation: 4,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  size: 32,
+                  color: color,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                description,
+                style: Theme.of(context).textTheme.bodySmall,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}}
