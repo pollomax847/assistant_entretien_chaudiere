@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:chauffageexpert/utils/mixins/shared_preferences_mixin.dart';
-import 'package:chauffageexpert/utils/widgets/app_snackbar.dart';
+import 'dart:math';
 
 class ChaudiereScreen extends StatefulWidget {
   const ChaudiereScreen({super.key});
@@ -12,7 +11,7 @@ class ChaudiereScreen extends StatefulWidget {
   State<ChaudiereScreen> createState() => _ChaudiereScreenState();
 }
 
-class _ChaudiereScreenState extends State<ChaudiereScreen> with SharedPreferencesMixin {
+class _ChaudiereScreenState extends State<ChaudiereScreen> {
   double _tirage = -0.180; // hPa
   double _co = 150.0;      // ppm
   double _o2 = 5.2;        // %
@@ -31,7 +30,8 @@ class _ChaudiereScreenState extends State<ChaudiereScreen> with SharedPreference
   }
 
   Future<void> _charger() async {
-    final saved = await loadDouble(_prefKey);
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getDouble(_prefKey);
     if (saved != null) {
       setState(() {
         _tirage = saved.clamp(-0.50, -0.05);
@@ -41,20 +41,20 @@ class _ChaudiereScreenState extends State<ChaudiereScreen> with SharedPreference
   }
 
   Future<void> _sauvegarder() async {
-    await saveDouble(_prefKey, _tirage);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_prefKey, _tirage);
   }
 
   void _updateSimu() {
     // Simulation plus réaliste (courbe exponentielle pour CO quand tirage faible)
     final double tirageAbs = _tirage.abs(); // 0.05 à 0.50
-    // distance to limit calculated but not needed currently
 
     // CO : base 80-120 ppm, explose exponentiellement quand tirage < -0.12
-    _co = 90 + 120 * math.pow((1 - tirageAbs / 0.30).clamp(0.0, 1.0), 3).toDouble() * 8;
+    _co = 90 + 120 * pow((1 - tirageAbs / 0.30).clamp(0.0, 1.0), 3) * 8;
     _co = _co.clamp(50.0, 1200.0);
 
     // O₂ : descend doucement puis plus vite en dessous de -0.12
-    _o2 = 6.5 - 4.5 * math.pow((1 - tirageAbs / 0.35).clamp(0.0, 1.0), 2).toDouble();
+    _o2 = 6.5 - 4.5 * pow((1 - tirageAbs / 0.35).clamp(0.0, 1.0), 2);
     _o2 = _o2.clamp(1.5, 7.5);
 
     // Bonus : si tirage très fort (> -0.40), un peu plus d'O₂ et moins de CO
@@ -174,18 +174,18 @@ class _ChaudiereScreenState extends State<ChaudiereScreen> with SharedPreference
                         getTitlesWidget: (value, meta) => Text(value.toStringAsFixed(2)),
                       ),
                     ),
-                    leftTitles: const AxisTitles(
+                    leftTitles: AxisTitles(
                       sideTitles: SideTitles(showTitles: true, reservedSize: 40),
                     ),
-                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   ),
                   lineBarsData: [
                     // CO (rouge)
                     LineChartBarData(
                       spots: List.generate(20, (i) {
                         double t = -0.50 + i * (0.45 / 19);
-                        double co = 90 + 120 * math.pow((1 - t.abs() / 0.30).clamp(0.0, 1.0), 3).toDouble() * 8;
+                        double co = 90 + 120 * pow((1 - t.abs() / 0.30).clamp(0.0, 1.0), 3) * 8;
                         if (t < -0.40) co *= 0.75;
                         return FlSpot(t, co.clamp(0, 1200));
                       }),
@@ -198,7 +198,7 @@ class _ChaudiereScreenState extends State<ChaudiereScreen> with SharedPreference
                     LineChartBarData(
                       spots: List.generate(20, (i) {
                         double t = -0.50 + i * (0.45 / 19);
-                        double o2 = 6.5 - 4.5 * math.pow((1 - t.abs() / 0.35).clamp(0.0, 1.0), 2).toDouble();
+                        double o2 = 6.5 - 4.5 * pow((1 - t.abs() / 0.35).clamp(0.0, 1.0), 2);
                         if (t < -0.40) o2 += 0.8;
                         return FlSpot(t, o2 * 100); // ×100 pour voir sur le même graph
                       }),
@@ -272,7 +272,7 @@ class _ChaudiereScreenState extends State<ChaudiereScreen> with SharedPreference
                   onPressed: () {
                     final text = 'Tirage: ${_tirage.toStringAsFixed(3)} hPa | CO: ${_co.toStringAsFixed(0)} ppm | O₂: ${_o2.toStringAsFixed(1)} %';
                     Clipboard.setData(ClipboardData(text: text));
-                    AppSnackBar.showCopied(context);
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Copié !')));
                   },
                 ),
               ],

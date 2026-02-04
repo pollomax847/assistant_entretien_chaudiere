@@ -1,82 +1,191 @@
 {
   "sections": [
     {
-      "id": "tuyauteries",
-      "titre": "Tuyauteries Fixes",
-      "icone": "🔧",
+      "id": "installation_generale",
+      "titre": "Installation générale",
+      "icone": "build",
       "questions": [
-        { "id": "tuyauteries_q10", "text": "Présence de tuyauteries fixes en acier dans vide sanitaire, faux-plafond, cloison ou plancher", "severity": "high", "description": "Vérification de la présence et conformité des tuyauteries fixes en acier" },
-        { "id": "tuyauteries_q11", "text": "Tuyauteries fixes en acier dans vide sanitaire accessibles et protégées", "severity": "medium", "description": "Accessibilité et protection des tuyauteries en vide sanitaire" },
-        { "id": "tuyauteries_q12", "text": "Tuyauteries fixes en acier dans faux-plafond accessibles et protégées", "severity": "high", "description": "Accessibilité et protection des tuyauteries en faux-plafond" },
-        { "id": "tuyauteries_q13", "text": "Tuyauteries fixes en acier dans cloison accessibles et protégées", "severity": "medium", "description": "Accessibilité et protection des tuyauteries en cloison" },
-        { "id": "tuyauteries_q14", "text": "Tuyauteries fixes en acier dans plancher accessibles et protégées", "severity": "high", "description": "Accessibilité et protection des tuyauteries en plancher" },
-        { "id": "tuyauteries_q15", "text": "Matériaux des tuyauteries conformes (acier, cuivre, PE)", "severity": "high", "description": "Conformité des matériaux utilisés pour les tuyauteries" }
-      ]
-    },
-    {
-      "id": "appareils",
-      "titre": "Appareils à Gaz",
-      "icone": "🏠",
-      "questions": [
-        { "id": "appareils_type", "text": "Type d'appareil installé", "severity": "high", "type": "select", "options": [ {"value":"A","label":"Type A - Cuisson (non raccordé)"}, {"value":"B","label":"Type B - Chaudière (raccordé)"}, {"value":"C","label":"Type C - Étanche (ventouse)"} ], "description": "Classification de l'appareil selon son type de raccordement" },
-        { "id": "appareils_conformite_ce", "text": "Conformité CE des appareils", "severity": "high", "description": "Vérification de la conformité européenne des appareils" },
-        { "id": "appareils_installation", "text": "Installation selon notice constructeur", "severity": "high", "description": "Respect des consignes d'installation du fabricant" },
-        { "id": "appareils_raccordement", "text": "Raccordement gaz étanche", "severity": "high", "description": "Étanchéité du raccordement gaz" },
-        { "id": "appareils_securite", "text": "Dispositifs de sécurité fonctionnels", "severity": "high", "description": "Fonctionnement des dispositifs de sécurité" }
-      ]
-    },
-    {
-      "id": "chaudiere",
-      "titre": "Chaudière Gaz",
-      "icone": "🔥",
-      "questions": [
-        { "id": "chaudiere_raccordement", "text": "Raccordement gaz conforme", "severity": "high", "description": "Conformité du raccordement gaz de la chaudière" },
-        { "id": "chaudiere_fumees", "text": "Conduit de fumée étanche", "severity": "high", "description": "Étanchéité du conduit d'évacuation des fumées" },
-        { "id": "chaudiere_ventilation", "text": "Ventilation du local suffisante", "severity": "high", "description": "Ventilation adéquate du local où est installée la chaudière" },
-        { "id": "chaudiere_securite_gaz", "text": "Dispositif de sécurité gaz fonctionnel", "severity": "high", "description": "Fonctionnement du dispositif de sécurité gaz" },
-        { "id": "chaudiere_pression", "text": "Pression de service correcte", "severity": "medium", "description": "Vérification de la pression de service" },
-        { "id": "chaudiere_temperature", "text": "Température des fumées normale", "severity": "medium", "description": "Contrôle de la température des fumées" },
-        { "id": "chaudiere_maintenance", "text": "Maintenance annuelle effectuée", "severity": "low", "description": "Vérification de la maintenance annuelle" }
-      ]
-    },
-    {
-      "id": "plaques",
-      "titre": "Plaques de Cuisson",
-      "icone": "🍳",
-      "questions": [
-        { "id": "plaques_presence", "text": "Présence de plaques de cuisson gaz", "severity": "medium", "type": "boolean", "description": "Présence d'appareils de cuisson au gaz" },
-        { "id": "plaques_raccordement", "text": "Raccordement par flexible agréé", "severity": "high", "description": "Utilisation d'un flexible agréé pour le raccordement" },
-        { "id": "plaques_robinet", "text": "Robinet d'arrêt accessible", "severity": "medium", "description": "Accessibilité du robinet d'arrêt" },
-        { "id": "plaques_ventilation_cuisine", "text": "Ventilation de la cuisine suffisante", "severity": "high", "description": "Ventilation adéquate de la cuisine" },
-        { "id": "plaques_coupure_auto", "text": "Dispositif de coupure automatique", "severity": "medium", "description": "Présence et fonctionnement du dispositif de coupure automatique" },
-        { "id": "plaques_extraction", "text": "Hotte ou système d'extraction", "severity": "medium", "description": "Système d'extraction des fumées de cuisson" }
-      ]
-    },
-    {
-      "id": "ventilation",
-      "titre": "Ventilation",
-      "icone": "💨",
-      "questions": [
-        { "id": "ventilation_type", "text": "Type de ventilation", "severity": "high", "type": "select", "options": [ {"value":"vmc_gaz","label":"VMC Gaz"}, {"value":"vmc_sanitaire","label":"VMC Sanitaire"}, {"value":"tirage_naturel","label":"Tirage naturel"}, {"value":"ventilation_mecanique","label":"Ventilation mécanique"} ], "description": "Type de système de ventilation installé" },
-        { "id": "ventilation_grilles", "text": "Grilles d'aération libres et conformes", "severity": "high", "description": "État et conformité des grilles d'aération" },
-        { "id": "ventilation_conduits", "text": "Conduits d'évacuation conformes", "severity": "high", "description": "Conformité des conduits d'évacuation" },
-        { "id": "ventilation_debit", "text": "Débit de ventilation suffisant", "severity": "medium", "description": "Vérification du débit de ventilation" },
-        { "id": "ventilation_tirage", "text": "Tirage naturel correct", "severity": "medium", "description": "Fonctionnement du tirage naturel" },
-        { "id": "ventilation_entree_air", "text": "Entrées d'air permanentes conformes", "severity": "high", "description": "Conformité des entrées d'air permanentes" },
-        { "id": "ventilation_entree_air_typeA", "text": "Entrées d'air spécifiques pour appareil de type A", "severity": "high", "description": "Entrées d'air pour appareil non raccordé (type A)", "conditions": [ { "key": "type-appareil-existant", "operator": "equals", "value": "type-a" } ] }
+        {
+          "id": "type_appareil",
+          "text": "Type d'appareil installé",
+          "type": "select",
+          "severity": "high",
+          "description": "Sélectionnez le type d'appareil de chauffage installé",
+          "options": [
+            {"value": "chaudiere_gaz", "label": "Chaudière gaz"},
+            {"value": "chaudiere_fioul", "label": "Chaudière fioul"},
+            {"value": "pac", "label": "Pompe à chaleur"},
+            {"value": "poele", "label": "Poêle"},
+            {"value": "insert", "label": "Insert"}
+          ]
+        },
+        {
+          "id": "marque_modele",
+          "text": "La marque et le modèle de l'appareil sont-ils clairement identifiables ?",
+          "severity": "medium",
+          "description": "Vérifiez la plaque signalétique de l'appareil"
+        },
+        {
+          "id": "puissance_nominale",
+          "text": "La puissance nominale de l'appareil correspond-elle aux besoins de chauffage ?",
+          "severity": "high",
+          "description": "Comparez avec le calcul de puissance requis"
+        },
+        {
+          "id": "local_installation",
+          "text": "L'appareil est-il installé dans un local adapté (ventilation, volume, etc.) ?",
+          "severity": "high",
+          "description": "Vérifiez les normes d'installation en vigueur"
+        }
       ]
     },
     {
       "id": "securite",
-      "titre": "Sécurité Générale",
-      "icone": "🛡️",
+      "titre": "Sécurité",
+      "icone": "security",
       "questions": [
-        { "id": "securite_detecteur", "text": "Détecteur de gaz installé et fonctionnel", "severity": "medium", "description": "Présence et fonctionnement du détecteur de gaz" },
-        { "id": "securite_robinet_general", "text": "Robinet général accessible et signalé", "severity": "high", "description": "Accessibilité et signalisation du robinet général" },
-        { "id": "securite_signalisation", "text": "Signalisation des conduites conforme", "severity": "low", "description": "Signalisation des conduites de gaz" },
-        { "id": "securite_consignes", "text": "Consignes de sécurité affichées", "severity": "low", "description": "Affichage des consignes de sécurité" },
-        { "id": "securite_numeros_urgence", "text": "Numéros d'urgence disponibles", "severity": "low", "description": "Disponibilité des numéros d'urgence" },
-        { "id": "securite_etancheite", "text": "Étanchéité générale de l'installation", "severity": "high", "description": "Contrôle général de l'étanchéité" }
+        {
+          "id": "dispositif_securite",
+          "text": "L'appareil est-il équipé des dispositifs de sécurité requis ?",
+          "severity": "critical",
+          "description": "Soupape de sécurité, thermostat de sécurité, etc."
+        },
+        {
+          "id": "etancheite_circuit",
+          "text": "Le circuit de gaz est-il étanche ?",
+          "severity": "critical",
+          "description": "Vérifiez l'absence de fuites"
+        },
+        {
+          "id": "ventilation",
+          "text": "La ventilation du local est-elle conforme aux normes ?",
+          "severity": "high",
+          "description": "Entrées et sorties d'air dimensionnées correctement"
+        },
+        {
+          "id": "acces_securise",
+          "text": "L'accès aux commandes de l'appareil est-il sécurisé ?",
+          "severity": "medium",
+          "description": "Protection contre les manipulations intempestives"
+        }
+      ]
+    },
+    {
+      "id": "combustion",
+      "titre": "Combustion et émissions",
+      "icone": "local_fire_department",
+      "questions": [
+        {
+          "id": "reglage_combustion",
+          "text": "Le réglage de la combustion est-il optimal ?",
+          "severity": "high",
+          "description": "Vérifiez les taux de CO2 et CO"
+        },
+        {
+          "id": "evacuation_fumees",
+          "text": "L'évacuation des fumées est-elle correcte ?",
+          "severity": "critical",
+          "description": "Tirage, condensation, etc."
+        },
+        {
+          "id": "temperature_fumees",
+          "text": "La température des fumées est-elle dans les limites réglementaires ?",
+          "severity": "high",
+          "description": "Mesure de la température de sortie"
+        },
+        {
+          "id": "rendement",
+          "text": "Le rendement de l'appareil est-il conforme aux normes ?",
+          "severity": "medium",
+          "description": "Vérification du rendement énergétique"
+        }
+      ]
+    },
+    {
+      "id": "distribution",
+      "titre": "Distribution de chaleur",
+      "icone": "call_split",
+      "questions": [
+        {
+          "id": "equilibrage_reseau",
+          "text": "Le réseau de distribution est-il équilibré ?",
+          "severity": "medium",
+          "description": "Répartition homogène de la chaleur"
+        },
+        {
+          "id": "isolation_canalisations",
+          "text": "Les canalisations sont-elles correctement isolées ?",
+          "severity": "medium",
+          "description": "Prévention des pertes de chaleur"
+        },
+        {
+          "id": "robinetterie",
+          "text": "La robinetterie thermostatique fonctionne-t-elle correctement ?",
+          "severity": "low",
+          "description": "Régulation individuelle des pièces"
+        },
+        {
+          "id": "circulateur",
+          "text": "Le circulateur est-il adapté et fonctionnel ?",
+          "severity": "medium",
+          "description": "Puissance et régime de fonctionnement"
+        }
+      ]
+    },
+    {
+      "id": "reglementation",
+      "titre": "Conformité réglementaire",
+      "icone": "gavel",
+      "questions": [
+        {
+          "id": "certificat_qualigaz",
+          "text": "Le certificat Qualigaz est-il à jour et affiché ?",
+          "severity": "high",
+          "description": "Contrôle périodique obligatoire"
+        },
+        {
+          "id": "normes_installation",
+          "text": "L'installation respecte-t-elle les normes en vigueur (DTU, NF, etc.) ?",
+          "severity": "high",
+          "description": "Conformité aux dernières réglementations"
+        },
+        {
+          "id": "entretien_regulier",
+          "text": "L'entretien annuel de l'appareil a-t-il été réalisé ?",
+          "severity": "high",
+          "description": "Maintenance obligatoire par un professionnel"
+        },
+        {
+          "id": "documentation",
+          "text": "La documentation technique est-elle disponible ?",
+          "severity": "low",
+          "description": "Notice d'utilisation, schéma, etc."
+        }
+      ]
+    },
+    {
+      "id": "recommandations",
+      "titre": "Recommandations",
+      "icone": "lightbulb",
+      "questions": [
+        {
+          "id": "ameliorations_possibles",
+          "text": "Des améliorations sont-elles possibles pour optimiser l'installation ?",
+          "severity": "low",
+          "description": "Suggestions d'optimisation énergétique"
+        },
+        {
+          "id": "mises_jour_techniques",
+          "text": "L'appareil nécessite-t-il des mises à jour techniques ?",
+          "severity": "medium",
+          "description": "Évolutions technologiques disponibles"
+        },
+        {
+          "id": "economies_energie",
+          "text": "Des économies d'énergie peuvent-elles être réalisées ?",
+          "severity": "low",
+          "description": "Optimisation de la consommation"
+        }
       ]
     }
   ]

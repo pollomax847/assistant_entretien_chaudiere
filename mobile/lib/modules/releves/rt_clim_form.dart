@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:chauffageexpert/services/pdf_generator.dart';
-import 'package:chauffageexpert/services/json_exporter.dart';
-import 'package:chauffageexpert/modules/releves/releve_technique_model.dart';
-import 'package:chauffageexpert/modules/releves/widgets/common_form_widgets.dart';
 
 class RTClimForm extends StatefulWidget {
-  const RTClimForm({super.key});
+  final Function(Map<String, dynamic>)? onDataChanged;
+
+  const RTClimForm({super.key, this.onDataChanged});
 
   @override
   State<RTClimForm> createState() => _RTClimFormState();
@@ -34,11 +32,9 @@ class _RTClimFormState extends State<RTClimForm> {
   };
 
   // --- STATES ---
-  // ignore: unused_field
-  final bool _isAppartement = false;
+  bool _isAppartement = false;
   bool _tableauConforme = false;
-  // ignore: unused_field
-  final bool _diff30ma = true;
+  bool _diff30ma = true;
   bool _besoinTableauSupp = false;
   bool _groupeSurChaise = false;
   bool _pompeRelevageInt = false;
@@ -65,25 +61,23 @@ class _RTClimFormState extends State<RTClimForm> {
           padding: const EdgeInsets.all(12.0),
           child: Column(
             children: [
-              CommonFormWidgets.buildHeader(
-                icon: Icons.ac_unit,
-                title: 'RELEVÉ TECHNIQUE CLIM',
-                color: Colors.teal,
-                context: context,
-              ),
-              CommonFormWidgets.buildSection(
-                title: 'Client',
-                color: Colors.teal,
-                children: [
+              _buildHeader(),
+              _buildSection('Client', [
                 _buildTextField('numClient', 'Numéro client (gazelle)'),
                 _buildTextField('nomClient', 'Nom du client'),
                 _buildTextField('email', 'Email', keyboardType: TextInputType.emailAddress),
                 _buildTextField('telMobile', 'Téléphone mobile', keyboardType: TextInputType.phone),
               ]),
-              CommonFormWidgets.buildSection(
-                title: 'Caractéristiques Électriques',
-                color: Colors.teal,
-                children: [
+              _buildSection('Description de l\'habitation', [
+                SwitchListTile(
+                  title: const Text('Appartement'),
+                  value: _isAppartement,
+                  onChanged: (v) => setState(() => _isAppartement = v),
+                ),
+                _buildTextField('surface', 'Surface (m2)', keyboardType: TextInputType.number),
+                _buildTextField('anneeConst', 'Année de construction', keyboardType: TextInputType.number),
+              ]),
+              _buildSection('Caractéristiques Électriques', [
                 SwitchListTile(
                   title: const Text('Tableau électrique conforme'),
                   value: _tableauConforme,
@@ -93,7 +87,7 @@ class _RTClimFormState extends State<RTClimForm> {
                 _buildTextField('puissanceAbo', 'Puissance abonnement (kVA)', keyboardType: TextInputType.number),
                 _buildTextField('tension', 'Mesure de la tension (V)', keyboardType: TextInputType.number),
                 DropdownButtonFormField<String>(
-                  initialValue: _typeRaccordement,
+                  value: _typeRaccordement,
                   decoration: const InputDecoration(labelText: 'Type de raccordement', contentPadding: EdgeInsets.symmetric(horizontal: 16)),
                   items: ['Monophasé', 'Triphasé'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
                   onChanged: (v) => setState(() => _typeRaccordement = v!),
@@ -104,10 +98,7 @@ class _RTClimFormState extends State<RTClimForm> {
                   onChanged: (v) => setState(() => _besoinTableauSupp = v!),
                 ),
               ]),
-              CommonFormWidgets.buildSection(
-                title: 'Installation Groupe Extérieur',
-                color: Colors.teal,
-                children: [
+              _buildSection('Installation Groupe Extérieur', [
                 _buildTextField('hauteurFixationExt', 'Hauteur fixation (m)', keyboardType: TextInputType.number),
                 SwitchListTile(
                   title: const Text('Groupe sur chaise'),
@@ -115,10 +106,7 @@ class _RTClimFormState extends State<RTClimForm> {
                   onChanged: (v) => setState(() => _groupeSurChaise = v),
                 ),
               ]),
-              CommonFormWidgets.buildSection(
-                title: 'Installation Unité Intérieur',
-                color: Colors.teal,
-                children: [
+              _buildSection('Installation Unité Intérieur', [
                 _buildTextField('surfaceClim', 'Surface à climatiser (m2)', keyboardType: TextInputType.number),
                 _buildTextField('puissanceUnite', 'Puissance unité (kW)', keyboardType: TextInputType.number),
                 _buildTextField('longRaccordement', 'Long. raccordement (m)', keyboardType: TextInputType.number),
@@ -128,14 +116,18 @@ class _RTClimFormState extends State<RTClimForm> {
                   onChanged: (v) => setState(() => _pompeRelevageInt = v),
                 ),
               ]),
-              CommonFormWidgets.buildSubmitButton(
+              const SizedBox(height: 24),
+              ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    _performExports();
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Relevé Clim enregistré')));
                   }
                 },
-                label: 'ENREGISTRER LE RELEVÉ CLIM',
-                backgroundColor: Colors.teal,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal,
+                  minimumSize: const Size.fromHeight(50),
+                ),
+                child: const Text('ENREGISTRER LE RELEVÉ CLIM', style: TextStyle(color: Colors.white)),
               ),
               const SizedBox(height: 40),
             ],
@@ -145,58 +137,38 @@ class _RTClimFormState extends State<RTClimForm> {
     );
   }
 
-  Future<void> _performExports() async {
-    final Map<String, Map<String, String>> sections = {
-      'Client': {
-        'Numéro client': _controllers['numClient']?.text ?? '',
-        'Nom client': _controllers['nomClient']?.text ?? '',
-        'Email': _controllers['email']?.text ?? '',
-        'Téléphone': _controllers['telMobile']?.text ?? '',
-      },
-      'Électrique': {
-        'Tableau conforme': _tableauConforme ? 'Oui' : 'Non',
-        'Distance tableau': _controllers['distTableau']?.text ?? '',
-        'Puissance abo': _controllers['puissanceAbo']?.text ?? '',
-        'Tension (V)': _controllers['tension']?.text ?? '',
-      },
-      'Installation': {
-        'Surface clim': _controllers['surfaceClim']?.text ?? '',
-        'Puissance unité': _controllers['puissanceUnite']?.text ?? '',
-        'Long. raccordement': _controllers['longRaccordement']?.text ?? '',
-      },
-    };
-
-    try {
-      final pdfFile = await PDFGeneratorService.instance.genererReleveTechnique(donnees: sections, typeReleve: 'clim');
-      if (mounted) CommonFormWidgets.showSuccessSnackBar(context, 'PDF généré: ${pdfFile.path}');
-    } catch (e) {
-      if (mounted) CommonFormWidgets.showErrorSnackBar(context, 'Erreur génération PDF');
-    }
-
-    final diagnosticGazMap = await JSONExporter.collectDiagnosticGaz();
-    final releve = ReleveTechnique(
-      clientNumber: _controllers['numClient']?.text,
-      clientName: _controllers['nomClient']?.text,
-      clientEmail: _controllers['email']?.text,
-      clientPhone: _controllers['telMobile']?.text,
-      surface: _controllers['surfaceClim']?.text,
-      anneeConstruction: _controllers['anneeConst']?.text,
-      diagnosticGaz: diagnosticGazMap,
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: const Column(
+        children: [
+          Icon(Icons.ac_unit, size: 50, color: Colors.teal),
+          SizedBox(height: 10),
+          Text('RELEVÉ TECHNIQUE CLIM', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          Divider(thickness: 2, color: Colors.teal),
+        ],
+      ),
     );
+  }
 
-    try {
-      final jsonFile = await JSONExporter.exportReleveTechniqueJson(releve, 'clim');
-      if (mounted) CommonFormWidgets.showSuccessSnackBar(context, 'JSON exporté: ${jsonFile.path}');
-    } catch (e) {
-      if (mounted) CommonFormWidgets.showErrorSnackBar(context, 'Erreur export JSON');
-    }
+  Widget _buildSection(String title, List<Widget> children) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: ExpansionTile(
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.teal)),
+        children: children,
+      ),
+    );
   }
 
   Widget _buildTextField(String key, String label, {TextInputType keyboardType = TextInputType.text}) {
-    return CommonFormWidgets.buildTextField(
-      controller: _controllers[key]!,
-      label: label,
-      keyboardType: keyboardType,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: TextFormField(
+        controller: _controllers[key],
+        decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
+        keyboardType: keyboardType,
+      ),
     );
   }
 }

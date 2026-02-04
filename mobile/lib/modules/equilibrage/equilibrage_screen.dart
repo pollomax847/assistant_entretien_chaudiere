@@ -1,67 +1,107 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../providers/chantiers_provider.dart';
-import '../../models/chantier.dart';
-
-class EquilibrageScreen extends ConsumerWidget {
+class EquilibrageScreen extends StatefulWidget {
   const EquilibrageScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final chantiers = ref.watch(chantiersProvider);
+  State<EquilibrageScreen> createState() => _EquilibrageScreenState();
+}
 
+class _EquilibrageScreenState extends State<EquilibrageScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  bool _isGridView = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged() {
+    setState(() {
+      // Recherche temporairement désactivée
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Équilibrage')),
-      body: chantiers.isEmpty
-          ? const Center(child: Text('Aucun chantier. Appuyez sur + pour en ajouter.'))
-          : ListView.builder(
-              itemCount: chantiers.length,
-              itemBuilder: (context, index) {
-                final chantier = chantiers[index];
-                return ExpansionTile(
-                  key: ValueKey(chantier.id),
-                  title: Text(chantier.nom),
-                  subtitle: Text(chantier.adresse ?? ''),
-                  children: [
-                    if (chantier.radiateurs.isEmpty)
-                      const ListTile(title: Text('Aucun radiateur')),
-                    ...chantier.radiateurs.map((rad) {
-                      return ListTile(
-                        title: Text(rad.nom),
-                        subtitle: Text(
-                          'État: ${rad.statutDisplay} • Tours: ${rad.toursVanne.toStringAsFixed(1)}${rad.deltaT != null ? ' • ΔT: ${rad.deltaT!.toStringAsFixed(1)}°C' : ''}',
-                        ),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (_) => AlertDialog(
-                              title: Text(rad.nom),
-                              content: Text('Statut: ${rad.statutDisplay}\nNotes: ${rad.notes}'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).pop(),
-                                  child: const Text('Fermer'),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      );
-                    }),
-                  ],
-                );
-              },
+      appBar: AppBar(
+        title: const Text('Équilibrage Réseaux'),
+        actions: [
+          IconButton(
+            icon: Icon(_isGridView ? Icons.list : Icons.grid_view),
+            onPressed: () {
+              setState(() {
+                _isGridView = !_isGridView;
+              });
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: const InputDecoration(
+                labelText: 'Rechercher un chantier',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
             ),
+          ),
+          Expanded(
+            child: _isGridView ? _buildGridView() : _buildListView(),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          final nouveau = Chantier.nouveau('Chantier ${chantiers.length + 1}');
-          ref.read(chantiersProvider.notifier).ajouterChantier(nouveau);
+          // Action pour ajouter un nouveau chantier
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Fonctionnalité à implémenter')),
+          );
         },
-        tooltip: 'Ajouter chantier',
         child: const Icon(Icons.add),
       ),
+    );
+  }
+
+  Widget _buildListView() {
+    return ListView.builder(
+      itemCount: 0, // Pour l'instant, liste vide
+      itemBuilder: (context, index) {
+        return const ListTile(
+          title: Text('Aucun chantier disponible'),
+          subtitle: Text('Les chantiers apparaîtront ici'),
+        );
+      },
+    );
+  }
+
+  Widget _buildGridView() {
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+      ),
+      itemCount: 0, // Pour l'instant, grille vide
+      itemBuilder: (context, index) {
+        return const Card(
+          child: Center(
+            child: Text('Aucun chantier'),
+          ),
+        );
+      },
     );
   }
 }

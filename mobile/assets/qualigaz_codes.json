@@ -1,176 +1,129 @@
 {
-  "codes": [
-    {
-      "code": "DGI",
-      "category": "Sécurité",
-      "description": "Défaut Grave Immédiat - Danger immédiat pour la sécurité",
-      "severity": "critical",
-      "actions": [
-        "Arrêt immédiat de l'installation",
-        "Intervention d'un professionnel qualifié obligatoire",
-        "Interdiction d'utilisation jusqu'à réparation"
-      ]
+  "codes_qualigaz": {
+    "1a": {
+      "description": "Installation non raccordée au gaz",
+      "anomaly_type": "CNV",
+      "category": "Général",
+      "gravity": "low"
     },
-    {
-      "code": "A2",
-      "category": "Sécurité",
-      "description": "Anomalie critique - Risque pour la sécurité des personnes",
-      "severity": "high",
-      "actions": [
-        "Réparation obligatoire dans les 8 jours",
-        "Contrôle après réparation requis"
-      ]
+    "1b": {
+      "description": "Installation raccordée au gaz",
+      "anomaly_type": "DGI",
+      "category": "Général",
+      "gravity": "low"
     },
-    {
-      "code": "A1",
-      "category": "Sécurité",
-      "description": "Anomalie importante - Peut affecter la sécurité",
-      "severity": "medium",
-      "actions": [
-        "Réparation recommandée dans les 3 mois",
-        "Contrôle périodique conseillé"
-      ]
-    },
-    {
-      "code": "CNV",
+    "2a1": {
+      "description": "Tuyauterie PLT soumise à une pression adaptée",
+      "anomaly_type": "A2",
       "category": "Tuyauterie",
-      "description": "Conformité Non Vérifiée - État de la tuyauterie non vérifiable",
-      "severity": "medium",
-      "actions": [
-        "Nettoyage ou dégagement des canalisations",
-        "Contrôle visuel complet"
-      ]
+      "gravity": "medium"
     },
-    {
-      "code": "V1",
+    "2a2": {
+      "description": "Tuyauterie PLT non soumise à une pression adaptée",
+      "anomaly_type": "A1",
+      "category": "Tuyauterie",
+      "gravity": "high"
+    },
+    "5": {
+      "description": "La lyre passe dans une zone dangereuse",
+      "anomaly_type": "A2",
+      "category": "Sécurité",
+      "gravity": "medium"
+    },
+    "6": {
+      "description": "Installation contrôlée et étanche",
+      "anomaly_type": "DGI",
+      "category": "Étanchéité",
+      "gravity": "low"
+    },
+    "7b": {
+      "description": "Organe de coupure adapté et certifié",
+      "anomaly_type": "A2",
+      "category": "Sécurité",
+      "gravity": "medium"
+    },
+    "7d2": {
+      "description": "Détendeur accessible et en bon état",
+      "anomaly_type": "A2",
+      "category": "Sécurité",
+      "gravity": "medium"
+    },
+    "7d5": {
+      "description": "Organe de coupure en attente obturé",
+      "anomaly_type": "A2",
+      "category": "Sécurité",
+      "gravity": "medium"
+    },
+    "11a": {
+      "description": "Ventilation mécanique contrôlée gaz",
+      "anomaly_type": "A2",
       "category": "Ventilation",
-      "description": "Défaut de ventilation mécanique - Absence ou insuffisance",
-      "severity": "high",
-      "actions": [
-        "Restauration de la ventilation",
-        "Contrôle des débits d'air"
-      ]
+      "gravity": "medium"
     },
-    {
-      "code": "V2",
-      "category": "Ventilation",
-      "description": "Défaut d'aération naturelle - Ouvertures insuffisantes",
-      "severity": "medium",
-      "actions": [
-        "Aménagement d'ouvertures d'aération",
-        "Vérification des sections minimales"
-      ]
+    "14a": {
+      "description": "Distance appareil/matériaux combustibles < 30cm",
+      "anomaly_type": "A2",
+      "category": "Distances",
+      "gravity": "medium"
     },
-    {
-      "code": "D1",
+    "14b": {
+      "description": "Distance appareil/matériaux combustibles < 10cm",
+      "anomaly_type": "A1",
+      "category": "Distances",
+      "gravity": "high"
+    },
+    "14c": {
+      "description": "Distance tuyau/matériaux combustibles < 5cm",
+      "anomaly_type": "A2",
+      "category": "Distances",
+      "gravity": "medium"
+    },
+    "14d": {
+      "description": "Distance tuyau/matériaux combustibles < 2cm",
+      "anomaly_type": "A1",
+      "category": "Distances",
+      "gravity": "high"
+    },
+    "18a": {
+      "description": "Détecteur CO non présent ou non conforme",
+      "anomaly_type": "A2",
       "category": "Détecteurs",
-      "description": "Absence de détecteur de CO - Non installé ou défaillant",
-      "severity": "high",
-      "actions": [
-        "Installation d'un détecteur de CO conforme",
-        "Contrôle annuel obligatoire"
-      ]
-    },
-    {
-      "code": "D2",
-      "category": "Détecteurs",
-      "description": "Détecteur de CO non alimenté - Batterie déchargée ou absente",
-      "severity": "medium",
-      "actions": [
-        "Remplacement de la batterie",
-        "Vérification du fonctionnement"
-      ]
-    },
-    {
-      "code": "T1",
-      "category": "Tuyauterie",
-      "description": "Tuyauterie endommagée - Corrosion ou perforation visible",
-      "severity": "high",
-      "actions": [
-        "Réparation ou remplacement de la partie endommagée",
-        "Contrôle d'étanchéité"
-      ]
-    },
-    {
-      "code": "T2",
-      "category": "Tuyauterie",
-      "description": "Tuyauterie mal fixée - Risque de déformation ou rupture",
-      "severity": "medium",
-      "actions": [
-        "Renforcement des fixations",
-        "Vérification de la stabilité"
-      ]
-    },
-    {
-      "code": "R1",
-      "category": "Raccordements",
-      "description": "Raccordement non étanche - Fuite de gaz détectée",
-      "severity": "high",
-      "actions": [
-        "Réparation immédiate de l'étanchéité",
-        "Test de pression"
-      ]
-    },
-    {
-      "code": "R2",
-      "category": "Raccordements",
-      "description": "Raccordement non conforme - Non aux normes en vigueur",
-      "severity": "medium",
-      "actions": [
-        "Mise aux normes des raccordements",
-        "Vérification de conformité"
-      ]
-    },
-    {
-      "code": "C1",
-      "category": "Combustion",
-      "description": "Combustion incomplète - Taux de CO trop élevé",
-      "severity": "high",
-      "actions": [
-        "Réglage de l'appareil",
-        "Nettoyage du brûleur",
-        "Contrôle des émissions"
-      ]
-    },
-    {
-      "code": "C2",
-      "category": "Combustion",
-      "description": "Combustion irrégulière - Fonctionnement instable",
-      "severity": "medium",
-      "actions": [
-        "Vérification des paramètres de combustion",
-        "Maintenance préventive"
-      ]
-    },
-    {
-      "code": "E1",
-      "category": "Évacuation",
-      "description": "Évacuation des fumées obstruée - Risque d'intoxication",
-      "severity": "critical",
-      "actions": [
-        "Dégagement immédiat des conduits",
-        "Contrôle de l'étanchéité",
-        "Test de tirage"
-      ]
-    },
-    {
-      "code": "E2",
-      "category": "Évacuation",
-      "description": "Évacuation insuffisante - Débit de fumées inadéquat",
-      "severity": "high",
-      "actions": [
-        "Vérification des dimensions des conduits",
-        "Contrôle du tirage naturel"
-      ]
+      "gravity": "medium"
     }
-  ],
+  },
   "categories": {
-    "Sécurité": ["DGI", "A2", "A1"],
-    "Tuyauterie": ["CNV", "T1", "T2"],
-    "Ventilation": ["V1", "V2"],
-    "Détecteurs": ["D1", "D2"],
-    "Raccordements": ["R1", "R2"],
-    "Combustion": ["C1", "C2"],
-    "Évacuation": ["E1", "E2"]
+    "Général": ["1a", "1b"],
+    "Tuyauterie": ["2a1", "2a2"],
+    "Sécurité": ["5", "7b", "7d2", "7d5"],
+    "Étanchéité": ["6"],
+    "Ventilation": ["11a"],
+    "Distances": ["14a", "14b", "14c", "14d"],
+    "Détecteurs": ["18a"]
+  },
+  "anomaly_types": {
+    "DGI": {
+      "name": "Déclaration Générale d'Indépendance",
+      "description": "Installation conforme, aucune anomalie",
+      "color": "green",
+      "severity": 0
+    },
+    "CNV": {
+      "name": "Conforme Non Visité",
+      "description": "Installation conforme mais non visitée",
+      "color": "blue",
+      "severity": 1
+    },
+    "A2": {
+      "name": "Anomalie de Classe 2",
+      "description": "Anomalie nécessitant une intervention",
+      "color": "orange",
+      "severity": 2
+    },
+    "A1": {
+      "name": "Anomalie de Classe 1",
+      "description": "Anomalie dangereuse nécessitant une intervention immédiate",
+      "color": "red",
+      "severity": 3
+    }
   }
 }

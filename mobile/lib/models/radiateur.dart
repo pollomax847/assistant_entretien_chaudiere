@@ -1,4 +1,4 @@
-// no dart:convert needed here
+import 'dart:convert';
 
 enum StatutRadiateur {
   ok,
@@ -7,6 +7,25 @@ enum StatutRadiateur {
   aPurger,
   aAjuster,
   autre,
+}
+
+extension StatutRadiateurExtension on StatutRadiateur {
+  String get displayName {
+    switch (this) {
+      case StatutRadiateur.ok:
+        return 'OK';
+      case StatutRadiateur.tropChaud:
+        return 'Trop chaud';
+      case StatutRadiateur.tropFroid:
+        return 'Trop froid';
+      case StatutRadiateur.aPurger:
+        return 'À purger';
+      case StatutRadiateur.aAjuster:
+        return 'À ajuster';
+      case StatutRadiateur.autre:
+        return 'Autre';
+    }
+  }
 }
 
 class Radiateur {

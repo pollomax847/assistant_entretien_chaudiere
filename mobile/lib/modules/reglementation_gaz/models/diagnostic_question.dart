@@ -57,16 +57,15 @@ class DiagnosticSection {
   });
 
   factory DiagnosticSection.fromMap(Map<String, dynamic> m) {
-    final qs = (m['questions'] as List<dynamic>?)
-            ?.map((e) => DiagnosticQuestion.fromMap(e as Map<String, dynamic>))
-            .toList() ??
-        <DiagnosticQuestion>[];
+    final questions = (m['questions'] as List<dynamic>?)
+        ?.map((q) => DiagnosticQuestion.fromMap(q as Map<String, dynamic>))
+        .toList() ?? [];
 
     return DiagnosticSection(
       id: m['id'] as String,
       titre: m['titre'] as String,
       icone: m['icone'] as String?,
-      questions: qs,
+      questions: questions,
     );
   }
 
@@ -85,15 +84,19 @@ class ReglementationQuestions {
 
   factory ReglementationQuestions.fromMap(Map<String, dynamic> m) {
     final sections = (m['sections'] as List<dynamic>?)
-            ?.map((s) => DiagnosticSection.fromMap(s as Map<String, dynamic>))
-            .toList() ??
-        <DiagnosticSection>[];
+        ?.map((s) => DiagnosticSection.fromMap(s as Map<String, dynamic>))
+        .toList() ?? [];
+
     return ReglementationQuestions(sections: sections);
   }
 
   static Future<ReglementationQuestions> loadFromAsset() async {
-    final raw = await rootBundle.loadString('lib/data/reglementation_questions.json');
-    final Map<String, dynamic> decoded = jsonDecode(raw) as Map<String, dynamic>;
-    return ReglementationQuestions.fromMap(decoded);
+    final jsonString = await rootBundle.loadString('lib/data/reglementation_questions.json');
+    final jsonData = json.decode(jsonString) as Map<String, dynamic>;
+    return ReglementationQuestions.fromMap(jsonData);
   }
+
+  Map<String, dynamic> toMap() => {
+        'sections': sections.map((s) => s.toMap()).toList(),
+      };
 }

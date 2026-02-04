@@ -2,9 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:chauffageexpert/utils/mixins/shared_preferences_mixin.dart';
-import 'package:chauffageexpert/utils/widgets/app_snackbar.dart';
 
 class TirageScreen extends StatefulWidget {
   const TirageScreen({super.key});
@@ -13,11 +12,10 @@ class TirageScreen extends StatefulWidget {
   State<TirageScreen> createState() => _TirageScreenState();
 }
 
-class _TirageScreenState extends State<TirageScreen> with SharedPreferencesMixin {
-  double _tirage = -0.200; // hPa
+class _TirageScreenState extends State<TirageScreen> {
+  double _tirage = -0.180; // hPa
   double _co = 150.0; // ppm
   double _o2 = 5.2; // %
-  double _co2 = 9.5; // %
 
   final double _limiteBasse = -0.100;
   final double _idealMin = -0.200;
@@ -33,7 +31,8 @@ class _TirageScreenState extends State<TirageScreen> with SharedPreferencesMixin
   }
 
   Future<void> _charger() async {
-    final saved = await loadDouble(_prefKey);
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getDouble(_prefKey);
     if (saved != null) {
       setState(() {
         _tirage = saved.clamp(-0.50, -0.05);
@@ -43,7 +42,8 @@ class _TirageScreenState extends State<TirageScreen> with SharedPreferencesMixin
   }
 
   Future<void> _sauvegarder() async {
-    await saveDouble(_prefKey, _tirage);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_prefKey, _tirage);
   }
 
   void _updateSimu() {
@@ -60,15 +60,9 @@ class _TirageScreenState extends State<TirageScreen> with SharedPreferencesMixin
     _o2 = 2 + 6 * (lambda - 0.8);
     _o2 = _o2.clamp(1.5, 7.5);
 
-    // Calcul CO2 basé sur la combustion (relation inverse avec O2)
-    // Pour gaz naturel: CO2 max théorique ≈ 11.7%
-    _co2 = 11.7 - (_o2 * 0.5);
-    _co2 = _co2.clamp(7.0, 11.0);
-
     if (_tirage < -0.40) {
       _co *= 0.75;
       _o2 += 0.8;
-      _co2 -= 0.5;
     }
   }
 
@@ -141,15 +135,15 @@ class _TirageScreenState extends State<TirageScreen> with SharedPreferencesMixin
             const SizedBox(height: 32),
 
             Slider(
-              value: -_tirage,
-              min: 0.050,
-              max: 0.500,
+              value: _tirage,
+              min: -0.500,
+              max: -0.050,
               divisions: 450,
               label: _tirage.toStringAsFixed(3),
               activeColor: _couleur,
               onChanged: (v) {
                 setState(() {
-                  _tirage = -(v * 1000).round() / 1000;
+                  _tirage = (v * 1000).round() / 1000;
                   _updateSimu();
                 });
                 _sauvegarder();
@@ -157,52 +151,90 @@ class _TirageScreenState extends State<TirageScreen> with SharedPreferencesMixin
             ),
             const Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [Text('-0.05'), Text('-0.50')],
+              children: [Text('-0.50'), Text('-0.05')],
             ),
 
             const SizedBox(height: 32),
 
-            // Graphe des zones de tirage
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Zones de tirage',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Position du curseur sur l\'échelle :',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 16),
-                    
-                    // Visualisation des zones avec le curseur
-                    SizedBox(
-                      height: 100,
-                      child: CustomPaint(
-                        painter: TirageZonePainter(_tirage, _limiteBasse, _idealMin, _idealMax),
-                        child: Container(),
+            SizedBox(
+              height: 220,
+              child: LineChart(
+                LineChartData(
+                  minX: -0.50,
+                  maxX: -0.05,
+                  minY: 0,
+                  maxY: 1000,
+                  titlesData: FlTitlesData(
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 32,
+                        getTitlesWidget: (value, meta) => Text(value.toStringAsFixed(2)),
                       ),
                     ),
-                    
-                    const SizedBox(height: 16),
-                    const Divider(),
-                    const SizedBox(height: 8),
-                    
-                    // Légende des zones
-                    _buildZoneLegend(Colors.red, 'Zone DANGER', '> -0.10 hPa', 'Tirage insuffisant - Risque CO'),
-                    const SizedBox(height: 8),
-                    _buildZoneLegend(Colors.orange, 'Zone LIMITE', '-0.10 à -0.20 hPa', 'Acceptable mais à surveiller'),
-                    const SizedBox(height: 8),
-                    _buildZoneLegend(Colors.green, 'Zone OPTIMALE', '-0.20 à -0.30 hPa', 'Tirage idéal pour combustion'),
-                    const SizedBox(height: 8),
-                    _buildZoneLegend(Colors.blue, 'Zone FORT', '< -0.30 hPa', 'Tirage très élevé - Vérifier'),
+                    leftTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: true, reservedSize: 40),
+                    ),
+                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  ),
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: List.generate(20, (i) {
+                        double t = -0.50 + i * (0.45 / 19);
+                        double tirageAbs = t.abs();
+                        double lambda = 0.7 + 2 * tirageAbs;
+                        double co;
+                        if (lambda < 1) {
+                          co = 200 + 800 * (1 - lambda);
+                        } else {
+                          co = 50 * exp(-2 * (lambda - 1));
+                        }
+                        if (t < -0.40) co *= 0.75;
+                        return FlSpot(t, co.clamp(0, 1200) as double);
+                      }),
+                      isCurved: true,
+                      color: Colors.red,
+                      barWidth: 3,
+                      dotData: const FlDotData(show: false),
+                    ),
+                    LineChartBarData(
+                      spots: List.generate(20, (i) {
+                        double t = -0.50 + i * (0.45 / 19);
+                        double tirageAbs = t.abs();
+                        double lambda = 0.7 + 2 * tirageAbs;
+                        double o2 = 2 + 6 * (lambda - 0.8);
+                        if (t < -0.40) o2 += 0.8;
+                        return FlSpot(t, (o2.clamp(0, 10) * 100) as double);
+                      }),
+                      isCurved: true,
+                      color: Colors.blue,
+                      barWidth: 3,
+                      dotData: const FlDotData(show: false),
+                    ),
                   ],
+                  lineTouchData: LineTouchData(
+                    touchTooltipData: LineTouchTooltipData(
+                      getTooltipItems: (touchedSpots) {
+                        return touchedSpots.map((spot) {
+                          String label = spot.barIndex == 0 ? 'CO ≈ ${spot.y.toStringAsFixed(0)} ppm' : 'O₂ ≈ ${(spot.y / 100).toStringAsFixed(1)} %';
+                          return LineTooltipItem(label, TextStyle(color: spot.barIndex == 0 ? Colors.red : Colors.blue));
+                        }).toList();
+                      },
+                    ),
+                  ),
                 ),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  LegendItem(color: Colors.red, text: 'CO (ppm)'),
+                  SizedBox(width: 24),
+                  LegendItem(color: Colors.blue, text: 'O₂ (×100)'),
+                ],
               ),
             ),
 
@@ -212,21 +244,10 @@ class _TirageScreenState extends State<TirageScreen> with SharedPreferencesMixin
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Valeurs mesurées/simulées',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildMeasureRow('CO', '${_co.toStringAsFixed(0)} ppm', _co > 200 ? Colors.red : Colors.green, 
-                      _co > 200 ? '⚠️ Élevé' : '✓ OK'),
-                    const Divider(height: 20),
-                    _buildMeasureRow('O₂', '${_o2.toStringAsFixed(1)} %', _o2 < 3 ? Colors.orange : Colors.blue,
-                      _o2 < 3 ? '⚠️ Faible' : '✓ Normal'),
-                    const Divider(height: 20),
-                    _buildMeasureRow('CO₂', '${_co2.toStringAsFixed(1)} %', _co2 > 9 ? Colors.green : Colors.orange,
-                      _co2 > 9 ? '✓ Bon' : 'ℹ️ Moyen'),
+                    Text('CO simulé : ${_co.toStringAsFixed(0)} ppm', style: TextStyle(fontSize: 20, color: _co > 200 ? Colors.red : Colors.green)),
+                    const SizedBox(height: 8),
+                    Text('O₂ simulé  : ${_o2.toStringAsFixed(1)} %', style: TextStyle(fontSize: 20, color: _o2 < 3 ? Colors.orange : Colors.blue)),
                   ],
                 ),
               ),
@@ -253,9 +274,9 @@ class _TirageScreenState extends State<TirageScreen> with SharedPreferencesMixin
                   icon: const Icon(Icons.copy),
                   label: const Text('Exporter'),
                   onPressed: () {
-                    final text = 'Tirage: ${_tirage.toStringAsFixed(3)} hPa | CO: ${_co.toStringAsFixed(0)} ppm | O₂: ${_o2.toStringAsFixed(1)} % | CO₂: ${_co2.toStringAsFixed(1)} %';
+                    final text = 'Tirage: ${_tirage.toStringAsFixed(3)} hPa | CO: ${_co.toStringAsFixed(0)} ppm | O₂: ${_o2.toStringAsFixed(1)} %';
                     Clipboard.setData(ClipboardData(text: text));
-                    AppSnackBar.showCopied(context);
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Copié !')));
                   },
                 ),
               ],
@@ -267,171 +288,6 @@ class _TirageScreenState extends State<TirageScreen> with SharedPreferencesMixin
         ),
       ),
     );
-  }
-
-  Widget _buildZoneLegend(Color color, String title, String range, String description) {
-    return Row(
-      children: [
-        Container(
-          width: 20,
-          height: 20,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '$title ($range)',
-                style: TextStyle(fontWeight: FontWeight.bold, color: color),
-              ),
-              Text(
-                description,
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMeasureRow(String label, String value, Color color, String status) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-        Row(
-          children: [
-            Text(
-              value,
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              status,
-              style: TextStyle(fontSize: 14, color: color),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-// Painter pour visualiser les zones de tirage
-class TirageZonePainter extends CustomPainter {
-  final double tirage;
-  final double limiteBasse;
-  final double idealMin;
-  final double idealMax;
-
-  TirageZonePainter(this.tirage, this.limiteBasse, this.idealMin, this.idealMax);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.fill;
-
-    // Échelle : de -0.50 (gauche) à -0.05 (droite)
-    final minValue = -0.50;
-    final maxValue = -0.05;
-    final range = maxValue - minValue;
-
-    double getX(double value) {
-      return ((value - minValue) / range) * size.width;
-    }
-
-    // Zone DANGER (rouge) : > -0.10
-    paint.color = Colors.red.withOpacity(0.3);
-    canvas.drawRect(
-      Rect.fromLTWH(getX(limiteBasse), 0, size.width - getX(limiteBasse), size.height),
-      paint,
-    );
-
-    // Zone LIMITE (orange) : -0.10 à -0.20
-    paint.color = Colors.orange.withOpacity(0.3);
-    canvas.drawRect(
-      Rect.fromLTWH(getX(idealMin), 0, getX(limiteBasse) - getX(idealMin), size.height),
-      paint,
-    );
-
-    // Zone OPTIMALE (vert) : -0.20 à -0.30
-    paint.color = Colors.green.withOpacity(0.3);
-    canvas.drawRect(
-      Rect.fromLTWH(getX(idealMax), 0, getX(idealMin) - getX(idealMax), size.height),
-      paint,
-    );
-
-    // Zone FORT (bleu) : < -0.30
-    paint.color = Colors.blue.withOpacity(0.3);
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, getX(idealMax), size.height),
-      paint,
-    );
-
-    // Dessiner les lignes de séparation
-    final linePaint = Paint()
-      ..color = Colors.black54
-      ..strokeWidth = 1
-      ..style = PaintingStyle.stroke;
-
-    canvas.drawLine(Offset(getX(limiteBasse), 0), Offset(getX(limiteBasse), size.height), linePaint);
-    canvas.drawLine(Offset(getX(idealMin), 0), Offset(getX(idealMin), size.height), linePaint);
-    canvas.drawLine(Offset(getX(idealMax), 0), Offset(getX(idealMax), size.height), linePaint);
-
-    // Dessiner le curseur de position actuelle
-    final cursorX = getX(tirage);
-    final cursorPaint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke;
-
-    // Triangle pointant vers le bas
-    final path = Path();
-    path.moveTo(cursorX, 0);
-    path.lineTo(cursorX - 10, -15);
-    path.lineTo(cursorX + 10, -15);
-    path.close();
-    canvas.drawPath(path, Paint()..color = Colors.black);
-
-    // Ligne verticale
-    canvas.drawLine(Offset(cursorX, 0), Offset(cursorX, size.height), cursorPaint);
-
-    // Labels des valeurs clés
-    final textPainter = TextPainter(
-      textDirection: TextDirection.ltr,
-      textAlign: TextAlign.center,
-    );
-
-    void drawLabel(String text, double value, double offsetY) {
-      textPainter.text = TextSpan(
-        text: text,
-        style: const TextStyle(color: Colors.black87, fontSize: 11, fontWeight: FontWeight.bold),
-      );
-      textPainter.layout();
-      textPainter.paint(
-        canvas,
-        Offset(getX(value) - textPainter.width / 2, size.height + offsetY),
-      );
-    }
-
-    drawLabel('-0.50', -0.50, 5);
-    drawLabel('-0.30', -0.30, 5);
-    drawLabel('-0.20', -0.20, 5);
-    drawLabel('-0.10', -0.10, 5);
-    drawLabel('-0.05', -0.05, 5);
-  }
-
-  @override
-  bool shouldRepaint(TirageZonePainter oldDelegate) {
-    return oldDelegate.tirage != tirage;
   }
 }
 

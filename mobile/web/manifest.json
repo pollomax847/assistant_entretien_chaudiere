@@ -1,6 +1,6 @@
 {
-    "name": "assistant_entretien_chaudiere_mobile",
-    "short_name": "assistant_entretien_chaudiere_mobile",
+    "name": "assistant_entreiten_chaudiere",
+    "short_name": "assistant_entreiten_chaudiere",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

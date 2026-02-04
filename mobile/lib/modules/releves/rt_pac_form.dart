@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:chauffageexpert/services/pdf_generator.dart';
-import 'package:chauffageexpert/services/json_exporter.dart';
-import 'package:chauffageexpert/modules/releves/releve_technique_model.dart';
-import 'package:chauffageexpert/modules/releves/mixins/reglementation_gaz_mixin.dart';
-import 'package:chauffageexpert/modules/releves/widgets/common_form_widgets.dart';
 
 class RTPACForm extends StatefulWidget {
-  const RTPACForm({super.key});
+  final Function(Map<String, dynamic>)? onDataChanged;
+
+  const RTPACForm({super.key, this.onDataChanged});
 
   @override
   State<RTPACForm> createState() => _RTPACFormState();
 }
 
-class _RTPACFormState extends State<RTPACForm> with ReglementationGazMixin {
+class _RTPACFormState extends State<RTPACForm> {
   final _formKey = GlobalKey<FormState>();
 
   // --- CONTROLLERS ---
@@ -29,6 +26,8 @@ class _RTPACFormState extends State<RTPACForm> with ReglementationGazMixin {
     'distTableau': TextEditingController(),
     'deperditionTotale': TextEditingController(),
     'tauxCouverture': TextEditingController(),
+    'hauteurFixationExt': TextEditingController(),
+    'longRaccordement': TextEditingController(),
   };
 
   // --- STATES ---
@@ -36,25 +35,18 @@ class _RTPACFormState extends State<RTPACForm> with ReglementationGazMixin {
   bool _ecsIndependante = false;
   bool _tableauConforme = false;
   bool _besoinTableauSupp = false;
-  // ignore: unused_field
-  final bool _uiEmplacementChaudiere = true;
+  bool _uiEmplacementChaudiere = true;
   bool _vanne3Voies = false;
   bool _ballonDecouplage = false;
+  bool _groupeSurChaise = false;
+  bool _pompeRelevageInt = false;
   String _typeEmetteur = 'Radiateur fonte';
-  // Réglementation Gaz (maintenant dans ReglementationGazMixin)
-
-  @override
-  void initState() {
-    super.initState();
-    loadReglementationQuestions();
-  }
 
   @override
   void dispose() {
     for (var controller in _controllers.values) {
       controller.dispose();
     }
-    disposeReglementationControllers();
     super.dispose();
   }
 
@@ -71,24 +63,13 @@ class _RTPACFormState extends State<RTPACForm> with ReglementationGazMixin {
           padding: const EdgeInsets.all(12.0),
           child: Column(
             children: [
-              CommonFormWidgets.buildHeader(
-                icon: Icons.heat_pump,
-                title: 'RELEVÉ TECHNIQUE PAC',
-                color: Colors.indigo,
-                context: context,
-              ),
-              CommonFormWidgets.buildSection(
-                title: 'Client',
-                color: Colors.indigo,
-                children: [
+              _buildHeader(),
+              _buildSection('Client', [
                 _buildTextField('numClient', 'Numéro client (gazelle)'),
                 _buildTextField('nomClient', 'Nom du client'),
                 _buildTextField('adresseFact', 'Adresse de facturation', maxLines: 2),
               ]),
-              CommonFormWidgets.buildSection(
-                title: 'Description de l\'habitation',
-                color: Colors.indigo,
-                children: [
+              _buildSection('Description de l\'habitation', [
                 _buildTextField('anneeConst', 'Année de construction', keyboardType: TextInputType.number),
                 SwitchListTile(
                   title: const Text('Repérage amiante établi'),
@@ -97,27 +78,16 @@ class _RTPACFormState extends State<RTPACForm> with ReglementationGazMixin {
                 ),
                 _buildTextField('surfaceChauffer', 'Surface à chauffer (m2)', keyboardType: TextInputType.number),
               ]),
-              CommonFormWidgets.buildSection(
-                title: 'Réglementation Gaz',
-                color: Colors.indigo,
-                children: [buildSectionReglementation(showAllFields: false)],
-              ),
-              CommonFormWidgets.buildSection(
-                title: 'Volumes & Émetteurs',
-                color: Colors.indigo,
-                children: [
+              _buildSection('Volumes & Émetteurs', [
                 DropdownButtonFormField<String>(
-                  initialValue: _typeEmetteur,
+                  value: _typeEmetteur,
                   decoration: const InputDecoration(labelText: 'Type d\'émetteur zone 1', contentPadding: EdgeInsets.symmetric(horizontal: 16)),
                   items: ['Radiateur fonte', 'Radiateur acier', 'Plancher chauffant'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
                   onChanged: (v) => setState(() => _typeEmetteur = v!),
                 ),
                 _buildTextField('nbRadiateurs', 'Nombre total de radiateurs', keyboardType: TextInputType.number),
               ]),
-              CommonFormWidgets.buildSection(
-                title: 'Système Actuel',
-                color: Colors.indigo,
-                children: [
+              _buildSection('Système Actuel', [
                 SwitchListTile(
                   title: const Text('Production ECS indépendante'),
                   value: _ecsIndependante,
@@ -125,10 +95,7 @@ class _RTPACFormState extends State<RTPACForm> with ReglementationGazMixin {
                 ),
                 _buildTextField('consoFuel', 'Consommation Fuel annuelle (L)', keyboardType: TextInputType.number),
               ]),
-              CommonFormWidgets.buildSection(
-                title: 'Caractéristiques Électriques',
-                color: Colors.indigo,
-                children: [
+              _buildSection('Caractéristiques Électriques', [
                 SwitchListTile(
                   title: const Text('Tableau électrique conforme'),
                   value: _tableauConforme,
@@ -136,16 +103,35 @@ class _RTPACFormState extends State<RTPACForm> with ReglementationGazMixin {
                 ),
                 _buildTextField('tension', 'Mesure de la tension (V)', keyboardType: TextInputType.number),
                 _buildTextField('puissanceAbo', 'Puissance abonnement (kVA)', keyboardType: TextInputType.number),
+                _buildTextField('distTableau', 'Distance tableau (m)', keyboardType: TextInputType.number),
                 CheckboxListTile(
                   title: const Text('Besoin d\'un tableau supplémentaire'),
                   value: _besoinTableauSupp,
                   onChanged: (v) => setState(() => _besoinTableauSupp = v!),
                 ),
               ]),
-              CommonFormWidgets.buildSection(
-                title: 'Hydraulique',
-                color: Colors.indigo,
-                children: [
+              _buildSection('Installation Groupe Extérieur', [
+                _buildTextField('hauteurFixationExt', 'Hauteur fixation (m)', keyboardType: TextInputType.number),
+                SwitchListTile(
+                  title: const Text('Groupe sur chaise'),
+                  value: _groupeSurChaise,
+                  onChanged: (v) => setState(() => _groupeSurChaise = v),
+                ),
+                SwitchListTile(
+                  title: const Text('UI à l\'emplacement chaudière'),
+                  value: _uiEmplacementChaudiere,
+                  onChanged: (v) => setState(() => _uiEmplacementChaudiere = v),
+                ),
+              ]),
+              _buildSection('Installation Unité Intérieur', [
+                _buildTextField('longRaccordement', 'Longueur raccordement (m)', keyboardType: TextInputType.number),
+                SwitchListTile(
+                  title: const Text('Besoin pompe de relevage'),
+                  value: _pompeRelevageInt,
+                  onChanged: (v) => setState(() => _pompeRelevageInt = v),
+                ),
+              ]),
+              _buildSection('Hydraulique', [
                 CheckboxListTile(
                   title: const Text('Vanne 3 voies'),
                   value: _vanne3Voies,
@@ -157,21 +143,22 @@ class _RTPACFormState extends State<RTPACForm> with ReglementationGazMixin {
                   onChanged: (v) => setState(() => _ballonDecouplage = v!),
                 ),
               ]),
-              CommonFormWidgets.buildSection(
-                title: 'Dimensionnement',
-                color: Colors.indigo,
-                children: [
+              _buildSection('Dimensionnement', [
                 _buildTextField('deperditionTotale', 'Déperdition totale (kW)', keyboardType: TextInputType.number),
                 _buildTextField('tauxCouverture', 'Taux de couverture (%)', keyboardType: TextInputType.number),
               ]),
-              CommonFormWidgets.buildSubmitButton(
+              const SizedBox(height: 24),
+              ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    _performExports();
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Relevé PAC enregistré')));
                   }
                 },
-                label: 'ENREGISTRER LE RELEVÉ PAC',
-                backgroundColor: Colors.indigo,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.indigo,
+                  minimumSize: const Size.fromHeight(50),
+                ),
+                child: const Text('ENREGISTRER LE RELEVÉ PAC', style: TextStyle(color: Colors.white)),
               ),
               const SizedBox(height: 40),
             ],
@@ -181,74 +168,39 @@ class _RTPACFormState extends State<RTPACForm> with ReglementationGazMixin {
     );
   }
 
-  Future<void> _performExports() async {
-    await saveReglementationToPrefs();
-
-    final Map<String, Map<String, String>> sections = {
-      'Client': {
-        'Numéro client': _controllers['numClient']?.text ?? '',
-        'Nom client': _controllers['nomClient']?.text ?? '',
-        'Adresse facturation': _controllers['adresseFact']?.text ?? '',
-      },
-      'Habitation': {
-        'Année construction': _controllers['anneeConst']?.text ?? '',
-        'Surface à chauffer': _controllers['surfaceChauffer']?.text ?? '',
-      },
-      'PAC': {
-        'Type émetteur': _typeEmetteur,
-        'Nb radiateurs': _controllers['nbRadiateurs']?.text ?? '',
-      },
-    };
-
-    try {
-      final pdfFile = await PDFGeneratorService.instance.genererReleveTechnique(donnees: sections, typeReleve: 'pac');
-      if (mounted) CommonFormWidgets.showSuccessSnackBar(context, 'PDF généré: ${pdfFile.path}');
-    } catch (e) {
-      if (mounted) CommonFormWidgets.showErrorSnackBar(context, 'Erreur génération PDF');
-    }
-
-    final diagnosticGazMap = await JSONExporter.collectDiagnosticGaz();
-    final releve = ReleveTechnique(
-      clientNumber: _controllers['numClient']?.text,
-      clientName: _controllers['nomClient']?.text,
-      chantierAddress: _controllers['adresseFact']?.text,
-      anneeConstruction: _controllers['anneeConst']?.text,
-      surface: _controllers['surfaceChauffer']?.text,
-      equipementType: _typeEmetteur,
-      diagnosticGaz: diagnosticGazMap,
-      // Réglementation
-      vasoPresent: vasoPresent,
-      vasoConforme: vasoConforme,
-      vasoObservation: vasoObservation,
-      roaiPresent: roaiPresent,
-      roaiConforme: roaiConforme,
-      roaiObservation: roaiObservation,
-      typeHotte: typeHotte,
-      ventilationConforme: ventilationConforme,
-      ventilationObservation: ventilationObservation,
-      vmcPresent: vmcPresent,
-      vmcConforme: vmcConforme,
-      vmcObservation: vmcObservation,
-      detecteurCO: detecteurCO,
-      detecteurGaz: detecteurGaz,
-      detecteursConformes: detecteursConformes,
-      distanceFenetre: distanceFenetreController.text,
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: const Column(
+        children: [
+          Icon(Icons.heat_pump, size: 50, color: Colors.indigo),
+          SizedBox(height: 10),
+          Text('RELEVÉ TECHNIQUE PAC', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          Divider(thickness: 2, color: Colors.indigo),
+        ],
+      ),
     );
+  }
 
-    try {
-      final jsonFile = await JSONExporter.exportReleveTechniqueJson(releve, 'pac');
-      if (mounted) CommonFormWidgets.showSuccessSnackBar(context, 'JSON exporté: ${jsonFile.path}');
-    } catch (e) {
-      if (mounted) CommonFormWidgets.showErrorSnackBar(context, 'Erreur export JSON');
-    }
+  Widget _buildSection(String title, List<Widget> children) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: ExpansionTile(
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo)),
+        children: children,
+      ),
+    );
   }
 
   Widget _buildTextField(String key, String label, {TextInputType keyboardType = TextInputType.text, int maxLines = 1}) {
-    return CommonFormWidgets.buildTextField(
-      controller: _controllers[key]!,
-      label: label,
-      keyboardType: keyboardType,
-      maxLines: maxLines,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: TextFormField(
+        controller: _controllers[key],
+        decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
+        keyboardType: keyboardType,
+        maxLines: maxLines,
+      ),
     );
   }
 }

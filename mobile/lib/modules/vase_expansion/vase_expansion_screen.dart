@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/pdf_generator_service.dart';
+import 'package:share_plus/share_plus.dart';
 
-/// Écran pour le calcul et l'aide au dimensionnement
-/// d'un vase d'expansion pour une installation de chauffage.
-///
-/// - Calcul simple : pression recommandée en fonction de la hauteur (HMT).
-/// - Calcul avancé : estimation du volume du vase d'expansion à partir
-///   du volume d'eau, de la dilatation et des pressions mini/maxi.
 class VaseExpansionScreen extends StatefulWidget {
   const VaseExpansionScreen({super.key});
 
@@ -14,190 +11,371 @@ class VaseExpansionScreen extends StatefulWidget {
 }
 
 class _VaseExpansionScreenState extends State<VaseExpansionScreen> {
-  // Hauteur d'installation (HMT) en mètres, valeur par défaut pratique
-  final _hauteurController = TextEditingController(text: '10');
-  double? _pression; // pression recommandée en bar
+  bool _conforme = false;
+  final _formKey = GlobalKey<FormState>();
+  final _hauteurController = TextEditingController();
 
-  // Contrôleurs pour le calcul avancé
-  final _volumeEauController = TextEditingController(); // L
-  final _deltaVexpController = TextEditingController(); // fraction (ex: 0.04)
-  final _pmaxController = TextEditingController(); // bar
-  final _pminController = TextEditingController(); // bar
-  double? _vaseAvanceL; // résultat en litres (L)
+  double? _pressionRecommandee;
+  String? _recommandation;
 
-  // --- UI helpers -------------------------------------------------------
-  Widget _numberField(TextEditingController controller, String label, String hint) {
-    return TextField(
-      controller: controller,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        border: const OutlineInputBorder(),
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _chargerDonnees();
   }
 
-  // Affiche la boîte de dialogue du calcul avancé
-  void _showAdvancedDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Calcul avancé du vase d\'expansion'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _numberField(_volumeEauController, 'Volume total d\'eau (L)', 'Ex: 200'),
-                const SizedBox(height: 8),
-                _numberField(_deltaVexpController, 'Variation relative de volume', 'Ex: 0.04 pour 4%'),
-                const SizedBox(height: 8),
-                _numberField(_pmaxController, 'Pression max (bar)', 'Ex: 3.0'),
-                const SizedBox(height: 8),
-                _numberField(_pminController, 'Pression min (bar)', 'Ex: 1.0'),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Annuler'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                _calculerAvance();
-                setState(() {});
-                Navigator.of(context).pop();
-                _showResultAvance();
-              },
-              child: const Text('Calculer'),
-            ),
-          ],
-        );
-      },
-    );
+  @override
+  void dispose() {
+    _hauteurController.dispose();
+    super.dispose();
   }
 
-  // Calcul avancé : retourne null si paramètres invalides.
-  // Formule utilisée (avec volumes en m3) :
-  // V_vase = (V_eau * deltaV) / ( (pmax/pmin) - 1 )
-  // Ici on retourne le résultat en litres (L) pour être plus convivial.
-  void _calculerAvance() {
-    final vEauL = double.tryParse(_volumeEauController.text) ?? 0.0;
-    final deltaV = double.tryParse(_deltaVexpController.text) ?? 0.0;
-    final pmax = double.tryParse(_pmaxController.text) ?? 0.0;
-    final pmin = double.tryParse(_pminController.text) ?? 0.0;
+  Future<void> _chargerDonnees() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _hauteurController.text = prefs.getString('hauteurBatiment') ?? '';
+    });
+  }
 
-    if (vEauL > 0 && deltaV > 0 && pmax > 0 && pmin > 0 && pmax > pmin) {
-      // Conversion L -> m3 pour la formule
-      final vEauM3 = vEauL / 1000.0;
-      final resultM3 = (vEauM3 * deltaV) / ((pmax / pmin) - 1);
-      // Convertir en litres pour affichage
-      _vaseAvanceL = resultM3 * 1000.0;
-    } else {
-      _vaseAvanceL = null;
+  Future<void> _sauvegarderDonnees() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('hauteurBatiment', _hauteurController.text);
+    if (_pressionRecommandee != null) {
+      await prefs.setString('pressionRecommandee', _pressionRecommandee.toString());
     }
   }
 
-  void _showResultAvance() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Résultat du calcul avancé'),
-          content: _vaseAvanceL != null
-              ? Text('Volume recommandé : ${_vaseAvanceL!.toStringAsFixed(2)} L')
-              : const Text('Paramètres invalides ou manquants.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Fermer'),
-            ),
-          ],
-        );
-      },
-    );
+  void _calculerPression() {
+    if (!_formKey.currentState!.validate()) return;
+
+    try {
+      double hauteur = double.parse(_hauteurController.text);
+
+      // Formule selon cahier des charges :
+      // Pression recommandée (bar) = (hauteur bâtiment ÷ 10) + 0,3 bar
+      double pression = (hauteur / 10) + 0.3;
+
+      // Détermination de la recommandation
+      String recommandation;
+      if (pression < 1.0) {
+        recommandation = 'Pression faible - Vérifier le dimensionnement du vase';
+      } else if (pression > 4.0) {
+        recommandation = 'Pression élevée - Consulter un professionnel pour le dimensionnement';
+      } else {
+        recommandation = 'Pression dans la plage normale - Vérification sur site recommandée';
+      }
+
+      setState(() {
+        _pressionRecommandee = pression;
+        _recommandation = recommandation;
+      });
+
+      _sauvegarderDonnees();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Calcul effectué avec succès')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur de calcul: $e')),
+      );
+    }
   }
 
-  // Calcul simple de la pression recommandée en bar
-  void _calculerPression() {
-    final hauteur = double.tryParse(_hauteurController.text) ?? 0.0;
-    _pression = (hauteur / 10) + 0.3;
-    setState(() {});
+  Future<void> _genererPDF() async {
+    if (_pressionRecommandee == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Aucun résultat à exporter')),
+      );
+      return;
+    }
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final technicien = prefs.getString('technicien') ?? 'Technicien';
+      final entreprise = prefs.getString('entreprise') ?? 'Entreprise';
+
+      final pdfFile = await PdfGeneratorService.generateVaseExpansionPdf(
+        technicien: technicien,
+        entreprise: entreprise,
+        dateCalcul: DateTime.now(),
+        hauteurInstallation: double.parse(_hauteurController.text),
+        pressionCalculee: _pressionRecommandee!,
+        recommandation: _recommandation!,
+        conforme: _conforme,
+        observations: null,
+      );
+
+      await Share.shareXFiles(
+        [XFile(pdfFile.path)],
+        text: 'Rapport de calcul vase d\'expansion',
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('PDF généré et partagé avec succès')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de la génération du PDF: $e')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Vase d'expansion")),
-      body: Padding(
+      appBar: AppBar(
+        title: const Text('Vase d\'expansion'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            onPressed: _genererPDF,
+            tooltip: 'Générer PDF',
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-            Text('Calcul de la pression recommandée', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _hauteurController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(
-                labelText: 'Hauteur de l\'installation (HMT) en mètres',
-                prefixIcon: Icon(Icons.height),
-                border: OutlineInputBorder(),
-                hintText: 'Ex: 10',
-              ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.calculate),
-                  label: const Text('Calculer'),
-                  onPressed: _calculerPression,
-                ),
-                const SizedBox(width: 8),
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.science),
-                  label: const Text('Calcul avancé'),
-                  onPressed: _showAdvancedDialog,
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            if (_pression != null)
+              // Description
               Card(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Pression recommandée : ${_pression!.toStringAsFixed(2)} bar', style: Theme.of(context).textTheme.titleMedium),
-                      const SizedBox(height: 6),
-                      const Text('Remarque : tenir compte des pertes et caractéristiques constructeur.'),
+                      Text(
+                        'Calculateur Vase d\'expansion',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Calculez la pression recommandée pour le vase d\'expansion de votre installation de chauffage.',
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Formule: Pression recommandée = (hauteur bâtiment ÷ 10) + 0,3 bar',
+                        style: TextStyle(fontStyle: FontStyle.italic),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.blue.shade200),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.info, color: Colors.blue),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Une vérification manométrique sur site est toujours recommandée pour confirmer ces valeurs.',
+                                style: TextStyle(color: Colors.blue),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
-            const SizedBox(height: 16),
-            Text('Formule utilisée :', style: Theme.of(context).textTheme.titleMedium),
-            const Text('Pression (bar) = (hauteur bâtiment / 10) + 0.3'),
-          ],
+
+              const SizedBox(height: 16),
+
+              // Saisie de la hauteur
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Paramètres du bâtiment',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _hauteurController,
+                        decoration: const InputDecoration(
+                          labelText: 'Hauteur du bâtiment (mètres)',
+                          suffixText: 'm',
+                          helperText: 'Hauteur totale du bâtiment depuis le niveau du vase d\'expansion',
+                        ),
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Champ requis';
+                          }
+                          if (double.tryParse(value) == null) {
+                            return 'Nombre valide requis';
+                          }
+                          double hauteur = double.parse(value);
+                          if (hauteur <= 0) {
+                            return 'La hauteur doit être positive';
+                          }
+                          if (hauteur > 100) {
+                            return 'Hauteur maximale recommandée: 100m';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Bouton Calculer
+              Center(
+                child: ElevatedButton.icon(
+                  onPressed: _calculerPression,
+                  icon: const Icon(Icons.calculate),
+                  label: const Text('Calculer la pression'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Résultats
+              if (_pressionRecommandee != null) ...[
+                Card(
+                  color: Colors.green.shade50,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Résultat du calcul',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildResultRow(
+                          'Pression recommandée',
+                          '${_pressionRecommandee!.toStringAsFixed(1)} bar',
+                        ),
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: _getRecommendationColor(),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(_getRecommendationIcon(), color: Colors.white),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _recommandation!,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Informations complémentaires
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Informations complémentaires',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          '• La pression pré-charge du vase doit être vérifiée manométriquement sur site',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          '• Pour les bâtiments de grande hauteur, consultez les normes en vigueur',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          '• Un vase sous-dimensionné peut causer des problèmes de sécurité',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          '• Un vase sur-dimensionné peut réduire l\'efficacité du système',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
       ),
     );
   }
 
-  @override
-  void dispose() {
-    _hauteurController.dispose();
-    _volumeEauController.dispose();
-    _deltaVexpController.dispose();
-    _pmaxController.dispose();
-    _pminController.dispose();
-    super.dispose();
+  Widget _buildResultRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+          Text(
+            value,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: Colors.green,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getRecommendationColor() {
+    if (_recommandation == null) return Colors.grey;
+
+    if (_recommandation!.contains('faible') || _recommandation!.contains('élevée')) {
+      return Colors.orange;
+    } else if (_recommandation!.contains('professionnel')) {
+      return Colors.red;
+    } else {
+      return Colors.green;
+    }
+  }
+
+  IconData _getRecommendationIcon() {
+    if (_recommandation == null) return Icons.info;
+
+    if (_recommandation!.contains('faible') || _recommandation!.contains('élevée')) {
+      return Icons.warning;
+    } else if (_recommandation!.contains('professionnel')) {
+      return Icons.error;
+    } else {
+      return Icons.check_circle;
+    }
   }
 }

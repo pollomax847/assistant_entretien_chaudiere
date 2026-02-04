@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../utils/preferences_provider.dart';
-import '../services/github_update_service.dart';
 
 class PreferencesScreen extends StatefulWidget {
   const PreferencesScreen({super.key});
@@ -123,7 +122,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
                         ),
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
-                          initialValue: preferences.defaultModule,
+                          value: preferences.defaultModule,
                           decoration: const InputDecoration(
                             labelText: 'Module de démarrage',
                             prefixIcon: Icon(Icons.home),
@@ -159,37 +158,15 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 16),
-                        FutureBuilder<Map<String, String>>(
-                          future: GitHubUpdateService().getVersionInfo(),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData) {
-                              return ListTile(
-                                leading: const Icon(Icons.info),
-                                title: const Text('Version'),
-                                subtitle: Text('${snapshot.data!['version']} (${snapshot.data!['buildNumber']})'),
-                              );
-                            }
-                            return const ListTile(
-                              leading: Icon(Icons.info),
-                              title: Text('Version'),
-                              subtitle: Text('Chargement...'),
-                            );
-                          },
+                        const ListTile(
+                          leading: Icon(Icons.info),
+                          title: Text('Version'),
+                          subtitle: Text('1.0.0'),
                         ),
                         const ListTile(
                           leading: Icon(Icons.code),
                           title: Text('Développé avec'),
                           subtitle: Text('Flutter & Dart'),
-                        ),
-                        const Divider(),
-                        ListTile(
-                          leading: const Icon(Icons.system_update),
-                          title: const Text('Vérifier les mises à jour'),
-                          subtitle: const Text('Rechercher une nouvelle version'),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () {
-                            GitHubUpdateService().checkManually(context);
-                          },
                         ),
                       ],
                     ),

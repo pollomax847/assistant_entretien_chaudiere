@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:chauffageexpert/utils/mixins/shared_preferences_mixin.dart';
-import 'package:chauffageexpert/utils/mixins/calculation_mixin.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/pdf_generator_service.dart';
+import 'package:share_plus/share_plus.dart';
 
 class EcsScreen extends StatefulWidget {
   const EcsScreen({super.key});
@@ -9,224 +10,434 @@ class EcsScreen extends StatefulWidget {
   State<EcsScreen> createState() => _EcsScreenState();
 }
 
-class _EcsScreenState extends State<EcsScreen> 
-    with SharedPreferencesMixin, CalculationMixin {
-  final _debitController = TextEditingController(text: '12');
-  final _tempEauFroideController = TextEditingController(text: '15');
-  final _tempEauChaudeController = TextEditingController(text: '55');
+class _EcsScreenState extends State<EcsScreen> {
+  final _formKey = GlobalKey<FormState>();
+
+  // Contrôleurs pour les équipements
+  final List<TextEditingController> _debitControllers = [];
+  final List<TextEditingController> _coeffControllers = [];
+
+  // Températures
+  final _tempFroideController = TextEditingController(text: '10');
+  final _tempChaudeController = TextEditingController(text: '45');
+
+  // Résultats
+  double? _debitSimultaneLmin;
+  double? _debitSimultaneM3h;
   double? _puissanceInstantanee;
-  double? _deltaT;
-  final _puissanceChaudiereController = TextEditingController(text: '25');
-  double? _puissanceChaudiere;
-  double _seuilOrangePercent = 90.0; // shown in UI (50-100)
-  // ignore: unused_field
-  double? _seuilOrange;
+
+  // Liste des équipements
+  final List<String> _equipements = [];
 
   @override
   void initState() {
     super.initState();
-    _loadPrefs();
+    _chargerDonnees();
+    _ajouterEquipement(); // Au moins un équipement par défaut
   }
 
-  Future<void> _loadPrefs() async {
-    final v = await loadDouble('seuil_orange') ?? 90.0;
-    final p = await loadDouble('puissance_chaudiere');
+  @override
+  void dispose() {
+    for (var controller in _debitControllers) {
+      controller.dispose();
+    }
+    for (var controller in _coeffControllers) {
+      controller.dispose();
+    }
+    _tempFroideController.dispose();
+    _tempChaudeController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _chargerDonnees() async {
+    final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _seuilOrangePercent = v;
-      if (p != null) {
-        _puissanceChaudiere = p;
-        _puissanceChaudiereController.text = p.toStringAsFixed(1);
+      _tempFroideController.text = prefs.getString('tempFroide') ?? '10';
+      _tempChaudeController.text = prefs.getString('tempChaude') ?? '45';
+
+      // Charger les équipements sauvegardés
+      int nbEquipements = prefs.getInt('nbEquipements') ?? 0;
+      for (int i = 0; i < nbEquipements; i++) {
+        if (i >= _equipements.length) {
+          _ajouterEquipement();
+        }
+        _debitControllers[i].text = prefs.getString('debit_$i') ?? '';
+        _coeffControllers[i].text = prefs.getString('coeff_$i') ?? '1.0';
       }
+    });
+  }
+
+  Future<void> _sauvegarderDonnees() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('tempFroide', _tempFroideController.text);
+    await prefs.setString('tempChaude', _tempChaudeController.text);
+    await prefs.setInt('nbEquipements', _equipements.length);
+
+    for (int i = 0; i < _equipements.length; i++) {
+      await prefs.setString('debit_$i', _debitControllers[i].text);
+      await prefs.setString('coeff_$i', _coeffControllers[i].text);
+    }
+  }
+
+  void _ajouterEquipement() {
+    setState(() {
+      _equipements.add('Équipement ${_equipements.length + 1}');
+      _debitControllers.add(TextEditingController());
+      _coeffControllers.add(TextEditingController(text: '1.0'));
+    });
+  }
+
+  void _supprimerEquipement(int index) {
+    setState(() {
+      _equipements.removeAt(index);
+      _debitControllers.removeAt(index).dispose();
+      _coeffControllers.removeAt(index).dispose();
     });
   }
 
   void _calculer() {
-    final debit = double.tryParse(_debitController.text) ?? 0.0; // L/min
-    final tFroid = double.tryParse(_tempEauFroideController.text) ?? 15;
-    final tChaude = double.tryParse(_tempEauChaudeController.text) ?? 55;
-    final installed = double.tryParse(_puissanceChaudiereController.text) ?? 0.0;
-    final seuilPercent = _seuilOrangePercent;
-    final seuil = (seuilPercent / 100.0).clamp(0.0, 1.0);
-    final delta = tChaude - tFroid;
-    setState(() {
-      // specific heat of water: 4180 J/(kg·°C)
-      // debit (L/min) / 60 -> kg/s (approx.), multiply by 4180 J/kg°C and ΔT (°C),
-      // divide by 1000 to convert W to kW
-      _deltaT = delta;
-      _puissanceChaudiere = installed;
-      _seuilOrange = seuil;
-      _puissanceInstantanee = (debit / 60) * 4180 * delta / 1000;
-    });
+    if (!_formKey.currentState!.validate()) return;
+
+    try {
+      double tempFroide = double.parse(_tempFroideController.text);
+      double tempChaude = double.parse(_tempChaudeController.text);
+
+      // Calcul du débit simultané
+      double debitSimultane = 0.0;
+      for (int i = 0; i < _equipements.length; i++) {
+        double debit = double.parse(_debitControllers[i].text);
+        double coeff = double.parse(_coeffControllers[i].text);
+        debitSimultane += debit * coeff;
+      }
+
+      // Calcul de la puissance instantanée (W)
+      // Puissance = débit (L/min) × ΔT × 1.163 (coefficient eau)
+      double deltaT = tempChaude - tempFroide;
+      double puissance = debitSimultane * deltaT * 1.163; // W
+
+      setState(() {
+        _debitSimultaneLmin = debitSimultane;
+        _debitSimultaneM3h = debitSimultane * 60 / 1000; // Conversion L/min vers m³/h
+        _puissanceInstantanee = puissance / 1000; // Conversion W vers kW
+      });
+
+      _sauvegarderDonnees();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Calcul effectué avec succès')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur de calcul: $e')),
+      );
+    }
+  }
+
+  Future<void> _genererPDF() async {
+    if (_debitSimultaneLmin == null || _puissanceInstantanee == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Aucun résultat à exporter')),
+      );
+      return;
+    }
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final technicien = prefs.getString('technicien') ?? 'Technicien';
+      final entreprise = prefs.getString('entreprise') ?? 'Entreprise';
+
+      // Préparer les données des équipements
+      final equipements = <Map<String, dynamic>>[];
+      for (int i = 0; i < _equipements.length; i++) {
+        final debit = double.tryParse(_debitControllers[i].text) ?? 0;
+        final coeff = double.tryParse(_coeffControllers[i].text) ?? 1.0;
+        if (debit > 0) {
+          equipements.add({
+            'nom': _equipements[i],
+            'debit': debit,
+            'coefficient': coeff,
+            'debitSimultane': debit * coeff,
+          });
+        }
+      }
+
+      final pdfFile = await PdfGeneratorService.generateEcsPdf(
+        technicien: technicien,
+        entreprise: entreprise,
+        dateCalcul: DateTime.now(),
+        equipements: equipements,
+        debitTotal: _debitSimultaneLmin!,
+        puissanceTotale: _puissanceInstantanee!,
+        temperatureEauFroide: double.parse(_tempFroideController.text),
+        temperatureEcs: double.parse(_tempChaudeController.text),
+      );
+
+      await Share.shareXFiles(
+        [XFile(pdfFile.path)],
+        text: 'Rapport de calcul ECS',
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('PDF généré et partagé avec succès')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de la génération du PDF: $e')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    Color resultCardColor;
-    String statusLabel = '';
-    Color statusColor = Colors.black;
-    if (_puissanceInstantanee != null && _puissanceChaudiere != null) {
-      final installed = _puissanceChaudiere!;
-      final needed = _puissanceInstantanee!;
-      if (installed >= needed) {
-        resultCardColor = Colors.green.shade50;
-        statusLabel = 'Suffisante';
-        statusColor = Colors.green;
-      } else if (installed >= 0.9 * needed) {
-        resultCardColor = Colors.orange.shade50;
-        statusLabel = 'Presque suffisante';
-        statusColor = Colors.orange;
-      } else {
-        resultCardColor = Colors.red.shade50;
-        statusLabel = 'Insuffisante';
-        statusColor = Colors.red;
-      }
-    } else {
-      resultCardColor = Theme.of(context).colorScheme.surfaceContainerHighest;
-    }
     return Scaffold(
-      appBar: AppBar(title: const Text('Module ECS (Eau Chaude Sanitaire)')),
-      body: Padding(
+      appBar: AppBar(
+        title: const Text('Module ECS'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            onPressed: _genererPDF,
+            tooltip: 'Générer PDF',
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: ListView(
-          children: [
-            Text('Calcul de la puissance instantanée nécessaire', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 16),
-            buildNumberField(
-              controller: _debitController,
-              label: 'Débit eau chaude (L/min)',
-              hint: 'Exemple : 12 L/min',
-              icon: Icons.water,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: buildNumberField(
-                    controller: _tempEauFroideController,
-                    label: 'Température eau froide (°C)',
-                    icon: Icons.ac_unit,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: buildNumberField(
-                    controller: _tempEauChaudeController,
-                    label: 'Température eau chaude (°C)',
-                    icon: Icons.waves,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: buildNumberField(
-                    controller: _puissanceChaudiereController,
-                    label: 'Puissance chaudière installée (kW)',
-                    hint: 'Ex: 25',
-                    icon: Icons.local_fire_department,
-                    onChanged: (s) {
-                      final val = double.tryParse(s) ?? 0.0;
-                      setState(() => _puissanceChaudiere = val);
-                      saveDouble('puissance_chaudiere', val);
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const SizedBox(width: 12),
-                SizedBox(
-                  width: 200,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Slider.adaptive(
-                              value: _seuilOrangePercent,
-                              min: 50,
-                              max: 100,
-                              divisions: 50,
-                              label: '${_seuilOrangePercent.round()}%',
-                              onChanged: (v) {
-                                setState(() => _seuilOrangePercent = v);
-                                saveDouble('seuil_orange', v);
-                              },
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.info_outline),
-                            tooltip: 'Vert = chaudière ≥ besoin\nOrange = chaudière ≥ seuil% du besoin\nRouge = chaudière insuffisante',
-                            onPressed: () {},
-                          ),
-                        ],
-                      ),
-                      Text('${_seuilOrangePercent.round()}%', style: Theme.of(context).textTheme.bodySmall),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            buildCalculateButton(
-              onPressed: _calculer,
-              label: 'Calculer',
-            ),
-            const SizedBox(height: 24),
-            if (_puissanceInstantanee != null)
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Description
               Card(
-                color: resultCardColor,
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Puissance instantanée nécessaire : ${_puissanceInstantanee!.toStringAsFixed(2)} kW',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: statusColor,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        'Calculateur ECS - Eau Chaude Sanitaire',
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 8),
-                      if (_deltaT != null)
-                        Text('ΔT (Tchaude - Tfroid) : ${_deltaT!.toStringAsFixed(1)} °C', style: Theme.of(context).textTheme.bodyMedium),
+                      const Text(
+                        'Calculez le débit simultané et la puissance nécessaire pour votre installation d\'eau chaude sanitaire.',
+                      ),
                       const SizedBox(height: 8),
-                      if (_puissanceChaudiere != null)
-                        Text('Chaudière installée : ${_puissanceChaudiere!.toStringAsFixed(1)} kW', style: Theme.of(context).textTheme.bodyMedium),
-                      const SizedBox(height: 6),
-                      if (_puissanceChaudiere != null)
-                        Text(
-                          'Statut : $statusLabel',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: statusColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
+                      const Text(
+                        'Formule: Débit simultané = Σ(débit équipement × coefficient simultanéité)',
+                        style: TextStyle(fontStyle: FontStyle.italic),
+                      ),
                     ],
                   ),
                 ),
               ),
-            const SizedBox(height: 16),
-            Text('Formule utilisée :', style: Theme.of(context).textTheme.titleMedium),
-            const Text('Puissance (kW) = [Débit (L/min) / 60] × 4180 × (Tchaude - Tfroid) / 1000'),
-            const SizedBox(height: 16),
-            Text('Unités :', style: Theme.of(context).textTheme.titleMedium),
-            const Text('• L/min (litres par minute)'),
-            const Text('• kW (kilowatts)'),
-          ],
+
+              const SizedBox(height: 16),
+
+              // Températures
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Températures de calcul',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _tempFroideController,
+                              decoration: const InputDecoration(
+                                labelText: 'Température eau froide (°C)',
+                                suffixText: '°C',
+                              ),
+                              keyboardType: TextInputType.number,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Champ requis';
+                                }
+                                if (double.tryParse(value) == null) {
+                                  return 'Nombre valide requis';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _tempChaudeController,
+                              decoration: const InputDecoration(
+                                labelText: 'Température eau chaude (°C)',
+                                suffixText: '°C',
+                              ),
+                              keyboardType: TextInputType.number,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Champ requis';
+                                }
+                                if (double.tryParse(value) == null) {
+                                  return 'Nombre valide requis';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Équipements
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Équipements',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          IconButton(
+                            onPressed: _ajouterEquipement,
+                            icon: const Icon(Icons.add),
+                            tooltip: 'Ajouter un équipement',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      ...List.generate(_equipements.length, (index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: TextFormField(
+                                  controller: _debitControllers[index],
+                                  decoration: InputDecoration(
+                                    labelText: 'Débit ${_equipements[index]} (L/min)',
+                                    suffixText: 'L/min',
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Champ requis';
+                                    }
+                                    if (double.tryParse(value) == null) {
+                                      return 'Nombre valide requis';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                flex: 2,
+                                child: TextFormField(
+                                  controller: _coeffControllers[index],
+                                  decoration: const InputDecoration(
+                                    labelText: 'Coeff simultanéité',
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Champ requis';
+                                    }
+                                    if (double.tryParse(value) == null) {
+                                      return 'Nombre valide requis';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () => _supprimerEquipement(index),
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                tooltip: 'Supprimer',
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Bouton Calculer
+              Center(
+                child: ElevatedButton.icon(
+                  onPressed: _calculer,
+                  icon: const Icon(Icons.calculate),
+                  label: const Text('Calculer'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Résultats
+              if (_debitSimultaneLmin != null) ...[
+                Card(
+                  color: Colors.green.shade50,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Résultats du calcul',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildResultRow('Débit simultané', '${_debitSimultaneLmin!.toStringAsFixed(1)} L/min'),
+                        _buildResultRow('Débit simultané', '${_debitSimultaneM3h!.toStringAsFixed(2)} m³/h'),
+                        _buildResultRow('Puissance instantanée', '${_puissanceInstantanee!.toStringAsFixed(1)} kW'),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  @override
-  void dispose() {
-    _debitController.dispose();
-    _tempEauFroideController.dispose();
-    _tempEauChaudeController.dispose();
-    _puissanceChaudiereController.dispose();
-    super.dispose();
+  Widget _buildResultRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+          Text(
+            value,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

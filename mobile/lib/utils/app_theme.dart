@@ -164,7 +164,7 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         elevation: 8,
-        shadowColor: Colors.black.withAlpha((0.3 * 255).round()),
+        shadowColor: const Color(0x331E3A8A),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -189,11 +189,11 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF475569)),
+          borderSide: BorderSide(color: Colors.white.withAlpha((0.3 * 255).round())),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF475569)),
+          borderSide: BorderSide(color: Colors.white.withAlpha((0.3 * 255).round())),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -201,8 +201,8 @@ class AppTheme {
         ),
         filled: true,
         fillColor: const Color(0xFF1E293B),
-        labelStyle: const TextStyle(color: Color(0xFFCBD5E1)),
-        hintStyle: const TextStyle(color: Color(0xFF64748B)),
+        labelStyle: TextStyle(color: Colors.white.withAlpha((0.7 * 255).round())),
+        hintStyle: TextStyle(color: Colors.white.withAlpha((0.5 * 255).round())),
       ),
       textTheme: const TextTheme(
         headlineLarge: TextStyle(
@@ -233,12 +233,12 @@ class AppTheme {
         bodyLarge: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.normal,
-          color: Color(0xFFE2E8F0),
+          color: Colors.white,
         ),
         bodyMedium: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.normal,
-          color: Color(0xFFCBD5E1),
+          color: Colors.grey,
         ),
       ),
       iconTheme: const IconThemeData(

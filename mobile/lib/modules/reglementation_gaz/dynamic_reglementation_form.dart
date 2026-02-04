@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:chauffageexpert/utils/app_utils.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'models/diagnostic_question.dart';
 
 // Small reusable radio group widget to consolidate radio options
@@ -17,52 +17,14 @@ class RadioGroup<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       children: options.map((opt) {
         final selected = groupValue == opt.value;
-        return Expanded(
-          child: InkWell(
-            onTap: () => onChanged(opt.value),
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              decoration: BoxDecoration(
-                color: selected 
-                    ? Theme.of(context).colorScheme.primaryContainer 
-                    : Colors.transparent,
-                border: Border.all(
-                  color: selected 
-                      ? Theme.of(context).colorScheme.primary 
-                      : Colors.grey.shade300,
-                  width: selected ? 2 : 1,
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    selected ? Icons.radio_button_checked : Icons.radio_button_off,
-                    color: selected 
-                        ? Theme.of(context).colorScheme.primary 
-                        : Colors.grey,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    opt.label,
-                    style: TextStyle(
-                      fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                      color: selected 
-                          ? Theme.of(context).colorScheme.primary 
-                          : null,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+        return ListTile(
+          leading: Icon(selected ? Icons.radio_button_checked : Icons.radio_button_off, color: Theme.of(context).colorScheme.primary),
+          title: Text(opt.label),
+          onTap: () => onChanged(opt.value),
+          dense: true,
         );
       }).toList(),
     );
@@ -76,8 +38,7 @@ class DynamicReglementationForm extends StatefulWidget {
   State<DynamicReglementationForm> createState() => _DynamicReglementationFormState();
 }
 
-class _DynamicReglementationFormState extends State<DynamicReglementationForm>
-    with SharedPreferencesMixin {
+class _DynamicReglementationFormState extends State<DynamicReglementationForm> {
   ReglementationQuestions? _questions;
   final Map<String, dynamic> _answers = {}; // id -> value
   final Map<String, TextEditingController> _obsControllers = {};
@@ -91,13 +52,13 @@ class _DynamicReglementationFormState extends State<DynamicReglementationForm>
 
   Future<void> _loadQuestions() async {
     final q = await ReglementationQuestions.loadFromAsset();
+    final prefs = await SharedPreferences.getInstance();
     // initialize answers from prefs or defaults
     for (final section in q.sections) {
       for (final quest in section.questions) {
         final key = quest.id;
-        final saved = await loadString(key);
-        if (saved != null) {
-          _answers[key] = saved;
+        if (prefs.containsKey(key)) {
+          _answers[key] = prefs.getString(key);
         } else {
           if (quest.type == 'select') {
             if (quest.options != null && quest.options!.isNotEmpty) {
@@ -112,8 +73,7 @@ class _DynamicReglementationFormState extends State<DynamicReglementationForm>
         }
         // observation controller
         final obsKey = '${key}_obs';
-        final obsText = await loadString(obsKey);
-        _obsControllers[obsKey] = TextEditingController(text: obsText ?? '');
+        _obsControllers[obsKey] = TextEditingController(text: prefs.getString(obsKey) ?? '');
       }
     }
 
@@ -121,6 +81,14 @@ class _DynamicReglementationFormState extends State<DynamicReglementationForm>
       _questions = q;
       _loading = false;
     });
+  }
+
+  @override
+  void dispose() {
+    for (final controller in _obsControllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
   }
 
   Widget _buildQuestionTile(DiagnosticQuestion q) {
@@ -150,10 +118,18 @@ class _DynamicReglementationFormState extends State<DynamicReglementationForm>
               setState(() {
                 _answers[id] = v ?? '';
               });
+              _saveAnswer(id, v ?? '');
             },
           ),
           if (q.description != null) Padding(padding: const EdgeInsets.only(top:4.0), child: Text(q.description!, style: const TextStyle(color: Colors.grey))),
           const SizedBox(height:8),
+          TextFormField(
+            controller: obsController,
+            decoration: const InputDecoration(labelText: 'Observations (optionnel)'),
+            maxLines: 2,
+            onChanged: (value) => _saveObservation(id, value),
+          ),
+          const SizedBox(height: 12),
         ],
       );
     }
@@ -178,6 +154,7 @@ class _DynamicReglementationFormState extends State<DynamicReglementationForm>
           controller: obsController,
           decoration: const InputDecoration(labelText: 'Observations (optionnel)'),
           maxLines: 2,
+          onChanged: (value) => _saveObservation(id, value),
         ),
         const SizedBox(height: 12),
       ],
@@ -237,62 +214,92 @@ class _DynamicReglementationFormState extends State<DynamicReglementationForm>
 
   void _onAnswerChanged(String id, String? v) {
     _answers[id] = v ?? '';
+    _saveAnswer(id, v ?? '');
   }
 
-  Future<void> _saveAll() async {
-    for (final e in _answers.entries) {
-      final key = e.key;
-      final val = e.value?.toString() ?? '';
-      await saveString(key, val);
-    }
-    for (final obs in _obsControllers.entries) {
-      await saveString(obs.key, obs.value.text);
-    }
-    if (!mounted) return;
-    AppSnackBar.showSuccess(context, 'Réponses de la réglementation sauvegardées');
+  Future<void> _saveAnswer(String id, String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(id, value);
   }
 
-  @override
-  void dispose() {
-    for (final c in _obsControllers.values) {
-      c.dispose();
-    }
-    super.dispose();
+  Future<void> _saveObservation(String id, String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('${id}_obs', value);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Center(child: CircularProgressIndicator());
-    if (_questions == null) return const Center(child: Text('Aucune question trouvée'));
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        children: [
-          ..._questions!.sections.map((section) => Card(
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(children: [ if (section.icone!=null) Text(section.icone!), const SizedBox(width:8), Text(section.titre, style: const TextStyle(fontSize:18, fontWeight: FontWeight.bold)) ]),
-                      const SizedBox(height:8),
-                      ...section.questions.map((q) => _buildQuestionTile(q)),
-                    ],
-                  ),
-                ),
-              )),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: _saveAll,
-            icon: const Icon(Icons.save),
-            label: const Text('Sauvegarder réponses'),
-            style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+    if (_questions == null) {
+      return const Center(child: Text('Erreur de chargement des questions'));
+    }
+
+    return DefaultTabController(
+      length: _questions!.sections.length,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Diagnostic Réglementation Gaz'),
+          bottom: TabBar(
+            isScrollable: true,
+            tabs: _questions!.sections.map((section) => Tab(text: section.titre)).toList(),
           ),
-          const SizedBox(height: 40),
+        ),
+        body: TabBarView(
+          children: _questions!.sections.map((section) => _buildSection(section)).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSection(DiagnosticSection section) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  if (section.icone != null)
+                    Icon(_getIconForSection(section.icone!), size: 32),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      section.titre,
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...section.questions.map((question) => Card(
+            margin: const EdgeInsets.only(bottom: 12.0),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: _buildQuestionTile(question),
+            ),
+          )),
         ],
       ),
     );
+  }
+
+  IconData _getIconForSection(String iconName) {
+    switch (iconName) {
+      case 'build': return Icons.build;
+      case 'security': return Icons.security;
+      case 'local_fire_department': return Icons.local_fire_department;
+      case 'call_split': return Icons.call_split;
+      case 'gavel': return Icons.gavel;
+      case 'lightbulb': return Icons.lightbulb;
+      default: return Icons.help;
+    }
   }
 }
