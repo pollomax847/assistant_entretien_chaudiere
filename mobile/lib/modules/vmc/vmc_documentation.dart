@@ -1,3 +1,4 @@
+// Fusionné depuis les fichiers séparés - Documentation VMC complète
 const Map<String, String> vmcDocumentation = {
   'simple-flux': '''
 # VMC Simple Flux Autoréglable
@@ -49,220 +50,188 @@ Le débit minimum doit être assuré en permanence. Les débits maximaux sont at
   'hygro-a': '''
 # VMC Hygroréglable Type A
 
-La VMC hygroréglable Type A est équipée de bouches d'extraction qui s'adaptent automatiquement à l'humidité intérieure.
+La VMC hygroréglable type A offre une ventilation adaptée à l'humidité réelle du logement.
 
 ## Principe de fonctionnement
 
-- Bouches d'extraction hygroréglables modulant le débit selon l'humidité
-- Entrées d'air autoréglables (débit constant)
-- Adaptation automatique aux besoins réels
-- Réduction des pertes thermiques en période d'inoccupation
-
-## Débits réglementaires (Arrêté du 24 mars 1982 modifié)
-
-### Par type de logement
-
-- **T1** : Cuisine 10-50 m³/h, Salle de bain 10-40 m³/h, WC 5-30 m³/h
-- **T2** : Cuisine 10-50 m³/h, Salle de bain 10-40 m³/h, WC 5-30 m³/h
-- **T3** : Cuisine 15-50 m³/h, Salle de bain 10-40 m³/h, WC 5-30 m³/h
-- **T4** : Cuisine 20-55 m³/h, Salle de bain 15-45 m³/h, WC 5-30 m³/h
-- **T5+** : Cuisine 25-60 m³/h, Salle de bain 15-45 m³/h, WC 10-30 m³/h
+- Bouches d'extraction hygroréglables qui s'ouvrent selon le taux d'humidité
+- Entrées d'air fixes dans les pièces de vie
+- Augmentation du débit en cas d'excès d'humidité
+- Réduction du débit en cas de faible humidité
 
 ## Avantages
 
-- Économie d'énergie de 15 à 20% par rapport au simple flux
-- Régulation automatique selon l'humidité
-- Réduction des débits en période d'inoccupation
-- Amélioration du confort (moins de courants d'air)
+- Adaptation automatique aux besoins réels
+- Économies d'énergie (débit réduit en hiver)
+- Meilleur confort intérieur
+- Moins d'appels d'air extérieur froid
 
 ## Inconvénients
 
-- Coût légèrement supérieur au simple flux
-- Entretien spécifique des bouches hygroréglables
-- Pas de filtration de l'air entrant (entrées d'air autoréglables)
+- Coût d'installation plus élevé qu'une simple flux
+- Maintenance des éléments hygroréglables requise
+- Efficacité dépendante du bon fonctionnement des capteurs
 
-## Points de vérification
+## Maintenance
 
-1. Fonctionnement des bouches hygroréglables
-2. État et encrassement des capteurs d'humidité
-3. Débits minimum et maximum
-4. Présence et état des entrées d'air autoréglables
+Inspection annuelle des bouches hygroréglables pour vérifier:
+- Absence d'encrassement
+- Mobilité correcte du clapet
+- Propreté des orifices de captation
 ''',
-
+  
   'hygro-b': '''
 # VMC Hygroréglable Type B
 
-La VMC hygroréglable Type B est le système le plus performant en simple flux, avec régulation hygrométrique sur les bouches d'extraction ET les entrées d'air.
+La VMC hygroréglable type B assure une régulation complète avec entrées d'air hygroréglables.
 
 ## Principe de fonctionnement
 
 - Bouches d'extraction hygroréglables
-- Entrées d'air hygroréglables (adaptation complète)
-- Double régulation pour une efficacité maximale
-- Débit total modulé selon les besoins réels
-
-## Débits réglementaires (Arrêté du 24 mars 1982 modifié)
-
-### Par type de logement
-
-- **T1** : Cuisine 10-50 m³/h, Salle de bain 5-40 m³/h, WC 5-30 m³/h
-- **T2** : Cuisine 10-50 m³/h, Salle de bain 5-40 m³/h, WC 5-30 m³/h
-- **T3** : Cuisine 10-45 m³/h, Salle de bain 5-35 m³/h, WC 5-30 m³/h
-- **T4** : Cuisine 15-45 m³/h, Salle de bain 5-35 m³/h, WC 5-30 m³/h
-- **T5+** : Cuisine 15-50 m³/h, Salle de bain 10-40 m³/h, WC 5-30 m³/h
+- Entrées d'air hygroréglables adaptées au taux d'humidité
+- Régulation complète du débit d'air entrant et sortant
+- Adaptation aux conditions climatiques extérieures
 
 ## Avantages
 
-- Économie d'énergie maximale : 25 à 30% par rapport au simple flux
-- Régulation complète entrée/extraction
-- Meilleur confort thermique
-- Qualité d'air optimisée selon les besoins
+- Performance énergétique maximale
+- Régulation très fine des débits
+- Meilleure qualité d'air intérieur
+- Confort optimal toute l'année
 
 ## Inconvénients
 
-- Coût initial plus élevé
-- Entretien régulier des entrées d'air et bouches hygroréglables
-- Sensibilité à l'encrassement
+- Coût d'installation élevé
+- Maintenance régulière requise
+- Plus complexe à diagnostiquer
 
-## Points de vérification
+## Maintenance
 
-1. Fonctionnement des bouches d'extraction hygroréglables
-2. Fonctionnement des entrées d'air hygroréglables
-3. État des capteurs d'humidité (entrées et extractions)
-4. Débits minimum et maximum
-5. Absence d'obstruction des grilles
+Inspection bi-annuelle:
+- Nettoyage des bouches d'extraction et d'entrée
+- Vérification des mécanismes hygroréglables
+- Test de réactivité des capteurs d'humidité
+- Mesure des débits réels
 ''',
-
+  
   'double-flux': '''
 # VMC Double Flux
 
-La VMC double flux assure à la fois l'extraction de l'air vicié et l'insufflation d'air frais filtré, avec récupération de chaleur.
+La VMC double flux combine extraction et insufflation d'air frais filtré avec récupération de chaleur.
 
 ## Principe de fonctionnement
 
 - Extraction de l'air vicié des pièces humides
 - Insufflation d'air frais filtré dans les pièces de vie
-- Échangeur thermique récupérant jusqu'à 90% de la chaleur
-- Double réseau de gaines (extraction et insufflation)
-- Filtration complète de l'air entrant
-
-## Débits réglementaires
-
-### Par type de logement
-
-- **T1-T2** : Cuisine 45-120 m³/h, Salle de bain 15-30 m³/h, WC 15-30 m³/h
-- **T3** : Cuisine 45-135 m³/h, Salle de bain 15-30 m³/h, WC 15-30 m³/h
-- **T4-T5+** : Cuisine 45-135 m³/h, Salle de bain 30 m³/h, WC 15-30 m³/h
+- Échangeur thermique pour récupération de la chaleur (80-90%)
+- Filtration de l'air entrant (pollens, particules fines)
 
 ## Avantages
 
-- Économie d'énergie maximale (récupération de chaleur)
 - Qualité d'air intérieur excellente
-- Filtration des pollens et particules fines
-- Confort acoustique (pas d'ouverture vers l'extérieur)
-- Pas de courants d'air froid
+- Récupération de chaleur (réduction consommation chauffage)
+- Filtration complète de l'air
+- Isolation acoustique améliorée
+- Peut remplacer chauffage dans certains cas (PAC thermodynamique)
 
 ## Inconvénients
 
-- Coût d'installation élevé (double réseau)
-- Maintenance importante (filtres, échangeur)
-- Encombrement du caisson et des gaines
-- Installation complexe en rénovation
+- Coût d'installation très élevé
+- Encombrement important
+- Maintenance complexe (filtres, échangeur)
+- Consommation électrique plus élevée
 
-## Points de vérification
+## Maintenance
 
-1. État et propreté des filtres (tous les 6 mois)
-2. État de l'échangeur thermique
-3. Débits d'extraction et d'insufflation
-4. Équilibre des débits entre extraction et insufflation
-5. Absence de condensation dans les gaines
-6. Fonctionnement du système de dégivrage (si équipé)
-7. Contrôle du by-pass d'été
+Inspection régulière (3-4 fois par an):
+- Contrôle des filtres (changement tous les 3 à 6 mois)
+- Nettoyage des bouches d'air
+- Vérification du bon fonctionnement de l'échangeur
+- Mesure des débits entrant et sortant
+- Inspection du circuit de condensation
 ''',
-
+  
   'vmc-gaz': '''
 # VMC Gaz
 
-La VMC Gaz est un système spécifique qui assure à la fois la ventilation du logement et l'évacuation des produits de combustion d'une chaudière ou d'un chauffe-eau gaz.
+La VMC gaz assure la ventilation du logement tout en évacuant les produits de combustion d'une chaudière gaz.
 
 ## Principe de fonctionnement
 
 - Extraction de l'air vicié et des produits de combustion
-- Circuit spécifique pour l'évacuation des fumées
-- Sécurités renforcées (détecteur de CO, pressostat)
-- Débits adaptés à la puissance de l'appareil à gaz
+- Circuits séparés ou combinés selon la configuration
+- Débits adaptés aux besoins de chauffage et de ventilation
+- Points de mesure spécifiques pour chaque circuit
 
-## Débits réglementaires (selon puissance de l'appareil)
+## Points critiques de contrôle
 
-### Configuration standard
+1. **Tirage cheminée** : Vérifier l'absence de refoulement
+2. **Étanchéité** : Vérifier les conduites d'évacuation gaz
+3. **Débits** : Mesurer séparément ventilation et gaz
+4. **Conduit** : Inspecter les dépôts de suie
+5. **Sortie** : Vérifier l'absence d'obstruction
 
-- **T1** : Cuisine 45-75 m³/h (90 en grand débit), Salle de bain 15 m³/h, WC 15 m³/h
-- **T2** : Cuisine 45-90 m³/h (105 en grand débit), Salle de bain 15 m³/h, WC 15 m³/h
-- **T3** : Cuisine 45-105 m³/h (120 en grand débit), Salle de bain 15-30 m³/h, WC 15 m³/h
-- **T4** : Cuisine 45-120 m³/h (135 en grand débit), Salle de bain 15-30 m³/h, WC 30 m³/h
-- **T5+** : Cuisine 45-135 m³/h, Salle de bain 15-30 m³/h, WC 30 m³/h
+## Débits réglementaires
 
-## Avantages
+Selon l'Arrêté du 24 mars 1982 modifié et NF DTU 68.2 pour le gaz.
 
-- Système tout-en-un (ventilation + évacuation fumées)
-- Gain de place (pas de conduit de fumée traditionnel)
-- Solution adaptée aux logements sans conduit
-- Sécurité renforcée
+## Maintenance
 
-## Inconvénients
-
-- Coût initial élevé
-- Maintenance spécifique et obligatoire
-- Compatibilité limitée aux appareils gaz étanches
-- Arrêt de la ventilation = arrêt du chauffage
-
-## Points de vérification (OBLIGATOIRES)
-
-1. Étanchéité du circuit d'évacuation des fumées
-2. Fonctionnement des dispositifs de sécurité
-3. Débits d'extraction conformes à la puissance de l'appareil
-4. Absence de refoulement de fumées
-5. Contrôle annuel par professionnel qualifié
-6. Vérification du détecteur de CO
-7. État des joints et raccordements
+Inspection annuelle obligatoire:
+- Vérification du tirage au brûleur
+- Mesure des débits
+- Nettoyage des conduits si nécessaire
+- Vérification de l'étanchéité
 ''',
 };
 
+// Checklist de maintenance par type de VMC
 const Map<String, List<String>> vmcMaintenanceChecklist = {
   'simple-flux': [
-    'Nettoyer les bouches d\'extraction tous les 3 mois',
-    'Vérifier les entrées d\'air neuf tous les 6 mois',
-    'Contrôler le caisson VMC annuellement',
-    'Mesurer les débits tous les 3 ans',
-    'Vérifier l\'étalonnage des portes',
+    'Vérifier l\'état de propreté des bouches d\'extraction',
+    'Nettoyer les grilles d\'entrée d\'air',
+    'Écouter le bruit du moteur (anormal?)',
+    'Vérifier l\'absence de vibrations excessives',
+    'Contrôler l\'étalonnage des portes (2cm minimum)',
+    'Mesurer les débits de chaque bouche',
+    'Vérifier l\'existence de conduits de remplacement',
   ],
   'hygro-a': [
-    'Nettoyer les bouches hygroréglables tous les 6 mois',
-    'Vérifier les entrées d\'air tous les 6 mois',
-    'Contrôler le caisson VMC annuellement',
-    'Mesurer les débits tous les 3 ans',
-    'Tester la modulation des bouches annuellement',
+    'Vérifier l\'état des bouches hygroréglables',
+    'Tester la mobilité du clapet de régulation',
+    'Nettoyer les orifices de captation d\'humidité',
+    'Mesurer les débits en différentes conditions',
+    'Vérifier l\'absence de bloquage du mécanisme',
+    'Contrôler l\'état des capteurs d\'humidité',
+    'Tester la réactivité aux variations d\'humidité',
   ],
   'hygro-b': [
-    'Nettoyer les bouches hygroréglables tous les 6 mois',
-    'Nettoyer les entrées d\'air hygroréglables tous les 6 mois',
-    'Contrôler le caisson VMC annuellement',
-    'Mesurer les débits tous les 3 ans',
-    'Tester la modulation entrées/extractions annuellement',
+    'Inspecter les bouches d\'extraction hygroréglables',
+    'Inspecter les entrées d\'air hygroréglables',
+    'Tester les deux circuits indépendamment',
+    'Mesurer les débits en conditions normales et humides',
+    'Vérifier la synchronisation entrée/extraction',
+    'Nettoyer tous les mécanismes mobiles',
+    'Calibrer si nécessaire',
   ],
   'double-flux': [
-    'Changer/nettoyer les filtres tous les 6 mois minimum',
-    'Nettoyer l\'échangeur thermique annuellement',
-    'Contrôler l\'équilibre des débits annuellement',
-    'Vérifier l\'absence de condensation dans les gaines',
-    'Tester le by-pass d\'été avant la saison',
-    'Contrôle complet par professionnel tous les 3 ans',
+    'Inspecter et changer les filtres si nécessaire',
+    'Nettoyer les bouches d\'insufflation',
+    'Nettoyer les bouches d\'extraction',
+    'Vérifier le fonctionnement de l\'échangeur',
+    'Mesurer les débits entrant et sortant',
+    'Vérifier l\'absence de condensation anormale',
+    'Nettoyer le circuit de condensation',
+    'Inspecter les conduits pour poussière/moisissures',
   ],
   'vmc-gaz': [
-    'Contrôle OBLIGATOIRE par professionnel qualifié chaque année',
-    'Vérifier les détecteurs de CO mensuellement',
-    'Contrôler l\'étanchéité du circuit de fumées',
-    'Nettoyer les bouches d\'extraction tous les 3 mois',
-    'Vérifier les dispositifs de sécurité tous les 6 mois',
+    'Tester le tirage au brûleur (Déprimogène)',
+    'Mesurer les débits de ventilation',
+    'Mesurer les débits gaz',
+    'Inspecter les conduits d\'évacuation',
+    'Vérifier l\'absence de suie/dépôts',
+    'Contrôler l\'étanchéité des raccordements',
+    'Vérifier la sortie en toiture (absence obstruction)',
+    'Mesurer CO2 et O2 d\'évacuation',
   ],
 };

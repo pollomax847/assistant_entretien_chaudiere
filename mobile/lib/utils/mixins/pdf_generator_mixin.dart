@@ -1,6 +1,7 @@
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:intl/intl.dart';
+import 'dart:io';
 
 /// Mixin pour la génération de PDF avec éléments communs
 /// 
@@ -386,6 +387,60 @@ mixin PDFGeneratorMixin {
           color: PdfColors.white,
         ),
       ),
+    );
+  }
+
+  /// Ajoute une image au PDF (depuis un chemin fichier)
+  Future<pw.Widget> buildPDFImage(String imagePath, {double width = 400.0}) async {
+    try {
+      final image = pw.MemoryImage(
+        await File(imagePath).readAsBytes(),
+      );
+      return pw.Image(image, width: width);
+    } catch (e) {
+      return pw.Text('❌ Image non disponible: $imagePath');
+    }
+  }
+
+  /// Construit une section de photos pour le PDF
+  pw.Widget buildPhotosSection(List<String> photoPaths) {
+    if (photoPaths.isEmpty) {
+      return pw.Text('Aucune photo');
+    }
+
+    return pw.Column(
+      children: [
+        pw.Text(
+          'Photos du relevé',
+          style: pw.TextStyle(
+            fontSize: titleFontSize,
+            fontWeight: pw.FontWeight.bold,
+          ),
+        ),
+        pw.SizedBox(height: defaultPadding),
+        ...photoPaths.asMap().entries.map((entry) {
+          final index = entry.key + 1;
+          final path = entry.value;
+          return pw.Column(
+            children: [
+              pw.Text(
+                'Photo $index',
+                style: pw.TextStyle(
+                  fontSize: bodyFontSize,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.SizedBox(height: smallPadding),
+              pw.Image(
+                pw.MemoryImage(File(path).readAsBytesSync()),
+                width: 400,
+                height: 300,
+              ),
+              pw.SizedBox(height: defaultPadding),
+            ],
+          );
+        }).toList(),
+      ],
     );
   }
 }
