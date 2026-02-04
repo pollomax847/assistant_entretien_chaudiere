@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'widgets/photo_gallery_widget.dart';
 
 class RTPACForm extends StatefulWidget {
   final Function(Map<String, dynamic>)? onDataChanged;
@@ -11,6 +13,7 @@ class RTPACForm extends StatefulWidget {
 
 class _RTPACFormState extends State<RTPACForm> {
   final _formKey = GlobalKey<FormState>();
+  final List<File> _photos = [];
 
   // --- CONTROLLERS ---
   final Map<String, TextEditingController> _controllers = {
@@ -52,18 +55,11 @@ class _RTPACFormState extends State<RTPACForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Relevé Technique PAC'),
-        backgroundColor: Colors.indigo,
-      ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            children: [
-              _buildHeader(),
+    return Form(
+      key: _formKey,
+      child: Column(
+        children: [
+          _buildHeader(),
               _buildSection('Client', [
                 _buildTextField('numClient', 'Numéro client (gazelle)'),
                 _buildTextField('nomClient', 'Nom du client'),
@@ -147,23 +143,19 @@ class _RTPACFormState extends State<RTPACForm> {
                 _buildTextField('deperditionTotale', 'Déperdition totale (kW)', keyboardType: TextInputType.number),
                 _buildTextField('tauxCouverture', 'Taux de couverture (%)', keyboardType: TextInputType.number),
               ]),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Relevé PAC enregistré')));
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.indigo,
-                  minimumSize: const Size.fromHeight(50),
-                ),
-                child: const Text('ENREGISTRER LE RELEVÉ PAC', style: TextStyle(color: Colors.white)),
-              ),
-              const SizedBox(height: 40),
-            ],
+          const SizedBox(height: 24),
+          // --- PHOTOS (OPTIONNEL) ---
+          PhotoGalleryWidget(
+            title: 'Photos du relevé PAC',
+            subtitle: 'Unités intérieure/extérieure, raccordements...',
+            maxPhotos: 10,
+            onPhotosChanged: (photos) {
+              _photos.clear();
+              _photos.addAll(photos);
+            },
           ),
-        ),
+          const SizedBox(height: 24),
+        ],
       ),
     );
   }

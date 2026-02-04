@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'rt_chaudiere_form.dart';
 import 'rt_pac_form.dart';
 import 'rt_clim_form.dart';
+import 'services/releve_pdf_generator.dart';
 
 enum TypeReleve {
   chaudiere,
@@ -71,6 +72,8 @@ class _ReleveTechniqueScreenCompletState
   late DateTime _dateReleve;
   int _nombreReleves = 1;
   final List<Map<String, dynamic>> _releves = [];
+  int _currentPage = 0;
+  final int _totalPages = 3;
 
   @override
   void initState() {
@@ -106,6 +109,47 @@ class _ReleveTechniqueScreenCompletState
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Relevé sauvegardé avec succès')),
       );
+    }
+  }
+
+  Future<void> _genererPDF() async {
+    if (_nomEntrepriseController.text.isEmpty || _nomTechnicienController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('❌ Veuillez remplir les informations générales')),
+      );
+      return;
+    }
+
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('📄 Génération du PDF en cours...')),
+      );
+
+      final generator = ReleveTechniquePDFGenerator(
+        nomEntreprise: _nomEntrepriseController.text,
+        nomTechnicien: _nomTechnicienController.text,
+        dateReleve: _dateReleve,
+        typeReleve: _getTitre(),
+        donnees: _releves.isNotEmpty ? _releves.last['donnees'] ?? {} : {},
+        photoPaths: const [], // Les photos seront capturées depuis les formulaires
+      );
+
+      final pdfFile = await generator.savePDF();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✅ PDF généré: ${pdfFile.path}'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('❌ Erreur: $e')),
+        );
+      }
     }
   }
 
@@ -161,114 +205,268 @@ class _ReleveTechniqueScreenCompletState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Informations générales
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Informations générales',
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _nomEntrepriseController,
-                        decoration: const InputDecoration(
-                          labelText: 'Nom de l\'entreprise',
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Ce champ est obligatoire';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _nomTechnicienController,
-                        decoration: const InputDecoration(
-                          labelText: 'Nom du technicien',
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Ce champ est obligatoire';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Text(
-                            'Date du relevé: ${DateFormat('dd/MM/yyyy').format(_dateReleve)}',
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                          const SizedBox(width: 16),
-                          ElevatedButton(
-                            onPressed: () async {
-                              final date = await showDatePicker(
-                                context: context,
-                                initialDate: _dateReleve,
-                                firstDate: DateTime(2020),
-                                lastDate: DateTime.now(),
-                              );
-                              if (date != null) {
-                                setState(() {
-                                  _dateReleve = date;
-                                });
-                              }
-                            },
-                            child: const Text('Changer'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Nombre de relevés: $_nombreReleves',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              // --- PAGE 1: INFOS GÉNÉRALES ---
+              if (_currentPage == 0) ...[
+                _buildPage1(),
+              ]
+              // --- PAGE 2: FORMULAIRE SPÉCIFIQUE ---
+              else if (_currentPage == 1) ...[
+                _buildPage2(),
+              ]
+              // --- PAGE 3: RÉSUMÉ & VALIDATION ---
+              else if (_currentPage == 2) ...[
+                _buildPage3(),
+              ],
 
               const SizedBox(height: 24),
 
-              // Formulaire spécifique
-              _buildForm(),
-
-              const SizedBox(height: 24),
-
-              // Boutons d'action
+              // Boutons de navigation
               Row(
                 children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: _ajouterReleve,
-                      icon: const Icon(Icons.add),
-                      label: const Text('Ajouter un relevé'),
-                    ),
+                  ElevatedButton.icon(
+                    onPressed: _currentPage > 0
+                        ? () => setState(() => _currentPage--)
+                        : null,
+                    icon: const Icon(Icons.arrow_back),
+                    label: const Text('Précédent'),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: _sauvegarderReleve,
-                      icon: const Icon(Icons.save),
-                      label: const Text('Sauvegarder'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                      ),
-                    ),
+                  const Spacer(),
+                  Text('Page ${_currentPage + 1}/$_totalPages',
+                    style: Theme.of(context).textTheme.bodyMedium),
+                  const Spacer(),
+                  ElevatedButton.icon(
+                    onPressed: _currentPage < _totalPages - 1
+                        ? () {
+                            if (_formKey.currentState!.validate()) {
+                              setState(() => _currentPage++);
+                            }
+                          }
+                        : null,
+                    icon: const Icon(Icons.arrow_forward),
+                    label: const Text('Suivant'),
                   ),
                 ],
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // --- PAGE 1: INFOS GÉNÉRALES ---
+  Widget _buildPage1() {
+    return Column(
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.info, color: Colors.blue, size: 32),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Informations Générales',
+                            style: Theme.of(context).textTheme.headlineSmall),
+                          const SizedBox(height: 4),
+                          Text(_getTitre(),
+                            style: Theme.of(context).textTheme.bodySmall),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const Divider(),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _nomEntrepriseController,
+                  decoration: const InputDecoration(
+                    labelText: 'Nom de l\'entreprise',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.business),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Ce champ est obligatoire';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _nomTechnicienController,
+                  decoration: const InputDecoration(
+                    labelText: 'Nom du technicien',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.person),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Ce champ est obligatoire';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                Card(
+                  color: Colors.blue.shade50,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.calendar_today, color: Colors.blue),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Date du relevé',
+                                style: TextStyle(fontSize: 12, color: Colors.grey)),
+                              Text(DateFormat('dd MMMM yyyy', 'fr_FR').format(_dateReleve),
+                                style: const TextStyle(fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () async {
+                            final date = await showDatePicker(
+                              context: context,
+                              initialDate: _dateReleve,
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime.now(),
+                            );
+                            if (date != null) {
+                              setState(() {
+                                _dateReleve = date;
+                              });
+                            }
+                          },
+                          child: const Text('Changer'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // --- PAGE 2: FORMULAIRE SPÉCIFIQUE ---
+  Widget _buildPage2() {
+    return Column(
+      children: [
+        _buildForm(),
+      ],
+    );
+  }
+
+  // --- PAGE 3: RÉSUMÉ & VALIDATION ---
+  Widget _buildPage3() {
+    return Column(
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.green, size: 32),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text('Résumé et Validation',
+                        style: Theme.of(context).textTheme.headlineSmall),
+                    ),
+                  ],
+                ),
+                const Divider(),
+                const SizedBox(height: 16),
+                _buildSummaryItem('Entreprise', _nomEntrepriseController.text),
+                _buildSummaryItem('Technicien', _nomTechnicienController.text),
+                _buildSummaryItem('Date',
+                  DateFormat('dd/MM/yyyy').format(_dateReleve)),
+                _buildSummaryItem('Type', _getTitre()),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    border: Border.all(color: Colors.green),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info, color: Colors.green),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text('Cliquez sur "Sauvegarder" pour finaliser',
+                          style: TextStyle(color: Colors.green.shade700)),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _genererPDF,
+                        icon: const Icon(Icons.picture_as_pdf),
+                        label: const Text('Générer PDF'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange.shade600,
+                          minimumSize: const Size.fromHeight(45),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _sauvegarderReleve,
+                        icon: const Icon(Icons.save),
+                        label: const Text('Sauvegarder'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          minimumSize: const Size.fromHeight(45),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSummaryItem(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(label,
+              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+          ),
+          Expanded(
+            child: Text(value,
+              style: const TextStyle(fontWeight: FontWeight.w600)),
+          ),
+        ],
       ),
     );
   }

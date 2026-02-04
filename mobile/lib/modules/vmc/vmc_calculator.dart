@@ -1,3 +1,7 @@
+// Fusionné depuis les fichiers séparés
+import 'data/debits_reglementaires.dart';
+import 'data/vmc_content.dart';
+
 class VMCCalculator {
   // Références de débits par type de VMC et logement (en m³/h)
   static const Map<String, Map<String, Map<String, dynamic>>> _references = {
@@ -52,67 +56,36 @@ class VMCCalculator {
     }
   }
 
-  static String getDiagnosticMessage(int pourcentage, int tropFaible, int tropEleve) {
-    if (pourcentage >= 80) {
-      return 'Installation globalement conforme avec quelques ajustements nécessaires.';
-    } else if (pourcentage >= 50) {
-      return 'Plusieurs débits sont hors normes. Réglage des bouches recommandé.';
-    } else {
-      return 'Installation non conforme. Révision complète nécessaire.';
-    }
-  }
-
-  static Map<String, dynamic> checkCompatibilityWithVMC(double totalInletFlow, double extractionTotal) {
-    final difference = totalInletFlow - extractionTotal;
-    final percentDifference = extractionTotal > 0 ? (difference / extractionTotal) * 100 : 0;
-
-    if ((percentDifference).abs() <= 10) {
-      return {
-        'status': 'good',
-        'message': 'Équilibre satisfaisant entre entrées d\'air et extraction.',
-        'difference': difference,
-        'percentDifference': percentDifference
-      };
-    } else if ((percentDifference).abs() <= 25) {
-      return {
-        'status': 'warning',
-        'message': 'Déséquilibre modéré. ${difference > 0 ? 'Entrée d\'air excessive' : 'Déficit d\'entrée d\'air'}.',
-        'difference': difference,
-        'percentDifference': percentDifference
-      };
-    } else {
-      return {
-        'status': 'bad',
-        'message': 'Déséquilibre important. ${difference > 0 ? 'Entrée d\'air excessive' : 'Déficit d\'entrée d\'air'}.',
-        'difference': difference,
-        'percentDifference': percentDifference
-      };
-    }
-  }
-
   static List<Map<String, String>> getTypesVMC() {
     return [
-      {'value': 'simple-flux', 'label': 'VMC Simple Flux Autoréglable'},
-      {'value': 'hygro-a', 'label': 'VMC Hygroréglable Type A'},
-      {'value': 'hygro-b', 'label': 'VMC Hygroréglable Type B'},
-      {'value': 'double-flux', 'label': 'VMC Double Flux'},
+      {'value': 'simple-flux', 'label': 'Simple Flux Autoréglable'},
+      {'value': 'hygro-a', 'label': 'Hygroréglable Type A'},
+      {'value': 'hygro-b', 'label': 'Hygroréglable Type B'},
+      {'value': 'double-flux', 'label': 'Double Flux'},
       {'value': 'vmc-gaz', 'label': 'VMC Gaz'},
     ];
   }
 
-  static Map<String, dynamic> verifierConformite({
-    required String typeVMC,
-    required String nbBouches,
-    required double debitMesure,
-    required double debitMS,
-    required bool modulesFenetre,
-    required bool etalonnagePortes,
-  }) {
-    // Implémentation simplifiée
-    return {
-      'conforme': true,
-      'message': 'Installation conforme',
-      'recommandations': [],
-    };
+  static List<Map<String, String>> getTypesLogement() {
+    return [
+      {'value': 'T1', 'label': 'T1 (1 pièce principale)'},
+      {'value': 'T2', 'label': 'T2 (2 pièces principales)'},
+      {'value': 'T3', 'label': 'T3 (3 pièces principales)'},
+      {'value': 'T4', 'label': 'T4 (4 pièces principales)'},
+      {'value': 'T5+', 'label': 'T5+ (5+ pièces principales)'},
+    ];
+  }
+
+  // Export données pour utilisation dans les fichiers
+  static Map<String, Map<String, int>> getDebitsReglementaires() {
+    return debitsReglementaires;
+  }
+
+  static Map<String, int> getMinimumDebitsParLogement() {
+    return minimumDebitsParLogement;
+  }
+
+  static Map<String, String> getVmcContent() {
+    return vmcContent;
   }
 }

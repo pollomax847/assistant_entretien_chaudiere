@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'widgets/photo_gallery_widget.dart';
 
 class RTClimForm extends StatefulWidget {
   final Function(Map<String, dynamic>)? onDataChanged;
@@ -11,6 +13,7 @@ class RTClimForm extends StatefulWidget {
 
 class _RTClimFormState extends State<RTClimForm> {
   final _formKey = GlobalKey<FormState>();
+  final List<File> _photos = [];
 
   // --- CONTROLLERS ---
   final Map<String, TextEditingController> _controllers = {
@@ -50,18 +53,11 @@ class _RTClimFormState extends State<RTClimForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Relevé Technique Climatisation'),
-        backgroundColor: Colors.teal,
-      ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            children: [
-              _buildHeader(),
+    return Form(
+      key: _formKey,
+      child: Column(
+        children: [
+          _buildHeader(),
               _buildSection('Client', [
                 _buildTextField('numClient', 'Numéro client (gazelle)'),
                 _buildTextField('nomClient', 'Nom du client'),
@@ -116,23 +112,19 @@ class _RTClimFormState extends State<RTClimForm> {
                   onChanged: (v) => setState(() => _pompeRelevageInt = v),
                 ),
               ]),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Relevé Clim enregistré')));
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                  minimumSize: const Size.fromHeight(50),
-                ),
-                child: const Text('ENREGISTRER LE RELEVÉ CLIM', style: TextStyle(color: Colors.white)),
-              ),
-              const SizedBox(height: 40),
-            ],
+          const SizedBox(height: 24),
+          // --- PHOTOS (OPTIONNEL) ---
+          PhotoGalleryWidget(
+            title: 'Photos du relevé Clim',
+            subtitle: 'Unités intérieure/extérieure, raccordements...',
+            maxPhotos: 10,
+            onPhotosChanged: (photos) {
+              _photos.clear();
+              _photos.addAll(photos);
+            },
           ),
-        ),
+          const SizedBox(height: 24),
+        ],
       ),
     );
   }

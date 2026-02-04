@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../modules/puissance_chauffage/puissance_chauffage_expert_screen.dart';
 import '../modules/reglementation_gaz/reglementation_gaz_screen.dart';
-import '../modules/vmc/vmc_screen.dart';
+import '../modules/vmc/vmc_integration_screen.dart';
 import '../modules/tests/enhanced_top_gaz_screen.dart';
 import '../modules/chaudiere/chaudiere_screen.dart';
 import '../modules/tirage/tirage_screen.dart';
@@ -14,6 +14,7 @@ import '../services/github_update_service.dart';
 import '../services/update_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/preferences_provider.dart';
+import '../utils/widgets/update_banner_widget.dart';
 import 'modules_list_screen.dart';
 import 'first_launch_dialog.dart';
 
@@ -25,11 +26,17 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String _userName = 'paul'; // À remplacer par le nom de l'utilisateur
+  String _userName = '';
+  UpdateInfo? _updateInfo;
+  bool _dismissedUpdate = false;
 
   @override
   void initState() {
     super.initState();
+    // Charger le nom du technicien depuis les préférences
+    final preferences = Provider.of<PreferencesProvider>(context, listen: false);
+    _userName = preferences.technician ?? 'Utilisateur';
+    
     // Vérifier les mises à jour au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkFirstLaunch();
@@ -39,13 +46,33 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// Vérifie les mises à jour (Google Play en priorité, puis GitHub en fallback)
-  void _checkForUpdates() {
-    // Essayer Google Play d'abord
-    UpdateService().checkOnAppStart(context).catchError((error) {
-      debugPrint('⚠️ Mise à jour Google Play échouée: $error, fallback GitHub...');
+  Future<void> _checkForUpdates() async {
+    try {
+      // Essayer Google Play d'abord
+      await UpdateService().checkOnAppStart(context);
+    } catch (e) {
+      debugPrint('⚠️ Mise à jour Google Play échouée: $e, fallback GitHub...');
       // En cas d'erreur, utiliser GitHub comme fallback
-      GitHubUpdateService().checkOnAppStart(context);
-    });
+      _checkGitHubUpdate();
+    }
+  }
+
+  /// Vérifie les mises à jour GitHub et affiche la bannière
+  Future<void> _checkGitHubUpdate() async {
+    try {
+      final updateInfo = await GitHubUpdateService().checkForUpdate();
+      if (updateInfo != null && mounted && !_dismissedUpdate) {
+        setState(() {
+          _updateInfo = updateInfo;
+        });
+        // Affiche aussi le dialogue si c'est une mise à jour forcée
+        if (updateInfo.forceUpdate && mounted) {
+          await GitHubUpdateService().showUpdateDialog(context, updateInfo);
+        }
+      }
+    } catch (e) {
+      debugPrint('Erreur vérification mise à jour GitHub: $e');
+    }
   }
 
   /// Vérifie si c'est le premier lancement et affiche le dialogue si nécessaire
@@ -82,7 +109,13 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 0,
         actions: [
           IconButton(
+            icon: const Icon(Icons.cloud_download, color: Colors.white),
+            tooltip: 'Vérifier les mises à jour',
+            onPressed: () => GitHubUpdateService().checkManually(context),
+          ),
+          IconButton(
             icon: const Icon(Icons.settings, color: Colors.white),
+            tooltip: 'Paramètres',
             onPressed: () => Navigator.pushNamed(context, '/preferences'),
           ),
         ],
@@ -91,6 +124,13 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Bannière de mise à jour (si disponible et non ignorée)
+            if (_updateInfo != null && !_dismissedUpdate)
+              UpdateBannerWidget(
+                updateInfo: _updateInfo!,
+                onDismiss: () => setState(() => _dismissedUpdate = true),
+              ),
+            
             // Carte de bienvenue orange
             Container(
               margin: const EdgeInsets.all(16),
@@ -132,7 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'phinelec',
+                            'Expert en chauffage',
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.9),
                               fontSize: 16,
@@ -172,7 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const VmcScreen(),
+                          builder: (context) => const VMCIntegrationScreen(),
                         ),
                       ),
                     ),
@@ -194,11 +234,75 @@ class _HomeScreenState extends State<HomeScreen> {
                       () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ReleveTechniqueScreenComplet(type: TypeReleve.chaudiere),
+                          builder: (context) => const ReleveTechniqueScreen(),
                         ),
                       ),
                     ),
                   ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Carte Mise à Jour - VISIBLE & PROMINENT
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Card(
+                color: Colors.blue.shade50,
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(color: Colors.blue.shade200),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.cloud_download_outlined,
+                        size: 32,
+                        color: Colors.blue.shade600,
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Vérifier les mises à jour',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue.shade900,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Rechercher de nouvelles versions',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.blue.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: () => GitHubUpdateService().checkManually(context),
+                        icon: const Icon(Icons.arrow_forward, size: 18),
+                        label: const Text('Vérifier'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue.shade600,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -536,7 +640,7 @@ class _HomeScreenState extends State<HomeScreen> {
               'onTap': () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const VmcScreen(),
+                      builder: (context) => const VMCIntegrationScreen(),
                     ),
                   ),
             },
