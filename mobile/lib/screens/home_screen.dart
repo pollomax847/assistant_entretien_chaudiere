@@ -1,10 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../modules/puissance_chauffage/puissance_chauffage_expert_screen.dart';
 import '../modules/reglementation_gaz/reglementation_gaz_screen.dart';
 import '../modules/vmc/vmc_screen.dart';
 import '../modules/tests/enhanced_top_gaz_screen.dart';
+import '../modules/chaudiere/chaudiere_screen.dart';
+import '../modules/tirage/tirage_screen.dart';
+import '../modules/ecs/ecs_screen.dart';
+import '../modules/vase_expansion/vase_expansion_screen.dart';
+import '../modules/equilibrage/equilibrage_screen.dart';
+import '../modules/releves/releve_technique_screen_complet.dart';
 import '../services/github_update_service.dart';
+import '../services/update_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/preferences_provider.dart';
+import 'modules_list_screen.dart';
+import 'first_launch_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,8 +32,37 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     // Vérifier les mises à jour au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkFirstLaunch();
+      // Essayer la mise à jour in-app Google Play d'abord, puis fallback GitHub
+      _checkForUpdates();
+    });
+  }
+
+  /// Vérifie les mises à jour (Google Play en priorité, puis GitHub en fallback)
+  void _checkForUpdates() {
+    // Essayer Google Play d'abord
+    UpdateService().checkOnAppStart(context).catchError((error) {
+      debugPrint('⚠️ Mise à jour Google Play échouée: $error, fallback GitHub...');
+      // En cas d'erreur, utiliser GitHub comme fallback
       GitHubUpdateService().checkOnAppStart(context);
     });
+  }
+
+  /// Vérifie si c'est le premier lancement et affiche le dialogue si nécessaire
+  void _checkFirstLaunch() {
+    final preferences = Provider.of<PreferencesProvider>(context, listen: false);
+    
+    if (preferences.isFirstLaunch) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => const FirstLaunchDialog(),
+          );
+        }
+      });
+    }
   }
 
   @override
@@ -151,7 +191,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       'Rapports',
                       Icons.description_outlined,
                       const Color(0xFF9C27B0),
-                      () {},
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ReleveTechniqueScreenComplet(),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -189,7 +234,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           '1 modules',
                           Icons.calculate,
                           const Color(0xFF2196F3),
-                          () {},
+                          () => _showCalculsModules(context),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -200,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           '2 modules',
                           Icons.science,
                           const Color(0xFF4CAF50),
-                          () {},
+                          () => _showTestsModules(context),
                         ),
                       ),
                     ],
@@ -215,7 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           '3 modules',
                           Icons.assignment,
                           const Color(0xFFFF9800),
-                          () {},
+                          () => _showRelevesModules(context),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -226,7 +271,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           '5 modules',
                           Icons.check_circle,
                           const Color(0xFF9C27B0),
-                          () {},
+                          () => _showControlesModules(context),
                         ),
                       ),
                     ],
@@ -347,6 +392,191 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  // Méthodes pour afficher les listes de modules par catégorie
+  void _showCalculsModules(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ModulesListScreen(
+          title: 'Calculs',
+          modules: [
+            {
+              'title': 'Puissance Chauffage',
+              'subtitle': 'Calculs thermiques avancés',
+              'icon': Icons.thermostat,
+              'color': const Color(0xFFFF9800),
+              'onTap': () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PuissanceChauffageExpertScreen(),
+                    ),
+                  ),
+            },
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showTestsModules(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ModulesListScreen(
+          title: 'Tests',
+          modules: [
+            {
+              'title': 'Test Compteur Gaz',
+              'subtitle': 'Mesure débit gaz',
+              'icon': Icons.science,
+              'color': const Color(0xFF4CAF50),
+              'onTap': () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EnhancedTopGazScreen(),
+                    ),
+                  ),
+            },
+            {
+              'title': 'Tirage Cheminée',
+              'subtitle': 'Simulation et analyse',
+              'icon': Icons.air,
+              'color': const Color(0xFF2196F3),
+              'onTap': () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const TirageScreen(),
+                    ),
+                  ),
+            },
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showRelevesModules(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ModulesListScreen(
+          title: 'Relevés',
+          modules: [
+            {
+              'title': 'Relevé Technique',
+              'subtitle': 'Chaudière, PAC, Clim',
+              'icon': Icons.assignment,
+              'color': const Color(0xFFFF9800),
+              'onTap': () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ReleveTechniqueScreenComplet(),
+                    ),
+                  ),
+            },
+            {
+              'title': 'Chaudière',
+              'subtitle': 'Paramètres et mesures',
+              'icon': Icons.fireplace,
+              'color': const Color(0xFFE91E63),
+              'onTap': () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ChaudiereScreen(),
+                    ),
+                  ),
+            },
+            {
+              'title': 'ECS',
+              'subtitle': 'Eau chaude sanitaire',
+              'icon': Icons.water_drop,
+              'color': const Color(0xFF00BCD4),
+              'onTap': () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EcsScreen(),
+                    ),
+                  ),
+            },
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showControlesModules(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ModulesListScreen(
+          title: 'Contrôles',
+          modules: [
+            {
+              'title': 'Réglementation Gaz',
+              'subtitle': 'Contrôles Qualigaz',
+              'icon': Icons.gas_meter,
+              'color': const Color(0xFFF44336),
+              'onTap': () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ReglementationGazScreen(),
+                    ),
+                  ),
+            },
+            {
+              'title': 'VMC',
+              'subtitle': 'Ventilation mécanique',
+              'icon': Icons.wind_power,
+              'color': const Color(0xFF9C27B0),
+              'onTap': () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const VmcScreen(),
+                    ),
+                  ),
+            },
+            {
+              'title': 'Vase Expansion',
+              'subtitle': 'Dimensionnement vase',
+              'icon': Icons.storage,
+              'color': const Color(0xFF607D8B),
+              'onTap': () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const VaseExpansionScreen(),
+                    ),
+                  ),
+            },
+            {
+              'title': 'Équilibrage',
+              'subtitle': 'Équilibrage hydraulique',
+              'icon': Icons.balance,
+              'color': const Color(0xFF795548),
+              'onTap': () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EquilibrageScreen(),
+                    ),
+                  ),
+            },
+            {
+              'title': 'Tirage',
+              'subtitle': 'Analyse du tirage',
+              'icon': Icons.air,
+              'color': const Color(0xFFFF5722),
+              'onTap': () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const TirageScreen(),
+                    ),
+                  ),
+            },
+          ],
         ),
       ),
     );

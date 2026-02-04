@@ -5,15 +5,18 @@ import 'mixins/theme_state_mixin.dart';
 /// Provider pour la gestion des préférences utilisateur de l'application
 class PreferencesProvider with ChangeNotifier, ThemeStateMixin {
   static const String _themeKey = 'isDarkMode';
+  static const String _firstLaunchKey = 'isFirstLaunch';
   
   String _technician = '';
   String _company = '';
   String _defaultModule = 'home';
+  bool _isFirstLaunch = true;
 
   // Getters
   String get technician => _technician;
   String get company => _company;
   String get defaultModule => _defaultModule;
+  bool get isFirstLaunch => _isFirstLaunch;
 
   // Charger les préférences
   Future<void> loadPreferences() async {
@@ -22,6 +25,7 @@ class PreferencesProvider with ChangeNotifier, ThemeStateMixin {
     _technician = prefs.getString('technician') ?? '';
     _company = prefs.getString('company') ?? '';
     _defaultModule = prefs.getString('defaultModule') ?? 'home';
+    _isFirstLaunch = prefs.getBool(_firstLaunchKey) ?? true;
   }
 
   // Sauvegarder le mode sombre
@@ -50,6 +54,14 @@ class PreferencesProvider with ChangeNotifier, ThemeStateMixin {
     _defaultModule = value;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('defaultModule', value);
+    notifyListeners();
+  }
+
+  // Marquer le premier lancement comme terminé
+  Future<void> setFirstLaunchCompleted() async {
+    _isFirstLaunch = false;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_firstLaunchKey, false);
     notifyListeners();
   }
 }

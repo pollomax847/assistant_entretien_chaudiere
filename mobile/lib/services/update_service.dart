@@ -3,7 +3,7 @@ import 'package:in_app_update/in_app_update.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:assistant_entreiten_chaudiere/utils/widgets/app_snackbar.dart';
 
-/// Service pour gérer les mises à jour in-app
+/// Service pour gérer les mises à jour in-app via Google Play
 class UpdateService {
   static final UpdateService _instance = UpdateService._internal();
   factory UpdateService() => _instance;
@@ -12,15 +12,29 @@ class UpdateService {
   /// Vérifier si une mise à jour est disponible
   Future<void> checkForUpdate(BuildContext context) async {
     try {
+      debugPrint('🔄 Vérification des mises à jour via Google Play...');
+      
       // Vérifier la disponibilité d'une mise à jour via Google Play
       final updateInfo = await InAppUpdate.checkForUpdate();
+      
+      debugPrint('📱 Info mise à jour: ${updateInfo.updateAvailability}');
+      debugPrint('🔸 Flexible update allowed: ${updateInfo.flexibleUpdateAllowed}');
+      debugPrint('🔸 Immediate update allowed: ${updateInfo.immediateUpdateAllowed}');
 
       if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
         // Une mise à jour est disponible
-        await _showUpdateDialog(context, updateInfo);
+        debugPrint('✅ Mise à jour disponible!');
+        if (context.mounted) {
+          await _showUpdateDialog(context, updateInfo);
+        }
+      } else if (updateInfo.updateAvailability == UpdateAvailability.updateNotAvailable) {
+        debugPrint('✓ Vous avez la dernière version');
+      } else if (updateInfo.updateAvailability == UpdateAvailability.developerTriggeredUpdateInProgress) {
+        debugPrint('⏳ Mise à jour en cours...');
       }
-    } catch (e) {
-      debugPrint('Erreur lors de la vérification de mise à jour: $e');
+    } on Exception catch (e) {
+      debugPrint('❌ Erreur lors de la vérification de mise à jour: $e');
+      // N'afficher pas d'erreur au premier démarrage, juste loguer
     }
   }
 
@@ -32,7 +46,7 @@ class UpdateService {
 
     return showDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: updateInfo.flexibleUpdateAllowed,
       builder: (context) => AlertDialog(
         title: const Row(
           children: [
@@ -56,10 +70,11 @@ class UpdateService {
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Plus tard'),
-          ),
+          if (updateInfo.flexibleUpdateAllowed)
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Plus tard'),
+            ),
           ElevatedButton.icon(
             icon: const Icon(Icons.download),
             label: const Text('Mettre à jour'),
@@ -76,15 +91,19 @@ class UpdateService {
   /// Effectuer la mise à jour
   Future<void> _performUpdate(BuildContext context, AppUpdateInfo updateInfo) async {
     try {
+      debugPrint('🚀 Début de la mise à jour...');
+      
       if (updateInfo.immediateUpdateAllowed) {
+        debugPrint('📲 Mise à jour immédiate');
         // Mise à jour immédiate (l'app redémarre après)
         await InAppUpdate.performImmediateUpdate();
       } else if (updateInfo.flexibleUpdateAllowed) {
+        debugPrint('⏳ Mise à jour flexible');
         // Mise à jour flexible (téléchargement en arrière-plan)
         await _performFlexibleUpdate(context);
       }
-    } catch (e) {
-      debugPrint('Erreur lors de la mise à jour: $e');
+    } on Exception catch (e) {
+      debugPrint('❌ Erreur lors de la mise à jour: $e');
       if (!context.mounted) return;
       
       AppSnackBar.showError(
@@ -108,15 +127,15 @@ class UpdateService {
           'Mise à jour installée ! Redémarrage...',
         );
       });
-    } catch (e) {
-      debugPrint('Erreur mise à jour flexible: $e');
+    } on Exception catch (e) {
+      debugPrint('❌ Erreur mise à jour flexible: $e');
     }
   }
 
   /// Vérification au démarrage de l'app
   Future<void> checkOnAppStart(BuildContext context) async {
     // Attendre un peu avant de vérifier (pour ne pas bloquer le démarrage)
-    await Future.delayed(const Duration(seconds: 3));
+    await Future.delayed(const Duration(seconds: 2));
     await checkForUpdate(context);
   }
 
@@ -156,13 +175,15 @@ class UpdateService {
           '✓ Vous avez la dernière version',
         );
       }
-    } catch (e) {
+    } on Exception catch (e) {
       if (!context.mounted) return;
       Navigator.pop(context);
       
+      debugPrint('❌ Erreur vérification manuelle: $e');
+      
       AppSnackBar.showWarning(
         context,
-        'Impossible de vérifier les mises à jour',
+        'Impossible de vérifier les mises à jour. Vérifiez votre connexion.',
       );
     }
   }
@@ -178,3 +199,4 @@ class UpdateService {
     };
   }
 }
+
