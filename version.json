@@ -1,8 +1,8 @@
 {
   "version": "1.1.0",
-  "buildNumber": "3",
-  "downloadUrl": "https://github.com/pollomax847/assistant_entretien_chaudiere/releases/download/v1.1.0-build3/app-release.apk",
-  "releaseNotes": "Activation du système de mise à jour automatique - vérification au démarrage + bouton manuel",
+  "buildNumber": "4",
+  "downloadUrl": "https://github.com/pollomax847/assistant_entretien_chaudiere/releases/download/v1.1.0-build4/app-release.apk",
+  "releaseNotes": "Intégration du système de mise à jour automatique complètement opérationnel",
   "minVersion": "1.0.0",
   "forceUpdate": false,
   "releaseDate": "2026-02-04"
