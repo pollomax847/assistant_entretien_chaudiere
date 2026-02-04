@@ -2,11 +2,25 @@ import 'package:flutter/material.dart';
 import '../modules/puissance_chauffage/puissance_chauffage_expert_screen.dart';
 import '../modules/reglementation_gaz/reglementation_gaz_screen.dart';
 import '../modules/vmc/vmc_screen.dart';
-import '../modules/reglementation_gaz/reglementation_gaz_screen.dart';
 import '../modules/tests/enhanced_top_gaz_screen.dart';
+import '../services/github_update_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Vérifier les mises à jour au démarrage
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      GitHubUpdateService().checkOnAppStart(context);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

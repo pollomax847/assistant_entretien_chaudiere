@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:chauffageexpert/utils/widgets/app_snackbar.dart';
+import 'package:assistant_entreiten_chaudiere/utils/widgets/app_snackbar.dart';
 
 /// Service de mise à jour via GitHub Releases
 class GitHubUpdateService {
