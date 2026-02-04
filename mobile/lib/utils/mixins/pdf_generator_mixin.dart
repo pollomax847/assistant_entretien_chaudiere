@@ -75,40 +75,37 @@ mixin PDFGeneratorMixin {
   
   /// Construit le pied de page du PDF
   pw.Widget buildPDFFooter(pw.Context context, {String? version}) {
-    return pw.Footer(
-      margin: const pw.EdgeInsets.only(top: defaultPadding),
-      child: pw.Column(
-        children: [
-          pw.Divider(thickness: 1),
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
+    return pw.Column(
+      children: [
+        pw.Divider(thickness: 1),
+        pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          children: [
+            pw.Text(
+              'Page ${context.pageNumber}/${context.pagesCount}',
+              style: const pw.TextStyle(
+                fontSize: smallFontSize,
+                color: PdfColors.grey600,
+              ),
+            ),
+            pw.Text(
+              'Généré le ${_dateTimeFormat.format(DateTime.now())}',
+              style: const pw.TextStyle(
+                fontSize: smallFontSize,
+                color: PdfColors.grey600,
+              ),
+            ),
+            if (version != null)
               pw.Text(
-                'Page ${context.pageNumber}/${context.pagesCount}',
+                'v$version',
                 style: const pw.TextStyle(
                   fontSize: smallFontSize,
                   color: PdfColors.grey600,
-                ),
-              ),
-              pw.Text(
-                'Généré le ${_dateTimeFormat.format(DateTime.now())}',
-                style: const pw.TextStyle(
-                  fontSize: smallFontSize,
-                  color: PdfColors.grey600,
-                ),
-              ),
-              if (version != null)
-                pw.Text(
-                  'v$version',
-                  style: const pw.TextStyle(
-                    fontSize: smallFontSize,
-                    color: PdfColors.grey600,
                   ),
                 ),
             ],
           ),
         ],
-      ),
     );
   }
   

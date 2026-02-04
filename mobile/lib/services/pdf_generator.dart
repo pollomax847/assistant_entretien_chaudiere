@@ -21,39 +21,39 @@ class PDFGeneratorService with PDFGeneratorMixin, SharedPreferencesMixin {
     final pdf = pw.Document();
     
     // Informations entreprise
-    final entrepriseNom = await loadString('entrepriseNom', defaultValue: 'Entreprise');
-    final entrepriseAdresse = await loadString('entrepriseAdresse', defaultValue: '');
-    final entrepriseVille = await loadString('entrepriseVille', defaultValue: '');
-    final entrepriseCodePostal = await loadString('entrepriseCodePostal', defaultValue: '');
-    final entrepriseTelephone = await loadString('entrepriseTelephone', defaultValue: '');
-    final entrepriseEmail = await loadString('entrepriseEmail', defaultValue: '');
-    final entrepriseSiret = await loadString('entrepriseSiret', defaultValue: '');
+    final entrepriseNom = await loadString('entrepriseNom') ?? 'Entreprise';
+    final entrepriseAdresse = await loadString('entrepriseAdresse') ?? '';
+    final entrepriseVille = await loadString('entrepriseVille') ?? '';
+    final entrepriseCodePostal = await loadString('entrepriseCodePostal') ?? '';
+    final entrepriseTelephone = await loadString('entrepriseTelephone') ?? '';
+    final entrepriseEmail = await loadString('entrepriseEmail') ?? '';
+    final entrepriseSiret = await loadString('entrepriseSiret') ?? '';
     
     // Informations technicien
-    final technicienNom = await loadString('technicienNom', defaultValue: 'Technicien');
-    final technicienQualification = await loadString('technicienQualification', defaultValue: '');
+    final technicienNom = await loadString('technicienNom') ?? 'Technicien';
+    final technicienQualification = await loadString('technicienQualification') ?? '';
     
     // Construire une section "Réglementation Gaz" depuis SharedPreferences
     final Map<String, String> reglementationSection = {
-      'Vase d\'expansion présent': await loadString('vasoPresent', defaultValue: 'NC'),
-      'Vase d\'expansion conforme': await loadString('vasoConforme', defaultValue: 'NC'),
-      'Observation vase': await loadString('vasoObservation', defaultValue: ''),
-      'ROAI présent': await loadString('roaiPresent', defaultValue: 'NC'),
-      'ROAI conforme': await loadString('roaiConforme', defaultValue: 'NC'),
-      'Observation ROAI': await loadString('roaiObservation', defaultValue: ''),
-      'Type hotte': await loadString('typeHotte', defaultValue: ''),
-      'Ventilation conforme': await loadString('ventilationConforme', defaultValue: 'NC'),
-      'Observation ventilation': await loadString('ventilationObservation', defaultValue: ''),
-      'VMC présent': await loadString('vmcPresent', defaultValue: 'NC'),
-      'VMC conforme': await loadString('vmcConforme', defaultValue: 'NC'),
-      'Observation VMC': await loadString('vmcObservation', defaultValue: ''),
-      'Détecteur CO': await loadString('detecteurCO', defaultValue: 'NC'),
-      'Détecteur Gaz': await loadString('detecteurGaz', defaultValue: 'NC'),
-      'Détecteurs conformes': await loadString('detecteursConformes', defaultValue: 'NC'),
-      'Distance fenêtre (m)': await loadString('distanceFenetre', defaultValue: ''),
-      'Distance porte (m)': await loadString('distancePorte', defaultValue: ''),
-      'Distance évacuation (m)': await loadString('distanceEvacuation', defaultValue: ''),
-      'Distance aspiration (m)': await loadString('distanceAspiration', defaultValue: ''),
+      'Vase d\'expansion présent': await loadString('vasoPresent') ?? 'NC',
+      'Vase d\'expansion conforme': await loadString('vasoConforme') ?? 'NC',
+      'Observation vase': await loadString('vasoObservation') ?? '',
+      'ROAI présent': await loadString('roaiPresent') ?? 'NC',
+      'ROAI conforme': await loadString('roaiConforme') ?? 'NC',
+      'Observation ROAI': await loadString('roaiObservation') ?? '',
+      'Type hotte': await loadString('typeHotte') ?? '',
+      'Ventilation conforme': await loadString('ventilationConforme') ?? 'NC',
+      'Observation ventilation': await loadString('ventilationObservation') ?? '',
+      'VMC présent': await loadString('vmcPresent') ?? 'NC',
+      'VMC conforme': await loadString('vmcConforme') ?? 'NC',
+      'Observation VMC': await loadString('vmcObservation') ?? '',
+      'Détecteur CO': await loadString('detecteurCO') ?? 'NC',
+      'Détecteur Gaz': await loadString('detecteurGaz') ?? 'NC',
+      'Détecteurs conformes': await loadString('detecteursConformes') ?? 'NC',
+      'Distance fenêtre (m)': await loadString('distanceFenetre') ?? '',
+      'Distance porte (m)': await loadString('distancePorte') ?? '',
+      'Distance évacuation (m)': await loadString('distanceEvacuation') ?? '',
+      'Distance aspiration (m)': await loadString('distanceAspiration') ?? '',
     };
 
     // Fusionner la section réglementation au jeu de sections fourni (si non vide)
@@ -156,7 +156,7 @@ class PDFGeneratorService with PDFGeneratorMixin, SharedPreferencesMixin {
   }) async {
     final pdf = pw.Document();
     
-    final entrepriseNom = await loadString('entrepriseNom', defaultValue: 'Entreprise');
+    final entrepriseNom = await loadString('entrepriseNom') ?? 'Entreprise';
     
     pdf.addPage(
       pw.MultiPage(
@@ -213,7 +213,7 @@ class PDFGeneratorService with PDFGeneratorMixin, SharedPreferencesMixin {
   }) async {
     final pdf = pw.Document();
     
-    final entrepriseNom = await loadString('entrepriseNom', defaultValue: 'Entreprise');
+    final entrepriseNom = await loadString('entrepriseNom') ?? 'Entreprise';
     
     pdf.addPage(
       pw.MultiPage(

@@ -5,7 +5,6 @@ import '../utils/preferences_provider.dart';
 import '../modules/puissance_chauffage/gestion_pieces_screen.dart';
 import '../modules/vmc/vmc_integration_screen.dart';
 import '../modules/tests/top_compteur_gaz_screen.dart';
-import '../modules/tests/valeurs_sondes_screen.dart';
 import '../modules/releves/releve_technique_screen.dart';
 import '../modules/releves/releve_technique_model.dart';
 import '../modules/ecs/ecs_screen.dart';
@@ -78,16 +77,6 @@ class _HomeScreenState extends State<HomeScreen> {
           MaterialPageRoute(
             builder: (context) => const ReleveTechniqueScreen(type: TypeReleve.chaudiere),
           ),
-        ),
-      },
-      {
-        'id': 'valeurs_sondes',
-        'title': 'Sondes',
-        'icon': Icons.thermostat,
-        'color': Colors.green,
-        'onTap': () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ValeursSondesScreen()),
         ),
       },
       {

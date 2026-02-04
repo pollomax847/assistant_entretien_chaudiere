@@ -235,4 +235,32 @@ mixin ReglementationGazMixin<T extends StatefulWidget> on State<T> {
     
     return data;
   }
-}
+
+  // --- LEGACY GETTERS FOR BACKWARD COMPATIBILITY ---
+  // These getters provide access to the old hardcoded fields
+  
+  bool get vasoPresent => _reglementationAnswers['vaso_present'] == 'Oui';
+  bool get vasoConforme => _reglementationAnswers['vaso_conforme'] == 'Oui';
+  String get vasoObservation => _reglementationObsControllers['vaso_present']?.text ?? '';
+  
+  bool get roaiPresent => _reglementationAnswers['roai_present'] == 'Oui';
+  bool get roaiConforme => _reglementationAnswers['roai_conforme'] == 'Oui';
+  String get roaiObservation => _reglementationObsControllers['roai_present']?.text ?? '';
+  
+  String get typeHotte => _reglementationAnswers['type_hotte']?.toString() ?? '';
+  
+  bool get ventilationConforme => _reglementationAnswers['ventilation_conforme'] == 'Oui';
+  String get ventilationObservation => _reglementationObsControllers['ventilation_conforme']?.text ?? '';
+  
+  bool get vmcPresent => _reglementationAnswers['vmc_present'] == 'Oui';
+  bool get vmcConforme => _reglementationAnswers['vmc_conforme'] == 'Oui';
+  String get vmcObservation => _reglementationObsControllers['vmc_present']?.text ?? '';
+  
+  bool get detecteurCO => _reglementationAnswers['detecteur_co'] == 'Oui';
+  bool get detecteurGaz => _reglementationAnswers['detecteur_gaz'] == 'Oui';
+  bool get detecteursConformes => _reglementationAnswers['detecteurs_conformes'] == 'Oui';
+  
+  TextEditingController get distanceFenetreController => _reglementationObsControllers['distance_fenetre'] ?? TextEditingController();
+  TextEditingController get distancePorteController => _reglementationObsControllers['distance_porte'] ?? TextEditingController();
+  TextEditingController get distanceEvacuationController => _reglementationObsControllers['distance_evacuation'] ?? TextEditingController();
+  TextEditingController get distanceAspirationController => _reglementationObsControllers['distance_aspiration'] ?? TextEditingController();

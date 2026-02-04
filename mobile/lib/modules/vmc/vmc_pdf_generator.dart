@@ -71,7 +71,7 @@ class VMCPdfGenerator with PDFGeneratorMixin {
               children: [
                 pw.Text(
                   recommandation,
-                  style: const pw.TextStyle(fontSize: bodyFontSize),
+                  style: pw.TextStyle(fontSize: bodyFontSize),
                 ),
               ],
             ),

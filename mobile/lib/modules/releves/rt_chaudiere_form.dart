@@ -169,7 +169,6 @@ class _RTChaudiereFormState extends State<RTChaudiereForm> with ReglementationGa
                 color: Colors.blue,
                 children: [buildSectionReglementation(showAllFields: true)],
               ),
-              ),
               CommonFormWidgets.buildSubmitButton(
                 onPressed: _submitForm,
                 label: 'ENREGISTRER LE RELEVÉ',
