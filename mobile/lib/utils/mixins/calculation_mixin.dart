@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:chauffageexpert/utils/widgets/app_snackbar.dart';
-import 'package:chauffageexpert/utils/mixins/shared_preferences_mixin.dart';
+import 'package:assistant_entreiten_chaudiere/utils/widgets/app_snackbar.dart';
+import 'package:assistant_entreiten_chaudiere/utils/mixins/shared_preferences_mixin.dart';
 
 /// Mixin pour les écrans de calcul (ECS, Vase d'expansion, Puissance, etc.)
 /// 

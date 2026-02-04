@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:chauffageexpert/utils/widgets/app_snackbar.dart';
+import 'package:assistant_entreiten_chaudiere/utils/widgets/app_snackbar.dart';
 
 /// Service pour gérer les mises à jour in-app
 class UpdateService {

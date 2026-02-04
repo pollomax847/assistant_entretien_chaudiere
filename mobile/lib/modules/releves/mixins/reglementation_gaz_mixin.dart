@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:chauffageexpert/modules/reglementation_gaz/models/diagnostic_question.dart';
+import 'package:assistant_entreiten_chaudiere/modules/reglementation_gaz/models/diagnostic_question.dart';
 
 /// Mixin pour gérer la réglementation gaz commune à tous les relevés techniques
 /// Utilise le système JSON dynamique pour charger les questions

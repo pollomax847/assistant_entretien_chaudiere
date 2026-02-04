@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
-import 'package:chauffageexpert/utils/widgets/app_snackbar.dart';
-import 'package:chauffageexpert/services/pdf_generator.dart';
+import 'package:assistant_entreiten_chaudiere/utils/widgets/app_snackbar.dart';
+import 'package:assistant_entreiten_chaudiere/services/pdf_generator.dart';
 
 class TopCompteurGazScreen extends StatefulWidget {
   const TopCompteurGazScreen({super.key});

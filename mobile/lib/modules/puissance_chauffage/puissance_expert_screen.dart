@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:chauffageexpert/utils/app_utils.dart';
+import 'package:assistant_entreiten_chaudiere/utils/app_utils.dart';
 
 class PuissanceExpertScreen extends StatefulWidget {
   const PuissanceExpertScreen({super.key});

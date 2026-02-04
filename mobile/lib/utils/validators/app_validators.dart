@@ -1,4 +1,4 @@
-import 'package:chauffageexpert/utils/constants/app_constants.dart';
+import 'package:assistant_entreiten_chaudiere/utils/constants/app_constants.dart';
 
 /// Validateurs pour les formulaires
 class AppValidators {

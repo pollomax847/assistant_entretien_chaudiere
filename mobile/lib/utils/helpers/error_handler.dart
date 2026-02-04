@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:chauffageexpert/utils/widgets/app_snackbar.dart';
+import 'package:assistant_entreiten_chaudiere/utils/widgets/app_snackbar.dart';
 
 /// Classe pour gérer les erreurs de manière centralisée
 class ErrorHandler {

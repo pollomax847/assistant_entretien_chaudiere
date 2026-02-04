@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:chauffageexpert/utils/mixins/shared_preferences_mixin.dart';
+import 'package:assistant_entreiten_chaudiere/utils/mixins/shared_preferences_mixin.dart';
 
 /// Mixin pour la gestion de données complexes stockées en JSON
 /// 

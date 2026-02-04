@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:chauffageexpert/utils/app_utils.dart';
+import 'package:assistant_entreiten_chaudiere/utils/app_utils.dart';
 import 'vmc_calculator.dart';
 
 class VMCPdfGenerator with PDFGeneratorMixin {
