@@ -22,7 +22,7 @@ class PdfGeneratorService {
     return pw.Column(
       children: [
         pw.Text(
-          'Assistant Entretien Chaudière',
+          'Chauffage Expert',
           style: pw.TextStyle(
             fontSize: 24,
             fontWeight: pw.FontWeight.bold,
@@ -210,7 +210,7 @@ class PdfGeneratorService {
       child: pw.Column(
         children: [
           pw.Text(
-            'Rapport généré automatiquement par Assistant Entretien Chaudière',
+            'Rapport généré automatiquement par Chauffage Expert',
             style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
             textAlign: pw.TextAlign.center,
           ),
