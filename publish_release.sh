@@ -6,7 +6,7 @@ set -e
 REPO="assistant_entretien_chaudiere"
 OWNER="pollomax847"
 VERSION="1.1.0"
-BUILD="10"
+BUILD="11"
 TAG="v${VERSION}-build${BUILD}"
 APK_PATH="mobile/build/app/outputs/flutter-apk/app-release.apk"
 
@@ -17,13 +17,6 @@ echo "Tag: $TAG"
 echo "Version: $VERSION"
 echo "Build: $BUILD"
 echo ""
-
-# Vérifier que l'APK existe
-if [ ! -f "$APK_PATH" ]; then
-    echo "❌ Erreur: APK non trouvé à $APK_PATH"
-    echo "Veuillez d'abord compiler l'APK avec: cd mobile && flutter build apk --release"
-    exit 1
-fi
 
 # Vérifier que gh CLI est installé
 if ! command -v gh &> /dev/null; then
@@ -60,12 +53,16 @@ git push origin "$TAG" 2>/dev/null || echo "⚠️  Le tag existe déjà sur Git
 # Attendre que le tag soit disponible
 sleep 2
 
-# Créer la release GitHub avec l'APK
+# Créer la release GitHub
 echo "🚀 Création de la release GitHub..."
-gh release create "$TAG" \
-    --repo "$OWNER/$REPO" \
-    --title "Release $VERSION Build $BUILD" \
-    --notes "
+
+# Vérifier si APK existe
+if [ -f "$APK_PATH" ]; then
+    echo "📦 Attachement de l'APK..."
+    gh release create "$TAG" \
+        --repo "$OWNER/$REPO" \
+        --title "Release $VERSION Build $BUILD" \
+        --notes "
 ## Version $VERSION Build $BUILD
 
 ### Changements
@@ -80,7 +77,23 @@ Téléchargez l'APK ci-dessous et installez-le sur votre appareil Android.
 
 **Note**: Vous devrez d'abord permettre l'installation d'applications de sources inconnues dans les paramètres de sécurité de votre appareil.
 " \
-    "$APK_PATH#app-release.apk" || echo "⚠️  La release existe déjà"
+        "$APK_PATH#app-release.apk" || echo "⚠️  La release existe déjà"
+else
+    echo "⚠️  APK non trouvé - publication sans APK"
+    gh release create "$TAG" \
+        --repo "$OWNER/$REPO" \
+        --title "Release $VERSION Build $BUILD" \
+        --notes "
+## Version $VERSION Build $BUILD
+
+### Changements
+- Mise à jour de version
+- Détection automatique de mise à jour
+
+Cette release contient une mise à jour du numéro de version.
+L'application détectera automatiquement cette nouvelle version.
+" || echo "⚠️  La release existe déjà"
+fi
 
 echo ""
 echo "✅ Publication terminée!"
