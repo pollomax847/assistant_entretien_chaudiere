@@ -49,6 +49,10 @@ coverage/
 tmp/
 temp/
 
+# APK builds (released via GitHub Releases)
+*.apk
+*.aab
+
 # Vercel
 .vercel/
 
