@@ -6,7 +6,7 @@ set -e
 REPO="assistant_entretien_chaudiere"
 OWNER="pollomax847"
 VERSION="1.1.0"
-BUILD="9"
+BUILD="10"
 TAG="v${VERSION}-build${BUILD}"
 APK_PATH="mobile/build/app/outputs/flutter-apk/app-release.apk"
 
