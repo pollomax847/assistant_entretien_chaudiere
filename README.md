@@ -1,88 +1,100 @@
 # Assistant Entretien Chaudière
 
-Application complète (web + mobile) pour les techniciens de chauffage, permettant de vérifier la conformité, calculer des puissances, et générer des PDF d'intervention.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Flutter](https://img.shields.io/badge/Flutter-02569B?style=flat&logo=flutter&logoColor=white)](https://flutter.dev/)
+[![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-## 🏗️ Structure du Projet
+Application complète (web + mobile) pour les techniciens de chauffage, permettant de vérifier la conformité des installations, calculer des puissances, et générer des rapports d'intervention PDF.
 
-```
-assitant_entreiten_chaudiere/
-├── web/                    # Application web
-│   ├── src/               # Code source TypeScript/React
-│   ├── server/            # Serveur Node.js Express
-│   ├── config/            # Configuration
-│   ├── index.html         # Page principale
-│   ├── cgu.html          # Conditions générales
-│   ├── vite.config.ts    # Configuration Vite
-│   └── tsconfig.json     # Configuration TypeScript
-├── mobile/                # Application mobile Flutter
-│   ├── lib/              # Code source Dart
-│   ├── assets/           # Ressources
-│   ├── android/          # Configuration Android
-│   ├── ios/              # Configuration iOS
-│   └── pubspec.yaml      # Dépendances Flutter
-├── docs/                 # Documentation
-├── dist/                 # Build de production
-└── README.md            # Ce fichier
-```
+## 📋 Description
+
+L'Assistant Entretien Chaudière est un outil professionnel conçu pour faciliter le travail quotidien des techniciens en chauffage. L'application offre une suite complète de modules de calcul et de vérification, avec une interface intuitive et des fonctionnalités avancées comme l'export PDF et la synchronisation multi-plateforme.
 
 ## ✨ Fonctionnalités
 
-### Application Web
-- **Module Puissance Chauffage** : Calcul de la puissance nécessaire en fonction de la surface, hauteur, températures et isolation
-- **Module Vase d'Expansion** : Calcul de la pression théorique et du réglage en tours
-- **Module Équilibrage Réseau** : Calcul du réglage en tours pour l'équilibrage
-- **Module Radiateurs** : Calcul de puissance selon le type et les dimensions
+### 🖥️ Application Web
+- **Module Puissance Chauffage** : Calcul précis de la puissance nécessaire selon surface, hauteur, températures et isolation
+- **Module Vase d'Expansion** : Calcul de la pression théorique et réglage en tours
+- **Module Équilibrage Réseau** : Calcul du réglage en tours pour un équilibrage optimal
+- **Module Radiateurs** : Calcul de puissance selon type et dimensions
 - **Module ECS** : Analyse instantanée de la production d'eau chaude
-- **Module Top Compteur Gaz** : Calcul de puissance à partir des relevés
-- **Module VMC** : Vérification de conformité des installations
-- **Module Réglementation Gaz** : Vérification des règles CC2
-- **Export PDF** : Génération de rapports d'intervention personnalisés
-- **Préférences** : Personnalisation de l'interface et des paramètres
+- **Module Top Compteur Gaz** : Calcul de puissance à partir des relevés de compteur
+- **Module VMC** : Vérification de conformité des installations de ventilation
+- **Module Réglementation Gaz** : Vérification des règles de conformité CC2
+- **Export PDF** : Génération de rapports d'intervention personnalisés et professionnels
+- **Préférences** : Personnalisation complète de l'interface et des paramètres utilisateur
 
-### Application Mobile
-- Interface native pour smartphones et tablettes
-- Synchronisation avec l'application web
-- Mode hors-ligne
-- Export PDF natif
+### 📱 Application Mobile
+- Interface native optimisée pour smartphones et tablettes
+- Synchronisation automatique avec l'application web
+- Fonctionnement hors-ligne complet
+- Export PDF natif avec partage direct
+- Notifications de mise à jour automatique
+- Thème adaptatif (clair/sombre)
+
+## 🏗️ Architecture du Projet
+
+```
+assistant_entretien_chaudiere/
+├── web/                          # Application web React/TypeScript
+│   ├── src/                     # Code source frontend
+│   ├── server/                  # Serveur backend Node.js/Express
+│   ├── index.html              # Point d'entrée
+│   ├── vite.config.ts          # Configuration Vite
+│   └── tsconfig.json           # Configuration TypeScript
+├── mobile/                      # Application mobile Flutter
+│   ├── lib/                    # Code source Dart
+│   ├── assets/                 # Ressources (images, icônes, polices)
+│   ├── android/                # Configuration Android
+│   ├── ios/                    # Configuration iOS
+│   └── pubspec.yaml            # Dépendances et configuration Flutter
+├── docs/                       # Documentation
+├── test/                       # Tests unitaires
+├── build/                      # Artefacts de build
+├── version.json                # Informations de version pour les mises à jour
+├── publish.sh                  # Script de publication automatique
+└── README.md                  # Ce fichier
+```
 
 ## 🚀 Installation et Démarrage
 
 ### Prérequis
-- Node.js 14+
-- Flutter 3.0+ (pour l'application mobile)
-- Git
+- **Node.js** 14+ (pour l'application web)
+- **Flutter** 3.0+ (pour l'application mobile)
+- **Git** pour le contrôle de version
 
 ### Installation
 
 1. **Cloner le dépôt :**
-```bash
-git clone https://github.com/pollomax847/assitant_entreiten_chaudiere.git
-cd assitant_entreiten_chaudiere
-```
+   ```bash
+   git clone https://github.com/pollomax847/assistant_entretien_chaudiere.git
+   cd assistant_entretien_chaudiere
+   ```
 
 2. **Installer les dépendances web :**
-```bash
-npm install
-```
+   ```bash
+   npm install
+   ```
 
 3. **Installer les dépendances mobile :**
-```bash
-cd mobile
-flutter pub get
-cd ..
-```
+   ```bash
+   cd mobile
+   flutter pub get
+   cd ..
+   ```
 
 ### Démarrage
 
 #### Application Web
 ```bash
-# Développement (web + serveur)
+# Développement complet (client + serveur)
 npm run dev
 
-# Développement web uniquement
+# Développement frontend uniquement
 npm run dev:client
 
-# Développement serveur uniquement
+# Développement backend uniquement
 npm run dev:server
 
 # Build de production
@@ -91,81 +103,84 @@ npm run build
 # Aperçu de production
 npm run preview
 
-# Production
+# Démarrage en production
 npm start
 ```
 
 #### Application Mobile
 ```bash
-# Lancer l'app mobile
+# Lancer en mode développement
 npm run mobile
 
 # Build APK Android
 npm run mobile:build
 ```
 
-3. Lancer l'application en mode développement :
+## 🛠️ Technologies Utilisées
+
+### Frontend Web
+- **React 19** - Framework UI moderne
+- **TypeScript** - Typage statique
+- **Vite** - Outil de build rapide
+- **Material Design** - Design system cohérent
+
+### Backend Web
+- **Node.js** - Runtime JavaScript
+- **Express.js** - Framework serveur
+- **CORS** - Gestion des requêtes cross-origin
+
+### Mobile
+- **Flutter** - Framework multi-plateforme
+- **Dart** - Langage de programmation
+- **Provider/Riverpod** - Gestion d'état
+- **Shared Preferences** - Stockage local
+
+### Outils de Développement
+- **ESLint** - Linting du code
+- **Jest** - Tests unitaires
+- **GitHub CLI** - Automatisation des releases
+
+## 📱 Déploiement et Publication
+
+L'application mobile est publiée automatiquement via le script `publish.sh` :
+
 ```bash
-npm start
+./publish.sh "Description de la nouvelle version"
 ```
 
-4. Construire l'application pour la production :
-```bash
-npm run build
-```
+Ce script :
+- Incrémente automatiquement le numéro de build
+- Compile l'APK en mode release
+- Crée un tag Git et une release GitHub
+- Upload l'APK sur GitHub Releases
+- Met à jour le fichier `version.json` pour les mises à jour automatiques
 
-## Structure du projet
+## 🤝 Contribution
 
-```
-chauffage-expert/
-├── index.html          # Page principale
-├── css/                # Styles CSS
-│   ├── style.css       # Styles principaux
-│   ├── theme.css       # Variables de thème
-│   └── notifications.css # Styles des notifications
-├── js/                 # Scripts JavaScript
-│   ├── app.js          # Application principale
-│   ├── pdf-export.js   # Gestion des exports PDF
-│   └── preferences.js  # Gestion des préférences
-├── modules/            # Modules de l'application
-│   ├── module-puissance-chauffage.html
-│   ├── module-vase-expansion.html
-│   └── ...
-└── assets/             # Ressources statiques
-    └── icons/          # Icônes SVG
-```
+Les contributions sont les bienvenues ! Voici comment participer :
 
-## Technologies utilisées
+1. **Fork** le projet
+2. Créer une **branche** pour votre fonctionnalité (`git checkout -b feature/nouvelle-fonctionnalite`)
+3. **Commiter** vos changements (`git commit -m 'Ajout nouvelle fonctionnalité'`)
+4. **Pousser** vers la branche (`git push origin feature/nouvelle-fonctionnalite`)
+5. Ouvrir une **Pull Request**
 
-- HTML5
-- CSS3 (Material Design)
-- JavaScript natif
-- html2pdf.js pour les exports PDF
-- Signature Pad pour les signatures électroniques
-- Vite pour le développement et le build
+### Guidelines de développement
+- Respecter les conventions de code (ESLint pour le web, Flutter analyze pour le mobile)
+- Ajouter des tests pour les nouvelles fonctionnalités
+- Mettre à jour la documentation si nécessaire
+- Utiliser des commits descriptifs
 
-## Fonctionnement hors-ligne
+## 📄 Licence
 
-L'application est conçue pour fonctionner hors-ligne grâce au stockage local du navigateur. Les données sont sauvegardées automatiquement et peuvent être exportées/importées.
+Ce projet est sous licence **MIT**. Voir le fichier [`LICENSE`](LICENSE) pour plus de détails.
 
-## Personnalisation
+## 📞 Support
 
-Les techniciens peuvent personnaliser :
-- Leur prénom
-- Le thème (clair/sombre)
-- L'unité de température
-- Le logo de l'entreprise
-- Le module par défaut
+Pour toute question ou problème :
+- Ouvrir une [issue](https://github.com/pollomax847/assistant_entretien_chaudiere/issues) sur GitHub
+- Consulter la [documentation](./docs/) pour les guides détaillés
 
-## Contribution
+---
 
-Les contributions sont les bienvenues ! N'hésitez pas à :
-1. Fork le projet
-2. Créer une branche pour votre fonctionnalité
-3. Commiter vos changements
-4. Pousser vers la branche
-5. Ouvrir une Pull Request
-
-## Licence
-
-Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
+**Développé avec ❤️ pour la communauté des techniciens de chauffage**
