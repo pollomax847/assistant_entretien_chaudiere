@@ -194,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const ReleveTechniqueScreenComplet(),
+                          builder: (context) => ReleveTechniqueScreenComplet(type: TypeReleve.chaudiere),
                         ),
                       ),
                     ),
@@ -475,7 +475,7 @@ class _HomeScreenState extends State<HomeScreen> {
               'onTap': () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const ReleveTechniqueScreenComplet(),
+                      builder: (context) => ReleveTechniqueScreenComplet(type: TypeReleve.chaudiere),
                     ),
                   ),
             },
