@@ -1,0 +1,52 @@
+name: assistant_entreiten_chaudiere
+description: Assistant pour l'entretien de chaudière
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+  flutter: ">=3.0.0"
+
+dependencies:
+
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.2
+  shared_preferences: ^2.3.0
+  provider: ^6.1.1
+  flutter_riverpod: ^2.3.6
+  material_design_icons_flutter: ^7.0.7296
+  
+  # Graphiques
+  fl_chart: ^0.68.0
+  share_plus: ^7.2.2
+#   vibration: ^1.8.4
+  device_info_plus: ^9.1.1
+  package_info_plus: ^4.2.0
+  http: ^1.1.2
+  image: ^4.1.7
+  intl: ^0.17.0
+  path_provider: ^2.1.2
+  url_launcher: ^6.2.2
+  pdf: ^3.10.7
+  flutter_ringtone_player: ^4.0.0+2
+  charts_flutter_new: ^0.12.0
+  printing: ^5.11.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^3.0.1
+
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/qualigaz_codes.json
+    - lib/data/reglementation_questions.json

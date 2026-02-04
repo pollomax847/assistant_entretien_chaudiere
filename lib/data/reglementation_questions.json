@@ -1,0 +1,192 @@
+{
+  "sections": [
+    {
+      "id": "installation_generale",
+      "titre": "Installation générale",
+      "icone": "build",
+      "questions": [
+        {
+          "id": "type_appareil",
+          "text": "Type d'appareil installé",
+          "type": "select",
+          "severity": "high",
+          "description": "Sélectionnez le type d'appareil de chauffage installé",
+          "options": [
+            {"value": "chaudiere_gaz", "label": "Chaudière gaz"},
+            {"value": "chaudiere_fioul", "label": "Chaudière fioul"},
+            {"value": "pac", "label": "Pompe à chaleur"},
+            {"value": "poele", "label": "Poêle"},
+            {"value": "insert", "label": "Insert"}
+          ]
+        },
+        {
+          "id": "marque_modele",
+          "text": "La marque et le modèle de l'appareil sont-ils clairement identifiables ?",
+          "severity": "medium",
+          "description": "Vérifiez la plaque signalétique de l'appareil"
+        },
+        {
+          "id": "puissance_nominale",
+          "text": "La puissance nominale de l'appareil correspond-elle aux besoins de chauffage ?",
+          "severity": "high",
+          "description": "Comparez avec le calcul de puissance requis"
+        },
+        {
+          "id": "local_installation",
+          "text": "L'appareil est-il installé dans un local adapté (ventilation, volume, etc.) ?",
+          "severity": "high",
+          "description": "Vérifiez les normes d'installation en vigueur"
+        }
+      ]
+    },
+    {
+      "id": "securite",
+      "titre": "Sécurité",
+      "icone": "security",
+      "questions": [
+        {
+          "id": "dispositif_securite",
+          "text": "L'appareil est-il équipé des dispositifs de sécurité requis ?",
+          "severity": "critical",
+          "description": "Soupape de sécurité, thermostat de sécurité, etc."
+        },
+        {
+          "id": "etancheite_circuit",
+          "text": "Le circuit de gaz est-il étanche ?",
+          "severity": "critical",
+          "description": "Vérifiez l'absence de fuites"
+        },
+        {
+          "id": "ventilation",
+          "text": "La ventilation du local est-elle conforme aux normes ?",
+          "severity": "high",
+          "description": "Entrées et sorties d'air dimensionnées correctement"
+        },
+        {
+          "id": "acces_securise",
+          "text": "L'accès aux commandes de l'appareil est-il sécurisé ?",
+          "severity": "medium",
+          "description": "Protection contre les manipulations intempestives"
+        }
+      ]
+    },
+    {
+      "id": "combustion",
+      "titre": "Combustion et émissions",
+      "icone": "local_fire_department",
+      "questions": [
+        {
+          "id": "reglage_combustion",
+          "text": "Le réglage de la combustion est-il optimal ?",
+          "severity": "high",
+          "description": "Vérifiez les taux de CO2 et CO"
+        },
+        {
+          "id": "evacuation_fumees",
+          "text": "L'évacuation des fumées est-elle correcte ?",
+          "severity": "critical",
+          "description": "Tirage, condensation, etc."
+        },
+        {
+          "id": "temperature_fumees",
+          "text": "La température des fumées est-elle dans les limites réglementaires ?",
+          "severity": "high",
+          "description": "Mesure de la température de sortie"
+        },
+        {
+          "id": "rendement",
+          "text": "Le rendement de l'appareil est-il conforme aux normes ?",
+          "severity": "medium",
+          "description": "Vérification du rendement énergétique"
+        }
+      ]
+    },
+    {
+      "id": "distribution",
+      "titre": "Distribution de chaleur",
+      "icone": "call_split",
+      "questions": [
+        {
+          "id": "equilibrage_reseau",
+          "text": "Le réseau de distribution est-il équilibré ?",
+          "severity": "medium",
+          "description": "Répartition homogène de la chaleur"
+        },
+        {
+          "id": "isolation_canalisations",
+          "text": "Les canalisations sont-elles correctement isolées ?",
+          "severity": "medium",
+          "description": "Prévention des pertes de chaleur"
+        },
+        {
+          "id": "robinetterie",
+          "text": "La robinetterie thermostatique fonctionne-t-elle correctement ?",
+          "severity": "low",
+          "description": "Régulation individuelle des pièces"
+        },
+        {
+          "id": "circulateur",
+          "text": "Le circulateur est-il adapté et fonctionnel ?",
+          "severity": "medium",
+          "description": "Puissance et régime de fonctionnement"
+        }
+      ]
+    },
+    {
+      "id": "reglementation",
+      "titre": "Conformité réglementaire",
+      "icone": "gavel",
+      "questions": [
+        {
+          "id": "certificat_qualigaz",
+          "text": "Le certificat Qualigaz est-il à jour et affiché ?",
+          "severity": "high",
+          "description": "Contrôle périodique obligatoire"
+        },
+        {
+          "id": "normes_installation",
+          "text": "L'installation respecte-t-elle les normes en vigueur (DTU, NF, etc.) ?",
+          "severity": "high",
+          "description": "Conformité aux dernières réglementations"
+        },
+        {
+          "id": "entretien_regulier",
+          "text": "L'entretien annuel de l'appareil a-t-il été réalisé ?",
+          "severity": "high",
+          "description": "Maintenance obligatoire par un professionnel"
+        },
+        {
+          "id": "documentation",
+          "text": "La documentation technique est-elle disponible ?",
+          "severity": "low",
+          "description": "Notice d'utilisation, schéma, etc."
+        }
+      ]
+    },
+    {
+      "id": "recommandations",
+      "titre": "Recommandations",
+      "icone": "lightbulb",
+      "questions": [
+        {
+          "id": "ameliorations_possibles",
+          "text": "Des améliorations sont-elles possibles pour optimiser l'installation ?",
+          "severity": "low",
+          "description": "Suggestions d'optimisation énergétique"
+        },
+        {
+          "id": "mises_jour_techniques",
+          "text": "L'appareil nécessite-t-il des mises à jour techniques ?",
+          "severity": "medium",
+          "description": "Évolutions technologiques disponibles"
+        },
+        {
+          "id": "economies_energie",
+          "text": "Des économies d'énergie peuvent-elles être réalisées ?",
+          "severity": "low",
+          "description": "Optimisation de la consommation"
+        }
+      ]
+    }
+  ]
+}

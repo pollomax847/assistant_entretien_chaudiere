@@ -1,0 +1,129 @@
+{
+  "codes_qualigaz": {
+    "1a": {
+      "description": "Installation non raccordée au gaz",
+      "anomaly_type": "CNV",
+      "category": "Général",
+      "gravity": "low"
+    },
+    "1b": {
+      "description": "Installation raccordée au gaz",
+      "anomaly_type": "DGI",
+      "category": "Général",
+      "gravity": "low"
+    },
+    "2a1": {
+      "description": "Tuyauterie PLT soumise à une pression adaptée",
+      "anomaly_type": "A2",
+      "category": "Tuyauterie",
+      "gravity": "medium"
+    },
+    "2a2": {
+      "description": "Tuyauterie PLT non soumise à une pression adaptée",
+      "anomaly_type": "A1",
+      "category": "Tuyauterie",
+      "gravity": "high"
+    },
+    "5": {
+      "description": "La lyre passe dans une zone dangereuse",
+      "anomaly_type": "A2",
+      "category": "Sécurité",
+      "gravity": "medium"
+    },
+    "6": {
+      "description": "Installation contrôlée et étanche",
+      "anomaly_type": "DGI",
+      "category": "Étanchéité",
+      "gravity": "low"
+    },
+    "7b": {
+      "description": "Organe de coupure adapté et certifié",
+      "anomaly_type": "A2",
+      "category": "Sécurité",
+      "gravity": "medium"
+    },
+    "7d2": {
+      "description": "Détendeur accessible et en bon état",
+      "anomaly_type": "A2",
+      "category": "Sécurité",
+      "gravity": "medium"
+    },
+    "7d5": {
+      "description": "Organe de coupure en attente obturé",
+      "anomaly_type": "A2",
+      "category": "Sécurité",
+      "gravity": "medium"
+    },
+    "11a": {
+      "description": "Ventilation mécanique contrôlée gaz",
+      "anomaly_type": "A2",
+      "category": "Ventilation",
+      "gravity": "medium"
+    },
+    "14a": {
+      "description": "Distance appareil/matériaux combustibles < 30cm",
+      "anomaly_type": "A2",
+      "category": "Distances",
+      "gravity": "medium"
+    },
+    "14b": {
+      "description": "Distance appareil/matériaux combustibles < 10cm",
+      "anomaly_type": "A1",
+      "category": "Distances",
+      "gravity": "high"
+    },
+    "14c": {
+      "description": "Distance tuyau/matériaux combustibles < 5cm",
+      "anomaly_type": "A2",
+      "category": "Distances",
+      "gravity": "medium"
+    },
+    "14d": {
+      "description": "Distance tuyau/matériaux combustibles < 2cm",
+      "anomaly_type": "A1",
+      "category": "Distances",
+      "gravity": "high"
+    },
+    "18a": {
+      "description": "Détecteur CO non présent ou non conforme",
+      "anomaly_type": "A2",
+      "category": "Détecteurs",
+      "gravity": "medium"
+    }
+  },
+  "categories": {
+    "Général": ["1a", "1b"],
+    "Tuyauterie": ["2a1", "2a2"],
+    "Sécurité": ["5", "7b", "7d2", "7d5"],
+    "Étanchéité": ["6"],
+    "Ventilation": ["11a"],
+    "Distances": ["14a", "14b", "14c", "14d"],
+    "Détecteurs": ["18a"]
+  },
+  "anomaly_types": {
+    "DGI": {
+      "name": "Déclaration Générale d'Indépendance",
+      "description": "Installation conforme, aucune anomalie",
+      "color": "green",
+      "severity": 0
+    },
+    "CNV": {
+      "name": "Conforme Non Visité",
+      "description": "Installation conforme mais non visitée",
+      "color": "blue",
+      "severity": 1
+    },
+    "A2": {
+      "name": "Anomalie de Classe 2",
+      "description": "Anomalie nécessitant une intervention",
+      "color": "orange",
+      "severity": 2
+    },
+    "A1": {
+      "name": "Anomalie de Classe 1",
+      "description": "Anomalie dangereuse nécessitant une intervention immédiate",
+      "color": "red",
+      "severity": 3
+    }
+  }
+}
