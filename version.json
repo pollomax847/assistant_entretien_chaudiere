@@ -1,8 +1,8 @@
 {
   "version": "1.1.0",
-  "buildNumber": "9",
-  "downloadUrl": "https://github.com/pollomax847/assistant_entretien_chaudiere/releases/download/v1.1.0-build9/app-release.apk",
-  "releaseNotes": "✨ Version 1.1.0 build 9\n\n📦 Nouvelles fonctionnalités:\n- Support des photos dans les relevés techniques\n- Pagination améliorée pour les formulaires\n- Bannière de notification des mises à jour\n- Meilleure gestion des mises à jour in-app\n\n🐛 Corrections:\n- Résolution des problèmes de synchronisation\n- Optimisation de la performance\n\n💡 Améliorations:\n- Interface utilisateur rafraîchie\n- Meilleur support des appareils mobiles",
+  "buildNumber": "10",
+  "downloadUrl": "https://github.com/pollomax847/assistant_entretien_chaudiere/releases/download/v1.1.0-build10/app-release.apk",
+  "releaseNotes": "✨ Version 1.1.0 build 10\n\n📦 Nouvelles fonctionnalités:\n- Support des photos dans les relevés techniques\n- Pagination améliorée pour les formulaires\n- Bannière de notification des mises à jour\n- Meilleure gestion des mises à jour in-app\n\n🐛 Corrections:\n- Résolution des problèmes de synchronisation\n- Optimisation de la performance\n\n💡 Améliorations:\n- Interface utilisateur rafraîchie\n- Meilleur support des appareils mobiles",
   "minVersion": "1.0.0",
   "forceUpdate": false,
   "releaseDate": "2026-02-04"
