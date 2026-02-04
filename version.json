@@ -1,8 +1,8 @@
 {
   "version": "1.1.0",
-  "buildNumber": "6",
-  "downloadUrl": "https://github.com/pollomax847/assistant_entretien_chaudiere/releases/download/v1.1.0-build6/app-release.apk",
-  "releaseNotes": "Version 1.1.0 build 6 - Ajout bouton vérification manuelle des mises à jour\n- Bouton 'Vérifier les mises à jour' dans Préférences\n- Affichage dynamique de la version\n- Corrections système de mise à jour in-app",
+  "buildNumber": "7",
+  "downloadUrl": "https://github.com/pollomax847/assistant_entretien_chaudiere/releases/download/v1.1.0-build7/app-release.apk",
+  "releaseNotes": "Version 1.1.0 build 7 - Refactorisation relevé technique complète\n- Restructuration en 9 sections logiques\n- Nouvelle interface avec tabs\n- Auto-sauvegarde des données\n- Migration automatique des anciennes données\n- Meilleure organisation et maintenabilité",
   "minVersion": "1.0.0",
   "forceUpdate": false,
   "releaseDate": "2026-02-04"
