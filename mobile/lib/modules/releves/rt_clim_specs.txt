@@ -1,0 +1,12 @@
+Relevé Technique : RT clim
+
+Sections identifiées :
+1. Client : Numéro client (gazelle), Nom du client, Adresse de facturation, Email, Téléphone fixe, Téléphone mobile.
+2. Informations : Relevé Technique Name, Nom du RT, RT lié à un devis (Oui/Non), Nom technicien, Matricule, Adresse d'installation, Type équipement (Climatisation).
+3. Environnement : Appartement (Oui/Non), Surface (m2), Nombre d'occupant(s), Année de construction, Repérage amiante établi (Oui/Non), Accord Co-propriété (Oui/Non), Pavillon (Oui/Non), Pièces (ex: T4).
+4. Caractéristiques électriques : Electricité (ex: Engie), Tableau électrique conforme (Oui/Non), Commentaire tableau TGBT non conforme, Dist. entre tableau & future instal(m/l), Puissance de l'abonnement (kVA), Type de cheminement (ex: Goulotte Intérieure), Présence du différentiel 30ma (Oui/Non), Mesure de la tension (V), Emplacements disponibles sur le compteur, Consommation Annuelle Electrique, Coût annuelle de la facture (euros), Intensite (A), Type de raccordement (ex: Monophasé), Besoin d'un tableau supplémentaire (Oui/Non), Nombre d'emplacements supplémentaires.
+5. Installation Groupe extérieur : Photo emplacement, Pièce à laquelle le groupe ext s'adosse, Groupe extérieur sur chaise (Oui/Non), Distance obstacle ou habitation voisine, Hauteur fixation groupe extérieur (m), Besoin pompe de relevage (extérieur) (Oui/Non), Evacuation des condensats (extérieur), Groupe extérieur sur dalle béton (Oui/Non).
+6. Installation Unité Intérieur : Pièce de la maison, Besoin pompe de relevage (intérieur) (Oui/Non), Evacuation des condensats (intérieur), Surface de la pièce à climatiser (m2), Volume de la pièce à climatiser, Epaisseur du mur (cm), Long raccordemt entre gr ext & unité int, Hauteur de la pièce à climatiser (m), Puissance de l'unité (kW), Nature du mur (ex: Parpaing), Dénivelé entre unité int et groupe ext.
+7. Souhait du client : Offre de financement souhaitée (Oui/Non), Marque (souhait), Modèle (souhait).
+8. Commentaires : Commentaire, Informations Magasinier, Travaux à la charge du Client, Température circuit primaire, Commentaire ou particularité chantier.
+9. Annexes : Photos (Emplacement groupe extérieur 2, TGBT, Emplacement groupe intérieur).

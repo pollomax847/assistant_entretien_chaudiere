@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:convert';
@@ -120,16 +121,59 @@ class _ReleveTechniqueScreenCompletState
         desiredAccuracy: LocationAccuracy.high,
       );
 
-      // Créer une adresse avec les coordonnées GPS
-      String gpsAddress = '${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}';
-      
+      final placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (placemarks.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('❌ Adresse postale introuvable')),
+          );
+        }
+        return;
+      }
+
+      final placemark = placemarks.first;
+      final streetParts = [placemark.street, placemark.subLocality]
+          .where((value) => value != null && value!.trim().isNotEmpty)
+          .map((value) => value!.trim())
+          .toList();
+      final streetLine = streetParts.join(' ');
+      final cityLineParts = [placemark.postalCode, placemark.locality]
+          .where((value) => value != null && value!.trim().isNotEmpty)
+          .map((value) => value!.trim())
+          .toList();
+      final cityLine = cityLineParts.join(' ');
+      final addressParts = <String>[];
+      if (streetLine.isNotEmpty) {
+        addressParts.add(streetLine);
+      }
+      if (cityLine.isNotEmpty) {
+        addressParts.add(cityLine);
+      }
+      if (placemark.country != null && placemark.country!.trim().isNotEmpty) {
+        addressParts.add(placemark.country!.trim());
+      }
+
+      final fullAddress = addressParts.join(', ');
+      if (fullAddress.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('❌ Adresse postale introuvable')),
+          );
+        }
+        return;
+      }
+
       setState(() {
-        _nomEntrepriseController.text = gpsAddress;
+        _nomEntrepriseController.text = fullAddress;
       });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('✅ Position: $gpsAddress')),
+          const SnackBar(content: Text('✅ Adresse postale détectée')),
         );
       }
     } catch (e) {
