@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:assistant_entreiten_chaudiere/utils/mixins/form_field_builder_mixin.dart';
 import 'package:assistant_entreiten_chaudiere/utils/mixins/form_state_mixin.dart';
 import 'package:assistant_entreiten_chaudiere/utils/mixins/snackbar_mixin.dart';
@@ -6,6 +7,8 @@ import 'package:assistant_entreiten_chaudiere/utils/mixins/controller_dispose_mi
 import 'package:assistant_entreiten_chaudiere/utils/mixins/pagination_mixin.dart';
 import 'package:assistant_entreiten_chaudiere/utils/mixins/photo_section_mixin.dart';
 import 'package:assistant_entreiten_chaudiere/utils/mixins/conformity_checklist_mixin.dart';
+import 'models/photo_category.dart';
+import 'widgets/single_photo_widget.dart';
 
 /// Relevé Technique Chaudière - Formulaire complet 3 pages
 /// 152 champs + 22 conformité + 3 photos
@@ -100,6 +103,15 @@ class _RTChaudiereFormState extends State<RTChaudiereForm>
 
   // ===== STATES PAGE 3 =====
   String _financementSouhaite = 'Non';
+
+  // ===== PHOTOS PAR SECTION =====
+  File? _photoPlaque;
+  File? _photoEtiquette;
+  File? _photoCompteurGaz;
+  File? _photoVueExterieure;
+  File? _photoEvacuationFumees;
+  File? _photoVaseExpansion;
+  File? _photoVueEloignee;
 
   @override
   void initState() {
@@ -208,6 +220,13 @@ class _RTChaudiereFormState extends State<RTChaudiereForm>
               buildTextField(ctrlTechnicien, 'Nom du technicien'),
               buildTextField(ctrlAdresseInst, 'Adresse d\'installation', maxLines: 2),
             ]),
+            const SizedBox(height: 16),
+            SinglePhotoWidget(
+              category: PhotoCategoriesByType.forChaudiere()[2],
+              initialPhoto: _photoCompteurGaz,
+              onPhotoChanged: (file) => setState(() => _photoCompteurGaz = file),
+            ),
+            const SizedBox(height: 16),
             buildSection('Environnement (7 champs)', [
               buildDropdown(
                 _typeLogement,
@@ -237,6 +256,18 @@ class _RTChaudiereFormState extends State<RTChaudiereForm>
               buildTextField(ctrlTuyauterie, 'Type de tuyauterie'),
               buildSwitch(_tuyauxArriere, 'Tuyaux derrière chaudière', (val) => setState(() => _tuyauxArriere = val)),
             ]),
+            const SizedBox(height: 16),
+            SinglePhotoWidget(
+              category: PhotoCategoriesByType.forChaudiere()[1],
+              initialPhoto: _photoEtiquette,
+              onPhotoChanged: (file) => setState(() => _photoEtiquette = file),
+            ),
+            const SizedBox(height: 12),
+            SinglePhotoWidget(
+              category: PhotoCategoriesByType.forChaudiere()[0],
+              initialPhoto: _photoPlaque,
+              onPhotoChanged: (file) => setState(() => _photoPlaque = file),
+            ),
             buildNavigationButtons(null, nextPage, false),
           ],
         ),
@@ -293,7 +324,26 @@ class _RTChaudiereFormState extends State<RTChaudiereForm>
             buildTextField(ctrlLongConduitFumee, 'Longueur conduit fumée (m)', keyboardType: TextInputType.number),
             buildTextField(ctrlDiamTubageFumee, 'Diamètre tubage (m)', keyboardType: TextInputType.number),
           ]),
+          const SizedBox(height: 16),
+          SinglePhotoWidget(
+            category: PhotoCategoriesByType.forChaudiere()[4],
+            initialPhoto: _photoEvacuationFumees,
+            onPhotoChanged: (file) => setState(() => _photoEvacuationFumees = file),
+          ),
+          const SizedBox(height: 16),
           buildConformitySection(_conformityAnswers, (id, val) => setState(() => _conformityAnswers[id] = val)),
+          const SizedBox(height: 16),
+          SinglePhotoWidget(
+            category: PhotoCategoriesByType.forChaudiere()[5],
+            initialPhoto: _photoVaseExpansion,
+            onPhotoChanged: (file) => setState(() => _photoVaseExpansion = file),
+          ),
+          const SizedBox(height: 12),
+          SinglePhotoWidget(
+            category: PhotoCategoriesByType.forChaudiere()[3],
+            initialPhoto: _photoVueExterieure,
+            onPhotoChanged: (file) => setState(() => _photoVueExterieure = file),
+          ),
           const SizedBox(height: 20),
           buildNavigationButtons(previousPage, nextPage, false),
         ],
@@ -311,6 +361,12 @@ class _RTChaudiereFormState extends State<RTChaudiereForm>
           const SizedBox(height: 12),
           buildPhotoRequirementAlert(),
           const SizedBox(height: 12),
+          SinglePhotoWidget(
+            category: PhotoCategoriesByType.forChaudiere()[6],
+            initialPhoto: _photoVueEloignee,
+            onPhotoChanged: (file) => setState(() => _photoVueEloignee = file),
+          ),
+          const SizedBox(height: 12),
           buildSection('Souhait Client', [
             buildSwitch(
               _financementSouhaite == 'Oui',
@@ -326,7 +382,6 @@ class _RTChaudiereFormState extends State<RTChaudiereForm>
             buildTextField(ctrlTravaux, 'Travaux à charge client', maxLines: 2),
             buildTextField(ctrlTempCircuit, 'Température circuit primaire'),
           ]),
-          buildChaudierePhotosSection(),
           const SizedBox(height: 20),
           ElevatedButton.icon(
             onPressed: _submitForm,

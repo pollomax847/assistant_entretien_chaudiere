@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:assistant_entreiten_chaudiere/utils/mixins/form_field_builder_mixin.dart';
 import 'package:assistant_entreiten_chaudiere/utils/mixins/form_state_mixin.dart';
@@ -5,6 +6,8 @@ import 'package:assistant_entreiten_chaudiere/utils/mixins/snackbar_mixin.dart';
 import 'package:assistant_entreiten_chaudiere/utils/mixins/controller_dispose_mixin.dart';
 import 'package:assistant_entreiten_chaudiere/utils/mixins/pagination_mixin.dart';
 import 'package:assistant_entreiten_chaudiere/utils/mixins/photo_section_mixin.dart';
+import 'package:assistant_entreiten_chaudiere/modules/releves/models/photo_category.dart';
+import 'package:assistant_entreiten_chaudiere/modules/releves/widgets/single_photo_widget.dart';
 
 /// Relevé Technique Climatisation - Formulaire complet 3 pages
 /// 133 champs + 4 photos
@@ -92,6 +95,16 @@ class _RTClimFormState extends State<RTClimForm>
 
   bool _groupeSurChaise = false;
   bool _groupeSurDalle = true;
+
+  // ===== PHOTOS =====
+  File? _photoGroupeExterieur;
+  File? _photoEtiquette;
+  File? _photoTGBT;
+  File? _photoPercageMural;
+  File? _photoEvacuationCondensats;
+  File? _photoGroupeInterieur;
+  File? _photoTelecommande;
+  File? _photoAlternative;
 
   // ===== STATES PAGE 3 =====
   String _financementSouhaite = 'Non';
@@ -249,6 +262,19 @@ class _RTClimFormState extends State<RTClimForm>
               buildSwitch(_besoinTableauSupp, 'Tableau supplémentaire', (v) => setState(() => _besoinTableauSupp = v)),
               buildTextField(ctrlNbEmplacSupplt, 'Emplacements supp', keyboardType: TextInputType.number),
             ]),
+            const SizedBox(height: 16),
+            SinglePhotoWidget(
+              category: PhotoCategoriesByType.forClim()[0],
+              initialPhoto: _photoGroupeExterieur,
+              onPhotoChanged: (file) => setState(() => _photoGroupeExterieur = file),
+            ),
+            const SizedBox(height: 16),
+            SinglePhotoWidget(
+              category: PhotoCategoriesByType.forClim()[1],
+              initialPhoto: _photoEtiquette,
+              onPhotoChanged: (file) => setState(() => _photoEtiquette = file),
+            ),
+            const SizedBox(height: 16),
             buildNavigationButtons(null, nextPage, false),
           ],
         ),
@@ -278,6 +304,19 @@ class _RTClimFormState extends State<RTClimForm>
             buildTextField(ctrlEvacCondensatsExt, 'Évac condensats (ext)'),
             buildSwitch(_groupeSurDalle, 'Sur dalle béton', (v) => setState(() => _groupeSurDalle = v)),
           ]),
+          const SizedBox(height: 16),
+          SinglePhotoWidget(
+            category: PhotoCategoriesByType.forClim()[2],
+            initialPhoto: _photoTGBT,
+            onPhotoChanged: (file) => setState(() => _photoTGBT = file),
+          ),
+          const SizedBox(height: 16),
+          SinglePhotoWidget(
+            category: PhotoCategoriesByType.forClim()[3],
+            initialPhoto: _photoPercageMural,
+            onPhotoChanged: (file) => setState(() => _photoPercageMural = file),
+          ),
+          const SizedBox(height: 16),
           buildSection('Unité Intérieure (11 champs)', [
             buildTextField(ctrlPieceInt, 'Pièce de la maison'),
             buildDropdown(
@@ -301,6 +340,13 @@ class _RTClimFormState extends State<RTClimForm>
             ),
             buildTextField(ctrlDenivele, 'Denivele (m)', keyboardType: TextInputType.number),
           ]),
+          const SizedBox(height: 16),
+          SinglePhotoWidget(
+            category: PhotoCategoriesByType.forClim()[4],
+            initialPhoto: _photoEvacuationCondensats,
+            onPhotoChanged: (file) => setState(() => _photoEvacuationCondensats = file),
+          ),
+          const SizedBox(height: 16),
           buildNavigationButtons(previousPage, nextPage, false),
         ],
       ),
@@ -332,7 +378,24 @@ class _RTClimFormState extends State<RTClimForm>
             buildTextField(ctrlTravaux, 'Travaux client', maxLines: 2),
             buildTextField(ctrlTempCircuit, 'Température circuit'),
           ]),
-          buildClimPhotosSection(),
+          const SizedBox(height: 16),
+          SinglePhotoWidget(
+            category: PhotoCategoriesByType.forClim()[5],
+            initialPhoto: _photoGroupeInterieur,
+            onPhotoChanged: (file) => setState(() => _photoGroupeInterieur = file),
+          ),
+          const SizedBox(height: 16),
+          SinglePhotoWidget(
+            category: PhotoCategoriesByType.forClim()[6],
+            initialPhoto: _photoTelecommande,
+            onPhotoChanged: (file) => setState(() => _photoTelecommande = file),
+          ),
+          const SizedBox(height: 16),
+          SinglePhotoWidget(
+            category: PhotoCategoriesByType.forClim()[7],
+            initialPhoto: _photoAlternative,
+            onPhotoChanged: (file) => setState(() => _photoAlternative = file),
+          ),
           const SizedBox(height: 20),
           ElevatedButton.icon(
             onPressed: _submitForm,

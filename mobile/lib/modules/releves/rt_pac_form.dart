@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:assistant_entreiten_chaudiere/utils/mixins/form_field_builder_mixin.dart';
 import 'package:assistant_entreiten_chaudiere/utils/mixins/form_state_mixin.dart';
 import 'package:assistant_entreiten_chaudiere/utils/mixins/snackbar_mixin.dart';
 import 'package:assistant_entreiten_chaudiere/utils/mixins/controller_dispose_mixin.dart';
 import 'package:assistant_entreiten_chaudiere/utils/mixins/pagination_mixin.dart';
 import 'package:assistant_entreiten_chaudiere/utils/mixins/photo_section_mixin.dart';
+import 'models/photo_category.dart';
+import 'widgets/single_photo_widget.dart';
 
 /// Relevé Technique PAC - Formulaire complet 3 pages
 /// 165 champs + 14 hydraulique + 8 dimensionnement + 4 photos
@@ -140,6 +143,16 @@ class _RTPACFormState extends State<RTPACForm>
   // ===== STATES PAGE 3 =====
   String _financementSouhaite = 'Non';
 
+  // ===== PHOTOS PAR SECTION =====
+  File? _photoTGBT;
+  File? _photoEtiquette;
+  File? _photoTGBT2;
+  File? _photoBallonTampon;
+  File? _photoGroupeExterieur;
+  File? _photoLiaisonsFrigo;
+  File? _photoGroupeInterieur;
+  File? _photoDisjoncteurDedie;
+
   @override
   void initState() {
     super.initState();
@@ -268,6 +281,19 @@ class _RTPACFormState extends State<RTPACForm>
               buildTextField(ctrlTechnicien, 'Technicien'),
               buildTextField(ctrlAdresseInst, 'Adresse installation', maxLines: 2),
             ]),
+            const SizedBox(height: 16),
+            SinglePhotoWidget(
+              category: PhotoCategoriesByType.forPAC()[0],
+              initialPhoto: _photoTGBT,
+              onPhotoChanged: (file) => setState(() => _photoTGBT = file),
+            ),
+            const SizedBox(height: 16),
+            SinglePhotoWidget(
+              category: PhotoCategoriesByType.forPAC()[1],
+              initialPhoto: _photoEtiquette,
+              onPhotoChanged: (file) => setState(() => _photoEtiquette = file),
+            ),
+            const SizedBox(height: 16),
             buildSection('Habitation (24 champs)', [
               buildDropdown(_typeLogement, ['Maison', 'Appartement'], 'Type', (v) => setState(() => _typeLogement = v ?? 'Maison')),
               buildTextField(ctrlDepartement, 'Département'),
@@ -346,6 +372,19 @@ class _RTPACFormState extends State<RTPACForm>
             buildTextField(ctrlCapVaseExpansion, 'Capacité vase expansion (L)', keyboardType: TextInputType.number),
             buildSwitch(_vidangeExistante, 'Vidange existante', (v) => setState(() => _vidangeExistante = v)),
           ]),
+          const SizedBox(height: 16),
+          SinglePhotoWidget(
+            category: PhotoCategoriesByType.forPAC()[2],
+            initialPhoto: _photoTGBT2,
+            onPhotoChanged: (file) => setState(() => _photoTGBT2 = file),
+          ),
+          const SizedBox(height: 16),
+          SinglePhotoWidget(
+            category: PhotoCategoriesByType.forPAC()[3],
+            initialPhoto: _photoBallonTampon,
+            onPhotoChanged: (file) => setState(() => _photoBallonTampon = file),
+          ),
+          const SizedBox(height: 16),
           buildNavigationButtons(previousPage, nextPage, false),
         ],
       ),
@@ -380,6 +419,19 @@ class _RTPACFormState extends State<RTPACForm>
             buildTextField(ctrlLongueurDalle, 'Longueur dalle (cm)', keyboardType: TextInputType.number),
             buildTextField(ctrlEpaisseurDalle, 'Épaisseur dalle (cm)', keyboardType: TextInputType.number),
           ]),
+          const SizedBox(height: 16),
+          SinglePhotoWidget(
+            category: PhotoCategoriesByType.forPAC()[4],
+            initialPhoto: _photoGroupeExterieur,
+            onPhotoChanged: (file) => setState(() => _photoGroupeExterieur = file),
+          ),
+          const SizedBox(height: 16),
+          SinglePhotoWidget(
+            category: PhotoCategoriesByType.forPAC()[5],
+            initialPhoto: _photoLiaisonsFrigo,
+            onPhotoChanged: (file) => setState(() => _photoLiaisonsFrigo = file),
+          ),
+          const SizedBox(height: 16),
           buildSection('Unité Intérieure (7 champs)', [
             buildTextField(ctrlHauteurDispoSousPlafond, 'Hauteur sous plafond (m)', keyboardType: TextInputType.number),
             buildTextField(ctrlLargeurPortes, 'Largeur portes accès', keyboardType: TextInputType.number),
@@ -389,6 +441,13 @@ class _RTPACFormState extends State<RTPACForm>
             buildTextField(ctrlLongDalleInt, 'Longueur dalle int (cm)', keyboardType: TextInputType.number),
             buildTextField(ctrlEpaisseurDalleInt, 'Épaisseur dalle int (cm)', keyboardType: TextInputType.number),
           ]),
+          const SizedBox(height: 16),
+          SinglePhotoWidget(
+            category: PhotoCategoriesByType.forPAC()[6],
+            initialPhoto: _photoGroupeInterieur,
+            onPhotoChanged: (file) => setState(() => _photoGroupeInterieur = file),
+          ),
+          const SizedBox(height: 16),
           buildSection('Dimensionnement Thermique CRITIQUE (8 champs)', [
             buildTextField(ctrlTempExtBase, 'Temp. ext. base (°C)', keyboardType: TextInputType.number),
             buildTextField(ctrlPuissanceMinVisee, 'Puissance min visée (kW)', keyboardType: TextInputType.number),
@@ -398,6 +457,13 @@ class _RTPACFormState extends State<RTPACForm>
             buildTextField(ctrlDeperditionTotale, 'Déperdition totale (kW)', keyboardType: TextInputType.number),
             buildTextField(ctrlTauxCouverture, 'Taux de couverture (%)', keyboardType: TextInputType.number),
           ]),
+          const SizedBox(height: 16),
+          SinglePhotoWidget(
+            category: PhotoCategoriesByType.forPAC()[7],
+            initialPhoto: _photoDisjoncteurDedie,
+            onPhotoChanged: (file) => setState(() => _photoDisjoncteurDedie = file),
+          ),
+          const SizedBox(height: 16),
           buildSection('Souhait Client', [
             buildSwitch(
               _financementSouhaite == 'Oui',
@@ -412,7 +478,6 @@ class _RTPACFormState extends State<RTPACForm>
             buildTextField(ctrlInfoMagasin, 'Infos Magasinier', maxLines: 2),
             buildTextField(ctrlTravaux, 'Travaux client', maxLines: 2),
           ]),
-          buildPACPhotosSection(),
           const SizedBox(height: 20),
           ElevatedButton.icon(
             onPressed: _submitForm,

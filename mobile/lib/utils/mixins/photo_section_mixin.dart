@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:assistant_entreiten_chaudiere/modules/releves/widgets/photo_gallery_widget.dart';
+import 'package:assistant_entreiten_chaudiere/modules/releves/widgets/categorized_photo_widget.dart';
+import 'package:assistant_entreiten_chaudiere/modules/releves/models/photo_category.dart';
+import 'dart:io';
 
 /// Mixin pour gérer les sections photo dans les formulaires
 /// Supporte 3 ou 4 photos selon le type de relevé
@@ -218,6 +221,96 @@ mixin PhotoSectionMixin<T extends StatefulWidget> on State<T> {
                   style: TextStyle(fontSize: 12, color: Colors.orange[900]),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Construit section Annexes avec Photos Catégorisées pour Chaudière
+  Widget buildChaudierePhotosCategorized({
+    ValueChanged<Map<String, File?>>? onPhotosChanged,
+  }) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 12),
+      color: Colors.orange[50],
+      elevation: 2,
+      child: ExpansionTile(
+        initiallyExpanded: false,
+        leading: const Icon(Icons.photo, color: Colors.orange),
+        title: const Text(
+          '📷 Annexes - Photos Chaudière (3)',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.orange),
+        ),
+        subtitle: const Text('Catégorisée et obligatoire'),
+        children: [
+          const Divider(),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: CategorizedPhotoWidget(
+              categories: PhotoCategoriesByType.forChaudiere(),
+              onPhotosChanged: onPhotosChanged,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Construit section Annexes avec Photos Catégorisées pour PAC
+  Widget buildPACPhotosCategorized({
+    ValueChanged<Map<String, File?>>? onPhotosChanged,
+  }) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 12),
+      color: Colors.indigo[50],
+      elevation: 2,
+      child: ExpansionTile(
+        initiallyExpanded: false,
+        leading: const Icon(Icons.photo, color: Colors.indigo),
+        title: const Text(
+          '📷 Annexes - Photos PAC (4)',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.indigo),
+        ),
+        subtitle: const Text('Catégorisée et obligatoire'),
+        children: [
+          const Divider(),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: CategorizedPhotoWidget(
+              categories: PhotoCategoriesByType.forPAC(),
+              onPhotosChanged: onPhotosChanged,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Construit section Annexes avec Photos Catégorisées pour Clim
+  Widget buildClimPhotosCategorized({
+    ValueChanged<Map<String, File?>>? onPhotosChanged,
+  }) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 12),
+      color: Colors.cyan[50],
+      elevation: 2,
+      child: ExpansionTile(
+        initiallyExpanded: false,
+        leading: const Icon(Icons.photo, color: Colors.cyan),
+        title: const Text(
+          '📷 Annexes - Photos Clim (4)',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.cyan),
+        ),
+        subtitle: const Text('Catégorisée et obligatoire'),
+        children: [
+          const Divider(),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: CategorizedPhotoWidget(
+              categories: PhotoCategoriesByType.forClim(),
+              onPhotosChanged: onPhotosChanged,
             ),
           ),
         ],

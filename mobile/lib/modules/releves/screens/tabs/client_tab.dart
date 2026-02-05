@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../models/releve_technique.dart';
 import '../../models/sections/client_section.dart';
 
 /// Tab Écran - Client
