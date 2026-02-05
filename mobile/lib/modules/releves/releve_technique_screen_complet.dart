@@ -248,13 +248,13 @@ class _ReleveTechniqueScreenCompletState
               // --- PAGE 1: INFOS GÉNÉRALES ---
               if (_currentPage == 0) ...[
                 _buildPage1(),
-              ]
+              ],
               // --- PAGE 2: FORMULAIRE SPÉCIFIQUE ---
-              else if (_currentPage == 1) ...[
+              if (_currentPage == 1) ...[
                 _buildPage2(),
-              ]
+              ],
               // --- PAGE 3: RÉSUMÉ & VALIDATION ---
-              else if (_currentPage == 2) ...[
+              if (_currentPage == 2) ...[
                 _buildPage3(),
               ],
 

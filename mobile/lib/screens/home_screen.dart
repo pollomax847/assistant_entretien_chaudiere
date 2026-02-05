@@ -5,7 +5,6 @@ import '../modules/reglementation_gaz/reglementation_gaz_screen.dart';
 import '../modules/vmc/vmc_integration_screen.dart';
 import '../modules/tests/enhanced_top_gaz_screen.dart';
 import '../modules/chaudiere/chaudiere_screen.dart';
-import '../modules/tirage/tirage_screen.dart';
 import '../modules/ecs/ecs_screen.dart';
 import '../modules/vase_expansion/vase_expansion_screen.dart';
 import '../modules/equilibrage/equilibrage_screen.dart';
@@ -45,6 +44,16 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Recharger le nom du technicien quand l'écran reprend le focus
+    final preferences = Provider.of<PreferencesProvider>(context);
+    setState(() {
+      _userName = preferences.technician ?? 'Utilisateur';
+    });
+  }
+
   /// Vérifie les mises à jour (Google Play en priorité, puis GitHub en fallback)
   Future<void> _checkForUpdates() async {
     try {
@@ -79,17 +88,16 @@ class _HomeScreenState extends State<HomeScreen> {
   void _checkFirstLaunch() {
     final preferences = Provider.of<PreferencesProvider>(context, listen: false);
     
-    if (preferences.isFirstLaunch) {
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => const FirstLaunchDialog(),
-          );
-        }
-      });
-    }
+    // Attendre que les préférences soient chargées
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted && preferences.isFirstLaunch) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const FirstLaunchDialog(),
+        );
+      }
+    });
   }
 
   @override
@@ -109,27 +117,67 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.cloud_download, color: Colors.white),
-            tooltip: 'Vérifier les mises à jour',
-            onPressed: () => GitHubUpdateService().checkManually(context),
-          ),
-          IconButton(
             icon: const Icon(Icons.settings, color: Colors.white),
             tooltip: 'Paramètres',
             onPressed: () => Navigator.pushNamed(context, '/preferences'),
           ),
         ],
       ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: const BoxDecoration(
+                color: Color(0xFF2F5BB7),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  const Text(
+                    'Menu',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Bonjour $_userName',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.cloud_download),
+              title: const Text('Vérifier les mises à jour'),
+              onTap: () {
+                Navigator.pop(context);
+                GitHubUpdateService().checkManually(context);
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Paramètres'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/preferences');
+              },
+            ),
+          ],
+        ),
+      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Bannière de mise à jour (si disponible et non ignorée)
-            if (_updateInfo != null && !_dismissedUpdate)
-              UpdateBannerWidget(
-                updateInfo: _updateInfo!,
-                onDismiss: () => setState(() => _dismissedUpdate = true),
-              ),
             
             // Carte de bienvenue orange
             Container(
@@ -535,6 +583,18 @@ class _HomeScreenState extends State<HomeScreen> {
           title: 'Tests',
           modules: [
             {
+              'title': 'ECS',
+              'subtitle': 'Eau chaude sanitaire',
+              'icon': Icons.water_drop,
+              'color': const Color(0xFF2196F3),
+              'onTap': () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EcsScreen(),
+                    ),
+                  ),
+            },
+            {
               'title': 'Test Compteur Gaz',
               'subtitle': 'Mesure débit gaz',
               'icon': Icons.science,
@@ -550,7 +610,7 @@ class _HomeScreenState extends State<HomeScreen> {
               'title': 'Tirage Cheminée',
               'subtitle': 'Simulation et analyse',
               'icon': Icons.air,
-              'color': const Color(0xFF2196F3),
+              'color': const Color(0xFFFF9800),
               'onTap': () => Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -665,18 +725,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => const EquilibrageScreen(),
-                    ),
-                  ),
-            },
-            {
-              'title': 'Tirage',
-              'subtitle': 'Analyse du tirage',
-              'icon': Icons.air,
-              'color': const Color(0xFFFF5722),
-              'onTap': () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const TirageScreen(),
                     ),
                   ),
             },

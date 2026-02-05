@@ -23,6 +23,9 @@ class _EcsScreenState extends State<EcsScreen>
   late final _tempFroideController = registerController(TextEditingController(text: '10'));
   late final _tempChaudeController = registerController(TextEditingController(text: '45'));
 
+  // Puissance chaudière
+  late final _puissanceChaidiereController = registerController(TextEditingController());
+
   // Résultats
   double? _debitSimultaneLmin;
   double? _debitSimultaneM3h;
@@ -108,15 +111,15 @@ class _EcsScreenState extends State<EcsScreen>
         debitSimultane += debit * coeff;
       }
 
-      // Calcul de la puissance instantanée (W)
-      // Puissance = débit (L/min) × ΔT × 1.163 (coefficient eau)
+      // Calcul de la puissance instantanée (kW)
+      // Puissance = débit (L/min) × ΔT (°C) × 70 / 1000
       double deltaT = tempChaude - tempFroide;
-      double puissance = debitSimultane * deltaT * 1.163; // W
+      double puissance = debitSimultane * deltaT * 70 / 1000; // kW
 
       setState(() {
         _debitSimultaneLmin = debitSimultane;
         _debitSimultaneM3h = debitSimultane * 60 / 1000; // Conversion L/min vers m³/h
-        _puissanceInstantanee = puissance / 1000; // Conversion W vers kW
+        _puissanceInstantanee = puissance; // Déjà en kW
       });
 
       _sauvegarderDonnees();
@@ -294,7 +297,33 @@ class _EcsScreenState extends State<EcsScreen>
 
               const SizedBox(height: 16),
 
-              // Équipements
+              // Puissance chaudière
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Données chaudière',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _puissanceChaidiereController,
+                        decoration: const InputDecoration(
+                          labelText: 'Puissance chaudière (kW)',
+                          suffixText: 'kW',
+                          hintText: 'Ex: 30',
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -408,6 +437,22 @@ class _EcsScreenState extends State<EcsScreen>
                         _buildResultRow('Débit simultané', '${_debitSimultaneLmin!.toStringAsFixed(1)} L/min'),
                         _buildResultRow('Débit simultané', '${_debitSimultaneM3h!.toStringAsFixed(2)} m³/h'),
                         _buildResultRow('Puissance instantanée', '${_puissanceInstantanee!.toStringAsFixed(1)} kW'),
+                        if (_puissanceChaidiereController.text.isNotEmpty) ...[
+                          const Divider(),
+                          _buildResultRow('Puissance chaudière', '${_puissanceChaidiereController.text} kW'),
+                          Builder(
+                            builder: (context) {
+                              final puissanceChaudiere = double.tryParse(_puissanceChaidiereController.text) ?? 0;
+                              final ecart = _puissanceInstantanee! - puissanceChaudiere;
+                              final couleur = ecart > 0 ? Colors.red : Colors.green;
+                              return _buildResultRow(
+                                'Écart',
+                                '${ecart.toStringAsFixed(1)} kW',
+                                color: couleur,
+                              );
+                            },
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -420,7 +465,7 @@ class _EcsScreenState extends State<EcsScreen>
     );
   }
 
-  Widget _buildResultRow(String label, String value) {
+  Widget _buildResultRow(String label, String value, {Color? color}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
@@ -429,9 +474,10 @@ class _EcsScreenState extends State<EcsScreen>
           Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
+              color: color,
             ),
           ),
         ],
