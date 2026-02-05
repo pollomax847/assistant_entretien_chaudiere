@@ -1,8 +1,8 @@
 {
   "version": "1.1.0",
-  "buildNumber": "21",
-  "downloadUrl": "https://github.com/pollomax847/assistant_entretien_chaudiere/releases/download/v1.1.0-build21/app-release.apk",
-  "releaseNotes": "✨ Version 1.1.0 build 21\n\n✅ CORRECTION:\n- Problème Relevés CORRIGÉ (enum séparé)\n- Navigation Relevés → Chaudière/PAC/Clim\n- Permissions GPS et Caméra au démarrage\n- Bannière MAJ dans drawer uniquement\n- Calcul ECS corrigé (70/1000)",
+  "buildNumber": "22",
+  "downloadUrl": "https://github.com/pollomax847/assistant_entretien_chaudiere/releases/download/v1.1.0-build22/app-release.apk",
+  "releaseNotes": "✨ Version 1.1.0 build 22\n\n📦 Nouvelles fonctionnalités:\n- Support des photos dans les relevés techniques\n- Pagination améliorée pour les formulaires\n- Bannière de notification des mises à jour\n- Meilleure gestion des mises à jour in-app\n\n🐛 Corrections:\n- Résolution des problèmes de synchronisation\n- Optimisation de la performance\n\n💡 Améliorations:\n- Interface utilisateur rafraîchie\n- Meilleur support des appareils mobiles",
   "minVersion": "1.0.0",
   "forceUpdate": false,
   "releaseDate": "2026-02-05"
