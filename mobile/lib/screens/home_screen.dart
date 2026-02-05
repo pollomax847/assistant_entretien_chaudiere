@@ -5,6 +5,7 @@ import '../modules/reglementation_gaz/reglementation_gaz_screen.dart';
 import '../modules/vmc/vmc_integration_screen.dart';
 import '../modules/tests/enhanced_top_gaz_screen.dart';
 import '../modules/chaudiere/chaudiere_screen.dart';
+import '../modules/tirage/tirage_screen.dart';
 import '../modules/ecs/ecs_screen.dart';
 import '../modules/vase_expansion/vase_expansion_screen.dart';
 import '../modules/equilibrage/equilibrage_screen.dart';
