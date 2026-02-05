@@ -144,6 +144,28 @@ echo -e "${BLUE}🚀 ÉTAPE 5: Publication GitHub${NC}"
 echo -e "${YELLOW}  Publication automatique de la release...${NC}"
 ./publish_release.sh
 
+# ÉTAPE 6: Upload sur Google Drive (AUTOMATIQUE)
+echo ""
+echo "═══════════════════════════════════════════════════"
+echo -e "${BLUE}☁️  ÉTAPE 6: Upload Google Drive${NC}"
+
+# Vérifier si rclone est installé
+if command -v rclone &> /dev/null; then
+    GDRIVE_REMOTE="google drive"
+    GDRIVE_FOLDER="application"
+    
+    echo -e "${YELLOW}  Upload de l'APK vers Google Drive...${NC}"
+    if rclone copy "$APK_PATH" "$GDRIVE_REMOTE:$GDRIVE_FOLDER/" --progress 2>&1 | tail -5; then
+        echo -e "  ${GREEN}✓ APK uploadé sur Google Drive${NC}"
+        echo -e "  ${GREEN}Dossier: $GDRIVE_FOLDER${NC}"
+    else
+        echo -e "  ${YELLOW}⚠️  Erreur lors de l'upload Google Drive${NC}"
+    fi
+else
+    echo -e "  ${YELLOW}⚠️  rclone non installé${NC}"
+    echo -e "  ${YELLOW}     Installation: sudo apt install rclone${NC}"
+fi
+
 # RÉSUMÉ
 echo ""
 echo "═══════════════════════════════════════════════════"
@@ -164,6 +186,7 @@ echo ""
 echo "💾 Git:"
 echo "   ✅ Commit créé et envoyé"
 echo "   ✅ Release GitHub publiée"
+echo "   ✅ APK synchronisé vers Google Drive"
 echo ""
-echo -e "${CYAN}Processus de déploiement terminé! 🎉${NC}"
+echo -e "${CYAN}Processus de déploiement complètement terminé! 🎉${NC}"
 echo ""

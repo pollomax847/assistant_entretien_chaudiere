@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../services/github_update_service.dart';
+import '../../../services/github_update_service.dart';
 
 /// Widget bannière pour afficher les mises à jour disponibles
 class UpdateBannerWidget extends StatefulWidget {
@@ -63,7 +63,7 @@ class _UpdateBannerWidgetState extends State<UpdateBannerWidget> {
             children: [
               ElevatedButton.icon(
                 onPressed: () {
-                  GitHubUpdateService()._downloadUpdate(context, widget.updateInfo.downloadUrl);
+                  GitHubUpdateService().downloadUpdate(context, widget.updateInfo.downloadUrl);
                 },
                 icon: const Icon(Icons.download, size: 16),
                 label: const Text('Télécharger'),

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
-import 'package:assistant_entreiten_chaudiere/modules/releves/releve_technique_model.dart';
+import '../modules/releves/releve_technique_model_complet.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../modules/reglementation_gaz/models/diagnostic_question.dart';
 

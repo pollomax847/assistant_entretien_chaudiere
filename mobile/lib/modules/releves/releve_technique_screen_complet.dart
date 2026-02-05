@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:geolocator/geolocator.dart';
 import 'dart:convert';
 import 'rt_chaudiere_form.dart';
 import 'rt_pac_form.dart';
@@ -88,6 +89,63 @@ class _ReleveTechniqueScreenCompletState
     super.dispose();
   }
 
+  /// Récupère la position GPS actuelle et met à jour l'adresse
+  Future<void> _getGPSLocation() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('❌ Service de localisation désactivé')),
+          );
+        }
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('❌ Permission refusée')),
+            );
+          }
+          return;
+        }
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('📍 Récupération de la localisation...')),
+        );
+      }
+
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      // Créer une adresse avec les coordonnées GPS
+      String gpsAddress = '${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}';
+      
+      setState(() {
+        _nomEntrepriseController.text = gpsAddress;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('✅ Position: $gpsAddress')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('❌ Erreur: $e')),
+        );
+      }
+    }
+  }
+
   void _ajouterReleve() {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -156,29 +214,11 @@ class _ReleveTechniqueScreenCompletState
   Widget _buildForm() {
     switch (widget.type) {
       case TypeReleve.chaudiere:
-        return RTChaudiereForm(
-          onDataChanged: (data) {
-            if (_releves.isNotEmpty) {
-              _releves.last['donnees'] = data;
-            }
-          },
-        );
+        return const RTChaudiereForm();
       case TypeReleve.pac:
-        return RTPACForm(
-          onDataChanged: (data) {
-            if (_releves.isNotEmpty) {
-              _releves.last['donnees'] = data;
-            }
-          },
-        );
+        return const RTPACForm();
       case TypeReleve.clim:
-        return RTClimForm(
-          onDataChanged: (data) {
-            if (_releves.isNotEmpty) {
-              _releves.last['donnees'] = data;
-            }
-          },
-        );
+        return const RTClimForm();
     }
   }
 
@@ -284,19 +324,32 @@ class _ReleveTechniqueScreenCompletState
                 ),
                 const Divider(),
                 const SizedBox(height: 16),
-                TextFormField(
-                  controller: _nomEntrepriseController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nom de l\'entreprise',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.business),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Ce champ est obligatoire';
-                    }
-                    return null;
-                  },
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _nomEntrepriseController,
+                        decoration: const InputDecoration(
+                          labelText: 'Adresse du client',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.location_on),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Ce champ est obligatoire';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    FloatingActionButton.small(
+                      heroTag: 'gps_location',
+                      onPressed: _getGPSLocation,
+                      tooltip: 'Géolocalisation GPS',
+                      child: const Icon(Icons.gps_fixed),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
                 TextFormField(

@@ -148,7 +148,7 @@ class GitHubUpdateService {
               label: const Text('Télécharger'),
               onPressed: () {
                 Navigator.pop(context);
-                _downloadUpdate(context, updateInfo.downloadUrl);
+                downloadUpdate(context, updateInfo.downloadUrl);
               },
             ),
           ],
@@ -158,7 +158,7 @@ class GitHubUpdateService {
   }
 
   /// Télécharger la mise à jour
-  Future<void> _downloadUpdate(BuildContext context, String downloadUrl) async {
+  Future<void> downloadUpdate(BuildContext context, String downloadUrl) async {
     try {
       final uri = Uri.parse(downloadUrl);
       

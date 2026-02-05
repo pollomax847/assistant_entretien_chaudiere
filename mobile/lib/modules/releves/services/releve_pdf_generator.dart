@@ -2,10 +2,9 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'dart:io';
 import 'package:intl/intl.dart';
-import '../../utils/mixins/pdf_generator_mixin.dart';
 
 /// Générateur de PDF pour les relevés techniques avec photos intégrées
-class ReleveTechniquePDFGenerator with PDFGeneratorMixin {
+class ReleveTechniquePDFGenerator {
   final String nomEntreprise;
   final String nomTechnicien;
   final DateTime dateReleve;
@@ -150,5 +149,58 @@ class ReleveTechniquePDFGenerator with PDFGeneratorMixin {
 
     await file.writeAsBytes(await pdf.save());
     return file;
+  }
+
+  /// Construit l'en-tête du PDF
+  pw.Widget buildPDFHeader({required String title, required String entreprise, required String subtitle}) {
+    return pw.Column(
+      children: [
+        pw.Text(title, style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+        pw.Text(entreprise, style: pw.TextStyle(fontSize: 12, color: PdfColors.grey700)),
+        pw.Text(subtitle, style: pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
+        pw.SizedBox(height: 12),
+      ],
+    );
+  }
+
+  /// Construit le pied de page du PDF
+  pw.Widget buildPDFFooter(pw.Context context) {
+    return pw.Row(
+      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+      children: [
+        pw.Text('Généré le ${formatDate(DateTime.now())}', style: const pw.TextStyle(fontSize: 8)),
+        pw.Text('Page ${context.pageNumber}/${context.pagesCount}', style: const pw.TextStyle(fontSize: 8)),
+      ],
+    );
+  }
+
+  /// Formate une date au format français
+  String formatDate(DateTime date) {
+    final formatter = DateFormat('dd/MM/yyyy', 'fr_FR');
+    return formatter.format(date);
+  }
+
+  /// Construit une section avec titre et contenu
+  pw.Widget buildSection({required String title, required List<pw.Widget> children}) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text(title, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+        pw.SizedBox(height: 8),
+        ...children,
+        pw.SizedBox(height: 16),
+      ],
+    );
+  }
+
+  /// Construit une ligne info (clé: valeur)
+  pw.Widget buildInfoRow(String label, String value) {
+    return pw.Row(
+      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+      children: [
+        pw.Text(label, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+        pw.Text(value, style: const pw.TextStyle(fontSize: 10)),
+      ],
+    );
   }
 }

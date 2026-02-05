@@ -1,129 +1,324 @@
 {
+  "version": "1.2",
+  "updated_at": "2026-02",
+  "description": "Référentiel étendu codes anomalies diagnostic gaz (NF P45-500 2022 + grilles Qualigaz/Diagnostiqueurs)",
+
   "codes_qualigaz": {
     "1a": {
-      "description": "Installation non raccordée au gaz",
+      "code": "1a",
+      "description": "Installation non raccordée au réseau de gaz",
       "anomaly_type": "CNV",
       "category": "Général",
-      "gravity": "low"
+      "gravity": "low",
+      "severity": 1,
+      "requires_immediate_action": false,
+      "emoji": "🔵"
     },
     "1b": {
-      "description": "Installation raccordée au gaz",
+      "code": "1b",
+      "description": "Installation raccordée au réseau de gaz",
       "anomaly_type": "DGI",
       "category": "Général",
-      "gravity": "low"
+      "gravity": "low",
+      "severity": 0,
+      "requires_immediate_action": false,
+      "emoji": "🟢"
     },
     "2a1": {
-      "description": "Tuyauterie PLT soumise à une pression adaptée",
+      "code": "2a1",
+      "description": "Tuyauterie PLT (pression ≤ 200 mbar) soumise à pression d'épreuve adaptée",
       "anomaly_type": "A2",
       "category": "Tuyauterie",
-      "gravity": "medium"
+      "gravity": "medium",
+      "severity": 2,
+      "requires_immediate_action": false,
+      "emoji": "🟠"
     },
     "2a2": {
-      "description": "Tuyauterie PLT non soumise à une pression adaptée",
+      "code": "2a2",
+      "description": "Tuyauterie PLT non soumise à pression d'épreuve adaptée ou essai non concluant",
       "anomaly_type": "A1",
       "category": "Tuyauterie",
-      "gravity": "high"
+      "gravity": "high",
+      "severity": 3,
+      "requires_immediate_action": true,
+      "emoji": "🔴"
+    },
+    "3a": {
+      "code": "3a",
+      "description": "Tuyauterie acier non conforme (corrosion, absence protection, non galvanisé…)",
+      "anomaly_type": "A2",
+      "category": "Tuyauterie",
+      "gravity": "medium",
+      "severity": 2,
+      "requires_immediate_action": false,
+      "emoji": "🟠"
+    },
+    "4": {
+      "code": "4",
+      "description": "Présence de tuyauterie en plomb (interdite depuis 1995)",
+      "anomaly_type": "A1",
+      "category": "Tuyauterie",
+      "gravity": "high",
+      "severity": 3,
+      "requires_immediate_action": true,
+      "emoji": "🔴"
     },
     "5": {
-      "description": "La lyre passe dans une zone dangereuse",
+      "code": "5",
+      "description": "Lyre ou flexible passe dans une zone dangereuse (gaine, vide sanitaire non ventilé…)",
       "anomaly_type": "A2",
       "category": "Sécurité",
-      "gravity": "medium"
+      "gravity": "medium",
+      "severity": 2,
+      "requires_immediate_action": false,
+      "emoji": "🟠"
     },
     "6": {
-      "description": "Installation contrôlée et étanche",
+      "code": "6",
+      "description": "Installation contrôlée et étanche (essai d'étanchéité conforme)",
       "anomaly_type": "DGI",
       "category": "Étanchéité",
-      "gravity": "low"
+      "gravity": "low",
+      "severity": 0,
+      "requires_immediate_action": false,
+      "emoji": "🟢"
     },
     "7b": {
-      "description": "Organe de coupure adapté et certifié",
+      "code": "7b",
+      "description": "Organe de coupure générale non adapté ou non certifié",
       "anomaly_type": "A2",
       "category": "Sécurité",
-      "gravity": "medium"
+      "gravity": "medium",
+      "severity": 2,
+      "requires_immediate_action": false,
+      "emoji": "🟠"
+    },
+    "7d1": {
+      "code": "7d1",
+      "description": "Flexible / lyre non certifié ou non marqué (absence logo NF ou CE)",
+      "anomaly_type": "A2",
+      "category": "Sécurité",
+      "gravity": "medium",
+      "severity": 2,
+      "requires_immediate_action": false,
+      "emoji": "🟠"
     },
     "7d2": {
-      "description": "Détendeur accessible et en bon état",
+      "code": "7d2",
+      "description": "Détendeur non accessible ou en mauvais état (corrosion, fuite…)",
       "anomaly_type": "A2",
       "category": "Sécurité",
-      "gravity": "medium"
+      "gravity": "medium",
+      "severity": 2,
+      "requires_immediate_action": false,
+      "emoji": "🟠"
+    },
+    "7d3": {
+      "code": "7d3",
+      "description": "Longueur flexible / lyre excessive (>2 m cuisine, >1 m chauffe-eau…)",
+      "anomaly_type": "A2",
+      "category": "Sécurité",
+      "gravity": "medium",
+      "severity": 2,
+      "requires_immediate_action": false,
+      "emoji": "🟠"
     },
     "7d5": {
-      "description": "Organe de coupure en attente obturé",
+      "code": "7d5",
+      "description": "Organe de coupure en attente non obturé étanche",
       "anomaly_type": "A2",
       "category": "Sécurité",
-      "gravity": "medium"
+      "gravity": "medium",
+      "severity": 2,
+      "requires_immediate_action": false,
+      "emoji": "🟠"
+    },
+    "8": {
+      "code": "8",
+      "description": "Raccordement appareil par tuyauterie rigide non conforme (mauvais serrage, absence joint…)",
+      "anomaly_type": "A2",
+      "category": "Raccordements appareils",
+      "gravity": "medium",
+      "severity": 2,
+      "requires_immediate_action": false,
+      "emoji": "🟠"
+    },
+    "9": {
+      "code": "9",
+      "description": "Flexible de raccordement appareil périmé (>10 ans ou date effacée)",
+      "anomaly_type": "A1",
+      "category": "Raccordements appareils",
+      "gravity": "high",
+      "severity": 3,
+      "requires_immediate_action": true,
+      "emoji": "🔴"
+    },
+    "10": {
+      "code": "10",
+      "description": "Appareil non adapté à la pression ou au gaz distribué",
+      "anomaly_type": "A2",
+      "category": "Appareils",
+      "gravity": "medium",
+      "severity": 2,
+      "requires_immediate_action": false,
+      "emoji": "🟠"
     },
     "11a": {
-      "description": "Ventilation mécanique contrôlée gaz",
+      "code": "11a",
+      "description": "Ventilation mécanique contrôlée gaz (VMC gaz) non conforme ou absente",
       "anomaly_type": "A2",
       "category": "Ventilation",
-      "gravity": "medium"
+      "gravity": "medium",
+      "severity": 2,
+      "requires_immediate_action": false,
+      "emoji": "🟠"
+    },
+    "12": {
+      "code": "12",
+      "description": "Évacuation des produits de combustion non conforme (mauvais tirage, conduit obstrué…)",
+      "anomaly_type": "A1",
+      "category": "Évacuation fumées",
+      "gravity": "high",
+      "severity": 3,
+      "requires_immediate_action": true,
+      "emoji": "🔴"
+    },
+    "13": {
+      "code": "13",
+      "description": "Absence ou mauvais positionnement de sortie de fumée (risque refoulement)",
+      "anomaly_type": "A2",
+      "category": "Évacuation fumées",
+      "gravity": "medium",
+      "severity": 2,
+      "requires_immediate_action": false,
+      "emoji": "🟠"
     },
     "14a": {
-      "description": "Distance appareil/matériaux combustibles < 30cm",
+      "code": "14a",
+      "description": "Distance appareil / matériaux combustibles < 30 cm mais ≥ 10 cm",
       "anomaly_type": "A2",
-      "category": "Distances",
-      "gravity": "medium"
+      "category": "Distances / Matériaux",
+      "gravity": "medium",
+      "severity": 2,
+      "requires_immediate_action": false,
+      "emoji": "🟠"
     },
     "14b": {
-      "description": "Distance appareil/matériaux combustibles < 10cm",
+      "code": "14b",
+      "description": "Distance appareil / matériaux combustibles < 10 cm",
       "anomaly_type": "A1",
-      "category": "Distances",
-      "gravity": "high"
+      "category": "Distances / Matériaux",
+      "gravity": "high",
+      "severity": 3,
+      "requires_immediate_action": true,
+      "emoji": "🔴"
     },
     "14c": {
-      "description": "Distance tuyau/matériaux combustibles < 5cm",
+      "code": "14c",
+      "description": "Distance tuyau apparent / matériaux combustibles < 5 cm mais ≥ 2 cm",
       "anomaly_type": "A2",
-      "category": "Distances",
-      "gravity": "medium"
+      "category": "Distances / Matériaux",
+      "gravity": "medium",
+      "severity": 2,
+      "requires_immediate_action": false,
+      "emoji": "🟠"
     },
     "14d": {
-      "description": "Distance tuyau/matériaux combustibles < 2cm",
+      "code": "14d",
+      "description": "Distance tuyau apparent / matériaux combustibles < 2 cm",
       "anomaly_type": "A1",
-      "category": "Distances",
-      "gravity": "high"
+      "category": "Distances / Matériaux",
+      "gravity": "high",
+      "severity": 3,
+      "requires_immediate_action": true,
+      "emoji": "🔴"
+    },
+    "15": {
+      "code": "15",
+      "description": "Absence ou mauvais réglage de la pression gaz (détendeur défectueux)",
+      "anomaly_type": "A2",
+      "category": "Pression / Régulation",
+      "gravity": "medium",
+      "severity": 2,
+      "requires_immediate_action": false,
+      "emoji": "🟠"
     },
     "18a": {
-      "description": "Détecteur CO non présent ou non conforme",
+      "code": "18a",
+      "description": "Détecteur CO absent, non conforme, non fonctionnel ou mal placé",
       "anomaly_type": "A2",
       "category": "Détecteurs",
-      "gravity": "medium"
+      "gravity": "medium",
+      "severity": 2,
+      "requires_immediate_action": false,
+      "emoji": "🟠"
+    },
+    "29d": {
+      "code": "29d",
+      "description": "Tuyauterie encastrée avec mauvais tracé ou risque de corrosion",
+      "anomaly_type": "A2",
+      "category": "Tuyauterie encastrée",
+      "gravity": "medium",
+      "severity": 2,
+      "requires_immediate_action": false,
+      "emoji": "🟠"
+    },
+    "32c": {
+      "code": "32c",
+      "description": "Anomalie spécifique VMC gaz (débit insuffisant, bouche extraction absente ou obstruée…)",
+      "anomaly_type": "A2",
+      "category": "VMC gaz",
+      "gravity": "medium",
+      "severity": 2,
+      "requires_immediate_action": false,
+      "emoji": "🟠",
+      "note": "Peut devenir DGI si mesure CO anormale"
     }
   },
+
   "categories": {
     "Général": ["1a", "1b"],
-    "Tuyauterie": ["2a1", "2a2"],
-    "Sécurité": ["5", "7b", "7d2", "7d5"],
+    "Tuyauterie": ["2a1", "2a2", "3a", "4", "29d"],
     "Étanchéité": ["6"],
+    "Sécurité": ["5", "7b", "7d1", "7d2", "7d3", "7d5"],
+    "Raccordements appareils": ["8", "9", "10"],
     "Ventilation": ["11a"],
-    "Distances": ["14a", "14b", "14c", "14d"],
+    "VMC gaz": ["32c"],
+    "Évacuation fumées": ["12", "13"],
+    "Distances / Matériaux": ["14a", "14b", "14c", "14d"],
+    "Pression / Régulation": ["15"],
     "Détecteurs": ["18a"]
   },
+
   "anomaly_types": {
     "DGI": {
-      "name": "Déclaration Générale d'Indépendance",
-      "description": "Installation conforme, aucune anomalie",
+      "name": "DGI – Danger Grave Immédiat",
+      "description": "Danger grave et immédiat → coupure immédiate obligatoire",
       "color": "green",
-      "severity": 0
+      "severity": 0,
+      "action_recommended": "Conforme – aucune action"
     },
     "CNV": {
-      "name": "Conforme Non Visité",
-      "description": "Installation conforme mais non visitée",
+      "name": "CNV – Conforme Non Visité",
+      "description": "Conforme mais non contrôlé récemment",
       "color": "blue",
-      "severity": 1
+      "severity": 1,
+      "action_recommended": "Visite recommandée"
     },
     "A2": {
-      "name": "Anomalie de Classe 2",
-      "description": "Anomalie nécessitant une intervention",
+      "name": "A2 – Anomalie Classe 2",
+      "description": "Anomalie sérieuse → correction dans les meilleurs délais (< 3-6 mois)",
       "color": "orange",
-      "severity": 2
+      "severity": 2,
+      "action_recommended": "Intervention rapide conseillée"
     },
     "A1": {
-      "name": "Anomalie de Classe 1",
-      "description": "Anomalie dangereuse nécessitant une intervention immédiate",
+      "name": "A1 – Anomalie Classe 1",
+      "description": "Anomalie dangereuse → coupure partielle/totale jusqu'à réparation",
       "color": "red",
-      "severity": 3
+      "severity": 3,
+      "action_recommended": "Intervention immédiate obligatoire"
     }
   }
 }

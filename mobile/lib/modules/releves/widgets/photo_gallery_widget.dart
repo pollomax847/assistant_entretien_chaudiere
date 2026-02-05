@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
-import '../../utils/mixins/photo_manager_mixin.dart';
+import '../../../utils/mixins/photo_manager_mixin.dart';
 
 /// Widget réutilisable pour gérer les photos dans les formulaires
 class PhotoGalleryWidget extends StatefulWidget {
   final String title;
   final String subtitle;
-  final ValueChanged<List<File>> onPhotosChanged;
+  final ValueChanged<List<File>>? onPhotosChanged;
   final int maxPhotos;
 
   const PhotoGalleryWidget({
     super.key,
-    required this.title,
+    this.title = 'Ajouter des photos',
     this.subtitle = 'Cliquez pour ajouter des photos',
-    required this.onPhotosChanged,
+    this.onPhotosChanged,
     this.maxPhotos = 10,
   });
 
@@ -59,7 +59,7 @@ class _PhotoGalleryWidgetState extends State<PhotoGalleryWidget>
       setState(() {
         _photos.add(file);
       });
-      widget.onPhotosChanged(_photos);
+      widget.onPhotosChanged?.call(_photos);
     }
   }
 
@@ -67,7 +67,7 @@ class _PhotoGalleryWidgetState extends State<PhotoGalleryWidget>
     setState(() {
       _photos.removeAt(index);
     });
-    widget.onPhotosChanged(_photos);
+    widget.onPhotosChanged?.call(_photos);
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('✅ Photo supprimée')),

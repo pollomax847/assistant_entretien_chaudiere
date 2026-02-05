@@ -1,32 +1,31 @@
 import 'package:flutter/material.dart';
-import 'vmc_calculator.dart';
+import 'dart:io';
+import '../../utils/mixins/measurement_photo_storage_mixin.dart';
+import '../reglementation_gaz/widgets/measurement_photo_widget.dart';
+
+// Type de bouche : extraction ou soufflage
+enum BoucheType { extraction, soufflage }
+
+// Classe pour mesure pression (RE2020 protocole)
+class MesurePression {
+  String pieceNom;
+  BoucheType typeBouche;
+  double pressionPa;
+  double? pressionRef;
+  String? commentaire;
+  List<File> photos; // Photos associées à cette mesure
+
+  MesurePression({
+    required this.pieceNom,
+    required this.typeBouche,
+    required this.pressionPa,
+    this.pressionRef = 80.0,
+    this.commentaire,
+    this.photos = const [],
+  });
+}
 
 // Localized labels and defaults
-const Map<String, String> kStateLabels = {
-  'neuf': 'Neuf',
-  'bon': 'Bon',
-  'moyen': 'Moyen',
-  'mauvais': 'Mauvais',
-};
-
-const Map<String, String> kRoomLabels = {
-  'salon': 'Salon',
-  'sejour': 'Séjour',
-  'chambre': 'Chambre',
-  'autre-piece': 'Autre pièce',
-};
-
-const Map<String, String> kDefaultHygroModuleByRoom = {
-  'salon': '6-45',
-  'sejour': '6-45',
-  'chambre': '6-22',
-  'autre-piece': '6-22',
-  'cuisine': '45',
-  'salle-de-bain': '30',
-  'salleDeBain': '30',
-  'wc': '15',
-};
-
 class Piece {
   String type;
   String nom;
@@ -39,18 +38,16 @@ class Fenetre {
   Fenetre({required this.taille, this.ouverte = false});
 }
 
-class AirInlet {
-  String room;
-  String inletType;
-  String module;
-  String state;
-  AirInlet({required this.room, this.inletType = 'standard', this.module = '30', this.state = 'bon'});
-}
-
 class MesureVMC {
   String piece;
   double debit;
-  MesureVMC({required this.piece, required this.debit});
+  List<File> photos; // Photos associées à cette mesure
+
+  MesureVMC({
+    required this.piece,
+    required this.debit,
+    this.photos = const [],
+  });
 }
 
 class VMCIntegrationScreen extends StatefulWidget {
@@ -60,15 +57,17 @@ class VMCIntegrationScreen extends StatefulWidget {
   State<VMCIntegrationScreen> createState() => _VMCIntegrationScreenState();
 }
 
-class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
+class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
+    with MeasurementPhotoStorageMixin {
   // Pagination
   int _currentPage = 0;
-  final int _totalPages = 3;
+  final int _totalPages = 4;
 
   // Données
   final List<Piece> _pieces = [Piece(type: 'chambre', nom: 'Chambre 1')];
   final List<Fenetre> _fenetres = [Fenetre(taille: 'moyenne')];
   final List<MesureVMC> _mesuresVMC = [MesureVMC(piece: 'Chambre 1', debit: 15)];
+  final List<MesurePression> _mesuresPression = [];
   final List<String> _typesPiece = ['chambre', 'cuisine', 'salleDeBain', 'wc', 'salon'];
   final List<String> _taillesFenetre = ['petite', 'moyenne', 'grande', 'baie'];
   final Map<String, double> _debitsFenetre = {
@@ -87,10 +86,8 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
   String? _statut;
   String? _message;
   String? _recommandation;
-
-  // Entrées air
-  final List<AirInlet> _airInlets = [];
-  bool _useDetailedInlets = false;
+  String? _pressionMessage;
+  bool _pressionConforme = true;
 
   @override
   void initState() {
@@ -102,8 +99,6 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
     setState(() {
       final newPiece = Piece(type: 'chambre', nom: 'Chambre ${_pieces.length + 1}');
       _pieces.add(newPiece);
-      final defaultModule = kDefaultHygroModuleByRoom[newPiece.type] ?? '30';
-      _airInlets.add(AirInlet(room: newPiece.type, inletType: 'standard', module: defaultModule));
     });
     _diagnostiquer();
   }
@@ -115,16 +110,31 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
     _diagnostiquer();
   }
 
-  void _ajouterAirInlet() {
+  void _ajouterMesureVMC() {
     setState(() {
-      _airInlets.add(AirInlet(room: 'salon', inletType: 'standard', module: '30'));
+      _mesuresVMC.add(MesureVMC(piece: 'Chambre ${_mesuresVMC.length + 1}', debit: 15));
     });
     _diagnostiquer();
   }
 
-  void _ajouterMesureVMC() {
+  void _ajouterMesurePression() {
     setState(() {
-      _mesuresVMC.add(MesureVMC(piece: 'Chambre ${_mesuresVMC.length + 1}', debit: 15));
+      final nomPiece = _pieces.isNotEmpty
+          ? _pieces[_mesuresPression.length % _pieces.length].nom
+          : 'Pièce ${_mesuresPression.length + 1}';
+      _mesuresPression.add(MesurePression(
+        pieceNom: nomPiece,
+        typeBouche: BoucheType.extraction,
+        pressionPa: 80.0,
+      ));
+    });
+    _diagnostiquer();
+  }
+
+  void _editerPression(int index, double nouvelleValeur, {String? comm}) {
+    setState(() {
+      _mesuresPression[index].pressionPa = nouvelleValeur;
+      if (comm != null) _mesuresPression[index].commentaire = comm;
     });
     _diagnostiquer();
   }
@@ -143,45 +153,7 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
       _typeLogement = 'T5+';
     }
 
-    double debitTotalFenetres = 0.0;
-    if (_useDetailedInlets && _airInlets.isNotEmpty) {
-      double totalStandard = 0.0;
-      double totalHygroMin = 0.0;
-      double totalHygroMax = 0.0;
-      for (final ai in _airInlets) {
-        double eff = 1.0;
-        switch (ai.state) {
-          case 'neuf':
-            eff = 1.0;
-            break;
-          case 'bon':
-            eff = 0.9;
-            break;
-          case 'moyen':
-            eff = 0.7;
-            break;
-          case 'mauvais':
-            eff = 0.5;
-            break;
-        }
-        if (ai.inletType == 'hygro' && ai.module.contains('-')) {
-          final parts = ai.module.split('-').map((s) => double.tryParse(s) ?? 0).toList();
-          if (parts.length == 2) {
-            totalHygroMin += parts[0] * eff;
-            totalHygroMax += parts[1] * eff;
-          }
-        } else {
-          totalStandard += (double.tryParse(ai.module) ?? 0) * eff;
-        }
-      }
-      if (totalHygroMax > 0) {
-        debitTotalFenetres = totalStandard + totalHygroMin;
-      } else {
-        debitTotalFenetres = totalStandard;
-      }
-    } else {
-      debitTotalFenetres = _fenetres.where((f) => f.ouverte).fold(0.0, (sum, f) => sum + _debitsFenetre[f.taille]!);
-    }
+    double debitTotalFenetres = _fenetres.where((f) => f.ouverte).fold(0.0, (sum, f) => sum + (_debitsFenetre[f.taille] ?? 0));
 
     final debitTotalVMC = _mesuresVMC.fold(0.0, (sum, m) => sum + m.debit);
 
@@ -222,6 +194,38 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
       }
     }
 
+    // Analyse des pressions (RE2020)
+    String pressionMessage = '';
+    _pressionConforme = true;
+
+    if (_mesuresPression.isNotEmpty) {
+      int nbConformes = 0;
+      List<String> problemes = [];
+
+      for (final m in _mesuresPression) {
+        bool ok = m.pressionPa >= 40 && m.pressionPa <= 120;
+
+        if (m.typeBouche == BoucheType.soufflage) {
+          ok = m.pressionPa >= 50 && m.pressionPa <= 150;
+        }
+
+        if (ok) nbConformes++;
+        else {
+          problemes.add('${m.pieceNom} (${m.typeBouche.name}) : ${m.pressionPa.toStringAsFixed(0)} Pa → hors plage');
+        }
+      }
+
+      _pressionConforme = (nbConformes == _mesuresPression.length);
+      pressionMessage = 'Pression aux bouches : $nbConformes/${_mesuresPression.length} conformes (plage typique 40-120 Pa extraction).';
+      if (!_pressionConforme) {
+        pressionMessage += '\nProblèmes : ${problemes.join(', ')}';
+      }
+    } else {
+      pressionMessage = 'Aucune mesure de pression aux bouches effectuée.';
+    }
+
+    _pressionMessage = pressionMessage;
+
     if ((debitTotalFenetres - extractionTotal).abs() < 15) {
       _statut = 'succès';
       _message = 'Débits compatible - Équilibre proche';
@@ -235,6 +239,14 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
       _message = 'Insuffisant d\'air entrant - Ouvrir fenêtres ou réduire VMC';
       _recommandation = 'Ouvrez plus de fenêtres ou réduisez le débit VMC.';
     }
+
+    // Intégration pression au diagnostic
+    if (_mesuresPression.isNotEmpty && !_pressionConforme) {
+      _statut = 'alerte';
+      _message = (_message ?? '') + '\nNon-conformité pression RE2020 (protocole §8.3.5)';
+      _recommandation = (_recommandation ?? '') + '\nVérifiez encrassement, réglages bouches ou réseau (pression nominale ~80 Pa).';
+    }
+
     setState(() {});
   }
 
@@ -319,6 +331,8 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
         return _buildPage2();
       case 2:
         return _buildPage3();
+      case 3:
+        return _buildPage4();
       default:
         return const SizedBox.shrink();
     }
@@ -488,62 +502,85 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
               children: [
                 Text('Mesures des débits (m³/h)', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 12),
-                ..._mesuresVMC.asMap().entries.map((entry) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: ListTile(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    tileColor: Colors.orange.withOpacity(0.05),
-                    leading: const Icon(Icons.speed, color: Colors.orange),
-                    title: Text(entry.value.piece),
-                    subtitle: Text('${entry.value.debit.toStringAsFixed(1)} m³/h'),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
+                ..._mesuresVMC.asMap().entries.map((entry) {
+                  final idx = entry.key;
+                  final mesure = entry.value;
+                  
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () {
-                            final controller = TextEditingController(text: entry.value.debit.toString());
-                            showDialog(
-                              context: context,
-                              builder: (ctx) => AlertDialog(
-                                title: const Text('Modifier la mesure'),
-                                content: TextField(
-                                  controller: controller,
-                                  decoration: const InputDecoration(labelText: 'Débit (m³/h)'),
-                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(ctx),
-                                    child: const Text('Annuler'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      final val = double.tryParse(controller.text);
-                                      if (val != null) {
-                                        setState(() => entry.value.debit = val);
-                                        _diagnostiquer();
-                                        Navigator.pop(ctx);
-                                      }
-                                    },
-                                    child: const Text('OK'),
-                                  ),
-                                ],
+                        ListTile(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          tileColor: Colors.orange.withOpacity(0.05),
+                          leading: const Icon(Icons.speed, color: Colors.orange),
+                          title: Text(mesure.piece),
+                          subtitle: Text('${mesure.debit.toStringAsFixed(1)} m³/h'),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit, color: Colors.blue),
+                                onPressed: () {
+                                  final controller = TextEditingController(text: mesure.debit.toString());
+                                  showDialog(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      title: const Text('Modifier la mesure'),
+                                      content: TextField(
+                                        controller: controller,
+                                        decoration: const InputDecoration(labelText: 'Débit (m³/h)'),
+                                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(ctx),
+                                          child: const Text('Annuler'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            final val = double.tryParse(controller.text);
+                                            if (val != null) {
+                                              setState(() => mesure.debit = val);
+                                              _diagnostiquer();
+                                              Navigator.pop(ctx);
+                                            }
+                                          },
+                                          child: const Text('OK'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
                               ),
-                            );
-                          },
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () {
+                                  setState(() => _mesuresVMC.removeAt(idx));
+                                  _diagnostiquer();
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () {
-                            setState(() => _mesuresVMC.removeAt(entry.key));
-                            _diagnostiquer();
+                        const SizedBox(height: 8),
+                        MeasurementPhotoWidget(
+                          title: '📸 Photos de la mesure VMC',
+                          initialPhotos: mesure.photos,
+                          onPhotosChanged: (photos) {
+                            setState(() {
+                              mesure.photos = photos;
+                            });
+                            saveMeasurementPhotos('vmc_mesure_${mesure.piece}_$idx', photos);
                           },
+                          maxPhotos: 3,
+                          recommended: false,
                         ),
                       ],
                     ),
-                  ),
-                )),
+                  );
+                }),
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
@@ -566,7 +603,115 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '✅ Étape 3 : Diagnostic',
+          '🔬 Étape 3 : Mesures de pression (RE2020)',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Mesurez à ~80 Pa nominal. Plage typique extraction : 40-120 Pa.',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[700]),
+        ),
+        const SizedBox(height: 16),
+
+        ..._mesuresPression.asMap().entries.map((entry) {
+          final idx = entry.key;
+          final m = entry.value;
+          final isExtraction = m.typeBouche == BoucheType.extraction;
+          final minPa = isExtraction ? 40 : 50;
+          final maxPa = isExtraction ? 120 : 150;
+          final color = (m.pressionPa >= minPa && m.pressionPa <= maxPa)
+              ? Colors.green
+              : (m.pressionPa < minPa ? Colors.orange : Colors.red);
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: ListTile(
+                  leading: Icon(Icons.speed, color: color),
+                  title: Text('${m.pieceNom} - ${m.typeBouche.name}'),
+                  subtitle: Text('${m.pressionPa.toStringAsFixed(0)} Pa (plage: $minPa-$maxPa Pa)'),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.blue),
+                        onPressed: () {
+                          final controller = TextEditingController(text: m.pressionPa.toString());
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: Text('Pression ${m.pieceNom}'),
+                              content: TextField(
+                                controller: controller,
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                decoration: const InputDecoration(labelText: 'Pression (Pa)'),
+                              ),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
+                                TextButton(
+                                  onPressed: () {
+                                    final val = double.tryParse(controller.text);
+                                    if (val != null) {
+                                      _editerPression(idx, val);
+                                      Navigator.pop(ctx);
+                                    }
+                                  },
+                                  child: const Text('OK'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () {
+                          setState(() => _mesuresPression.removeAt(idx));
+                          _diagnostiquer();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              MeasurementPhotoWidget(
+                title: '📸 Photos de la mesure de pression',
+                initialPhotos: m.photos,
+                onPhotosChanged: (photos) {
+                  setState(() {
+                    m.photos = photos;
+                  });
+                  saveMeasurementPhotos('vmc_pression_${m.pieceNom}_$idx', photos);
+                },
+                maxPhotos: 3,
+                recommended: false,
+              ),
+              const SizedBox(height: 16),
+            ],
+          );
+        }),
+
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.add),
+            label: const Text('Ajouter mesure pression'),
+            onPressed: _ajouterMesurePression,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPage4() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '✅ Étape 4 : Diagnostic complet',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 24),
@@ -629,6 +774,29 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen> {
                 _buildDetailRow('Débit fenêtres (m³/h)', '${_debitTotalFenetres?.toStringAsFixed(1) ?? 0}'),
                 _buildDetailRow('Débit VMC (m³/h)', '${_debitTotalVMC?.toStringAsFixed(1) ?? 0}'),
                 _buildDetailRow('Différence', '${_diff?.toStringAsFixed(1) ?? 0} m³/h (${_diffPct?.toStringAsFixed(1) ?? 0}%)'),
+                if (_mesuresPression.isNotEmpty)
+                  _buildDetailRow(
+                    'Pression moyenne (Pa)',
+                    '${(_mesuresPression.map((m) => m.pressionPa).reduce((a, b) => a + b) / _mesuresPression.length).toStringAsFixed(1)}',
+                  ),
+                const SizedBox(height: 20),
+                if (_pressionMessage != null && _pressionMessage!.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: _pressionConforme ? Colors.blue.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: (_pressionConforme ? Colors.blue : Colors.orange).withOpacity(0.3)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('📊 Analyse pression RE2020:', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        Text(_pressionMessage ?? '', style: const TextStyle(fontSize: 14)),
+                      ],
+                    ),
+                  ),
                 const SizedBox(height: 20),
                 Container(
                   padding: const EdgeInsets.all(12),

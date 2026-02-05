@@ -55,6 +55,46 @@ class _PreferencesScreenState extends State<PreferencesScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Bannière d'affichage des infos enregistrées
+                if (preferences.technician.isNotEmpty || preferences.company.isNotEmpty)
+                  Card(
+                    color: Colors.blue.shade50,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          Icon(Icons.person_pin, color: Colors.blue.shade700, size: 32),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (preferences.technician.isNotEmpty)
+                                  Text(
+                                    preferences.technician,
+                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blue.shade700,
+                                    ),
+                                  ),
+                                if (preferences.company.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    preferences.company,
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Colors.blue.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 16),
+
                 // Informations personnelles
                 Card(
                   child: Padding(
@@ -69,23 +109,31 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                         const SizedBox(height: 16),
                         TextField(
                           controller: _technicianController,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Nom du technicien',
-                            prefixIcon: Icon(Icons.person),
+                            prefixIcon: const Icon(Icons.person),
+                            helperText: _technicianController.text.isEmpty 
+                              ? 'Entrez votre nom' 
+                              : 'Actuellement: ${_technicianController.text}',
                           ),
                           onChanged: (value) {
                             preferences.setTechnician(value);
+                            setState(() {});
                           },
                         ),
                         const SizedBox(height: 16),
                         TextField(
                           controller: _companyController,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Entreprise',
-                            prefixIcon: Icon(Icons.business),
+                            prefixIcon: const Icon(Icons.business),
+                            helperText: _companyController.text.isEmpty 
+                              ? 'Entrez votre entreprise' 
+                              : 'Actuellement: ${_companyController.text}',
                           ),
                           onChanged: (value) {
                             preferences.setCompany(value);
+                            setState(() {});
                           },
                         ),
                       ],

@@ -1,9 +1,9 @@
 {
   "version": "1.1.0",
-  "buildNumber": "14",
-  "downloadUrl": "https://github.com/pollomax847/assistant_entretien_chaudiere/releases/download/v1.1.0-build14/app-release.apk",
-  "releaseNotes": "✨ Version 1.1.0 build 14\n\n📦 Nouvelles fonctionnalités:\n- Support des photos dans les relevés techniques\n- Pagination améliorée pour les formulaires\n- Bannière de notification des mises à jour\n- Meilleure gestion des mises à jour in-app\n\n🐛 Corrections:\n- Résolution des problèmes de synchronisation\n- Optimisation de la performance\n\n💡 Améliorations:\n- Interface utilisateur rafraîchie\n- Meilleur support des appareils mobiles",
+  "buildNumber": "15",
+  "downloadUrl": "https://github.com/pollomax847/assistant_entretien_chaudiere/releases/download/v1.1.0-build15/app-release.apk",
+  "releaseNotes": "✨ Version 1.1.0 build 15\n\n📸 Nouvelles photos intégrées:\n- Chaque mesure VMC peut avoir des photos (débits, pressions)\n- Chaque non-conformité Gaz peut avoir des photos recommandées\n- Sauvegarde automatique des photos\n\n📦 Fonctionnalités améliorées:\n- Support des photos dans les relevés techniques\n- Pagination améliorée pour les formulaires\n- Bannière de notification des mises à jour\n- Meilleure gestion des mises à jour in-app\n\n🐛 Corrections:\n- Résolution des problèmes de synchronisation\n- Optimisation de la performance\n\n💡 Améliorations:\n- Interface utilisateur rafraîchie\n- Meilleur support des appareils mobiles",
   "minVersion": "1.0.0",
   "forceUpdate": false,
-  "releaseDate": "2026-02-04"
+  "releaseDate": "2026-02-05"
 }

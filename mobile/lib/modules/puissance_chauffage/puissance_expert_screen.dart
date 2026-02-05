@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:assistant_entreiten_chaudiere/utils/app_utils.dart';
+import '../../utils/mixins/shared_preferences_mixin.dart';
+import '../../utils/mixins/controller_dispose_mixin.dart';
 
 class PuissanceExpertScreen extends StatefulWidget {
   const PuissanceExpertScreen({super.key});

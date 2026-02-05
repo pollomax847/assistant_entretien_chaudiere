@@ -264,3 +264,4 @@ mixin ReglementationGazMixin<T extends StatefulWidget> on State<T> {
   TextEditingController get distancePorteController => _reglementationObsControllers['distance_porte'] ?? TextEditingController();
   TextEditingController get distanceEvacuationController => _reglementationObsControllers['distance_evacuation'] ?? TextEditingController();
   TextEditingController get distanceAspirationController => _reglementationObsControllers['distance_aspiration'] ?? TextEditingController();
+}

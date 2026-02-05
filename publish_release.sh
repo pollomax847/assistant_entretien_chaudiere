@@ -6,7 +6,7 @@ set -e
 REPO="assistant_entretien_chaudiere"
 OWNER="pollomax847"
 VERSION="1.1.0"
-BUILD="14"
+BUILD="15"
 TAG="v${VERSION}-build${BUILD}"
 APK_PATH="mobile/build/app/outputs/flutter-apk/app-release.apk"
 
@@ -66,11 +66,10 @@ if [ -f "$APK_PATH" ]; then
 ## Version $VERSION Build $BUILD
 
 ### Changements
-- Refactorisation complète du relevé technique
-- Restructuration en 9 sections logiques
-- Nouvelle interface avec tabs
-- Auto-sauvegarde des données
-- Migration automatique des anciennes données
+- Ajout des photos par mesure VMC (débit et pression)
+- Ajout des photos recommandées par non-conformité gaz
+- Sauvegarde automatique des photos associées
+- Corrections et améliorations de stabilité
 
 ### Installation
 Téléchargez l'APK ci-dessous et installez-le sur votre appareil Android.

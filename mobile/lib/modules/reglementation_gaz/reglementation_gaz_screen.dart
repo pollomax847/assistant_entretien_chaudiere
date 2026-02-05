@@ -3,8 +3,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/pdf_generator_service.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/services.dart' show rootBundle;
-import '../../utils/widgets/app_snackbar.dart';
+import '../../utils/mixins/form_state_mixin.dart';
+import '../../utils/mixins/controller_dispose_mixin.dart';
+import '../../utils/mixins/snackbar_mixin.dart';
+import '../../utils/mixins/measurement_photo_storage_mixin.dart';
+import 'widgets/measurement_photo_widget.dart';
 
 class ReglementationGazScreen extends StatefulWidget {
   const ReglementationGazScreen({super.key});
@@ -13,15 +18,17 @@ class ReglementationGazScreen extends StatefulWidget {
   State<ReglementationGazScreen> createState() => _ReglementationGazScreenState();
 }
 
-class _ReglementationGazScreenState extends State<ReglementationGazScreen> {
+class _ReglementationGazScreenState extends State<ReglementationGazScreen>
+    with FormStateMixin, ControllerDisposeMixin, SnackBarMixin, MeasurementPhotoStorageMixin {
   Map<String, dynamic>? _qualigazCodes;
   Map<String, String> _selectedCodes = {};
   Map<String, String> _observations = {};
+  Map<String, List<File>> _photosParCode = {}; // Photos par code Qualigaz
 
   // Données de l'installation
-  final _adresseController = TextEditingController();
-  final _nomClientController = TextEditingController();
-  final _technicienController = TextEditingController();
+  late final _adresseController = registerController(TextEditingController());
+  late final _nomClientController = registerController(TextEditingController());
+  late final _technicienController = registerController(TextEditingController());
 
   bool _isLoading = true;
 
@@ -30,14 +37,6 @@ class _ReglementationGazScreenState extends State<ReglementationGazScreen> {
     super.initState();
     _chargerDonnees();
     _chargerCodesQualigaz();
-  }
-
-  @override
-  void dispose() {
-    _adresseController.dispose();
-    _nomClientController.dispose();
-    _technicienController.dispose();
-    super.dispose();
   }
 
   Future<void> _chargerCodesQualigaz() async {
@@ -57,33 +56,50 @@ class _ReglementationGazScreenState extends State<ReglementationGazScreen> {
   }
 
   Future<void> _chargerDonnees() async {
-    final prefs = await SharedPreferences.getInstance();
+    final adresse = await loadFormValue('adresse_installation');
+    final nomClient = await loadFormValue('nom_client');
+    final technicien = await loadFormValue('technicien_reglementation');
+    final codesJson = await loadFormValue('selected_qualigaz_codes');
+    final observationsJson = await loadFormValue('qualigaz_observations');
+
     setState(() {
-      _adresseController.text = prefs.getString('adresse_installation') ?? '';
-      _nomClientController.text = prefs.getString('nom_client') ?? '';
-      _technicienController.text = prefs.getString('technicien_reglementation') ?? '';
+      _adresseController.text = adresse ?? '';
+      _nomClientController.text = nomClient ?? '';
+      _technicienController.text = technicien ?? '';
 
       // Charger les codes sélectionnés
-      final codesJson = prefs.getString('selected_qualigaz_codes');
-      if (codesJson != null) {
+      if (codesJson != null && codesJson.isNotEmpty) {
         _selectedCodes = Map<String, String>.from(json.decode(codesJson));
       }
 
       // Charger les observations
-      final observationsJson = prefs.getString('qualigaz_observations');
-      if (observationsJson != null) {
+      if (observationsJson != null && observationsJson.isNotEmpty) {
         _observations = Map<String, String>.from(json.decode(observationsJson));
       }
     });
+    
+    // Charger les photos pour chaque code
+    if (_selectedCodes.isNotEmpty) {
+      for (final codeId in _selectedCodes.keys) {
+        final photos = await loadMeasurementPhotos('reglementation_gaz_$codeId');
+        if (photos.isNotEmpty) {
+          setState(() {
+            _photosParCode[codeId] = photos;
+          });
+        }
+      }
+    }
   }
 
   Future<void> _sauvegarderDonnees() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('adresse_installation', _adresseController.text);
-    await prefs.setString('nom_client', _nomClientController.text);
-    await prefs.setString('technicien_reglementation', _technicienController.text);
-    await prefs.setString('selected_qualigaz_codes', json.encode(_selectedCodes));
-    await prefs.setString('qualigaz_observations', json.encode(_observations));
+    await saveFormValue('adresse_installation', _adresseController.text);
+    await saveFormValue('nom_client', _nomClientController.text);
+    await saveFormValue('technicien_reglementation', _technicienController.text);
+    await saveFormValue('selected_qualigaz_codes', json.encode(_selectedCodes));
+    await saveFormValue('qualigaz_observations', json.encode(_observations));
+    
+    // Sauvegarder les photos
+    await saveAllMeasurementPhotos(_photosParCode);
   }
 
   void _selectionnerCode(String codeId, String code) {
@@ -162,16 +178,10 @@ class _ReglementationGazScreenState extends State<ReglementationGazScreen> {
       );
 
       if (!mounted) return;
-      AppSnackBar.showSuccess(
-        context,
-        'PDF généré et partagé avec succès',
-      );
+      showSuccess('PDF généré et partagé avec succès');
     } catch (e) {
       if (!mounted) return;
-      AppSnackBar.showError(
-        context,
-        'Erreur lors de la génération du PDF: $e',
-      );
+      showError('Erreur lors de la génération du PDF: $e');
     }
   }
 
@@ -184,7 +194,6 @@ class _ReglementationGazScreenState extends State<ReglementationGazScreen> {
     }
 
     final categories = _qualigazCodes?['categories'] as Map<String, dynamic>? ?? {};
-    final codes = _qualigazCodes?['codes_qualigaz'] as Map<String, dynamic>? ?? {};
     final classificationGlobale = _getClassificationGlobale();
 
     return DefaultTabController(
@@ -422,6 +431,19 @@ class _ReglementationGazScreenState extends State<ReglementationGazScreen> {
                               ),
                               maxLines: 3,
                               onChanged: (value) => _ajouterObservation(codeId.toString(), value),
+                            ),
+                            const SizedBox(height: 12),
+                            MeasurementPhotoWidget(
+                              title: '📸 Photos de la non-conformité',
+                              initialPhotos: _photosParCode[codeId.toString()] ?? [],
+                              onPhotosChanged: (photos) {
+                                setState(() {
+                                  _photosParCode[codeId.toString()] = photos;
+                                });
+                                _sauvegarderDonnees();
+                              },
+                              maxPhotos: 5,
+                              recommended: true,
                             ),
                           ],
                         ),
