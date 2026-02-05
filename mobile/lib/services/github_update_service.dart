@@ -11,9 +11,9 @@ class GitHubUpdateService {
   factory GitHubUpdateService() => _instance;
   GitHubUpdateService._internal();
 
-  // URL du fichier version.json sur GitHub (branche main)
+  // URL du fichier version.json sur GitHub Gist (public)
   static const String _versionUrl = 
-      'https://raw.githubusercontent.com/pollomax847/assistant_entretien_chaudiere/main/version.json';
+      'https://gist.githubusercontent.com/pollomax847/4dde52dd2517fdde10148cd251ff505a/raw/version.json';
   
   // Repo GitHub pour les releases
   static const String _repoOwner = 'pollomax847';
