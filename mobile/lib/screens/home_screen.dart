@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../modules/puissance_chauffage/puissance_chauffage_expert_screen.dart';
 import '../modules/reglementation_gaz/reglementation_gaz_screen.dart';
 import '../modules/vmc/vmc_integration_screen.dart';
@@ -40,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // Vérifier les mises à jour au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkFirstLaunch();
+      _requestPermissions();
       // Essayer la mise à jour in-app Google Play d'abord, puis fallback GitHub
       _checkForUpdates();
     });
@@ -64,6 +67,26 @@ class _HomeScreenState extends State<HomeScreen> {
       debugPrint('⚠️ Mise à jour Google Play échouée: $e, fallback GitHub...');
       // En cas d'erreur, utiliser GitHub comme fallback
       _checkGitHubUpdate();
+    }
+  }
+
+  /// Demande toutes les permissions nécessaires au démarrage
+  Future<void> _requestPermissions() async {
+    try {
+      // Demander les permissions de localisation
+      LocationPermission locationPermission = await Geolocator.checkPermission();
+      if (locationPermission == LocationPermission.denied || locationPermission == LocationPermission.deniedForever) {
+        await Geolocator.requestPermission();
+      }
+
+      // Demander les permissions de caméra et stockage
+      await [
+        Permission.camera,
+        Permission.storage,
+        Permission.photos,
+      ].request();
+    } catch (e) {
+      debugPrint('Erreur demande permissions: $e');
     }
   }
 
@@ -288,70 +311,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Carte Mise à Jour - VISIBLE & PROMINENT
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Card(
-                color: Colors.blue.shade50,
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: Colors.blue.shade200),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.cloud_download_outlined,
-                        size: 32,
-                        color: Colors.blue.shade600,
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Vérifier les mises à jour',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue.shade900,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Rechercher de nouvelles versions',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.blue.shade600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () => GitHubUpdateService().checkManually(context),
-                        icon: const Icon(Icons.arrow_forward, size: 18),
-                        label: const Text('Vérifier'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade600,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
             ),
@@ -629,47 +588,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ModulesListScreen(
-          title: 'Relevés',
-          modules: [
-            {
-              'title': 'Relevé Technique',
-              'subtitle': 'Chaudière, PAC, Clim',
-              'icon': Icons.assignment,
-              'color': const Color(0xFFFF9800),
-              'onTap': () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ReleveTechniqueSelectorScreen(),
-                    ),
-                  ),
-            },
-            {
-              'title': 'Chaudière',
-              'subtitle': 'Paramètres et mesures',
-              'icon': Icons.fireplace,
-              'color': const Color(0xFFE91E63),
-              'onTap': () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ChaudiereScreen(),
-                    ),
-                  ),
-            },
-            {
-              'title': 'ECS',
-              'subtitle': 'Eau chaude sanitaire',
-              'icon': Icons.water_drop,
-              'color': const Color(0xFF00BCD4),
-              'onTap': () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const EcsScreen(),
-                    ),
-                  ),
-            },
-          ],
-        ),
+        builder: (context) => const ReleveTechniqueSelectorScreen(),
       ),
     );
   }
