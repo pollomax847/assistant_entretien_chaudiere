@@ -27,7 +27,8 @@ fi
 
 # Vérification des modifications
 if [ -z "$(git status --porcelain)" ]; then
-    error "Aucune modification à commiter"
+    success "Aucune modification à commiter"
+    exit 0
 fi
 
 # Création d'une nouvelle branche
