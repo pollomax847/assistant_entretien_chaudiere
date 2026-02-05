@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../releve_technique_screen_complet.dart' show ReleveTechniqueScreenComplet, TypeReleve;
+import '../type_releve.dart';
+import '../releve_technique_screen_complet.dart';
 
 class ReleveTechniqueSelectorScreen extends StatelessWidget {
   const ReleveTechniqueSelectorScreen({super.key});

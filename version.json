@@ -1,8 +1,8 @@
 {
   "version": "1.1.0",
-  "buildNumber": "19",
-  "downloadUrl": "https://github.com/pollomax847/assistant_entretien_chaudiere/releases/download/v1.1.0-build19/app-release.apk",
-  "releaseNotes": "✨ Version 1.1.0 build 19\n\n🔧 Corrections:\n- Relevés: Navigation directe vers sélecteur (Chaudière/PAC/Clim)\n- Bannière mise à jour supprimée de l'écran principal\n- Permissions GPS et Caméra demandées au démarrage\n- Menu Contrôles: Réglementation Gaz, VMC, Vase Expansion, Équilibrage\n- Menu Tests: ECS, Test Compteur Gaz, Tirage Cheminée\n- Calcul ECS corrigé (formule 70/1000)",
+  "buildNumber": "21",
+  "downloadUrl": "https://github.com/pollomax847/assistant_entretien_chaudiere/releases/download/v1.1.0-build21/app-release.apk",
+  "releaseNotes": "✨ Version 1.1.0 build 21\n\n✅ CORRECTION:\n- Problème Relevés CORRIGÉ (enum séparé)\n- Navigation Relevés → Chaudière/PAC/Clim\n- Permissions GPS et Caméra au démarrage\n- Bannière MAJ dans drawer uniquement\n- Calcul ECS corrigé (70/1000)",
   "minVersion": "1.0.0",
   "forceUpdate": false,
   "releaseDate": "2026-02-05"

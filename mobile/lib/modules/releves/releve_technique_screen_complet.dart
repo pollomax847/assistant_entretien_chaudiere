@@ -2,16 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:convert';
+import 'type_releve.dart';
 import 'rt_chaudiere_form.dart';
 import 'rt_pac_form.dart';
 import 'rt_clim_form.dart';
 import 'services/releve_pdf_generator.dart';
-
-enum TypeReleve {
-  chaudiere,
-  pac,
-  clim,
-}
 
 class ReleveTechnique {
   String nomEntreprise;
