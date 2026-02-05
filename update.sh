@@ -20,6 +20,10 @@ success() {
     echo -e "\033[32m[SUCCÈS] $1\033[0m"
 }
 
+info() {
+    echo -e "\033[36m[INFO] $1\033[0m"
+}
+
 # Vérification de l'état du dépôt
 if ! git status &> /dev/null; then
     error "Ce répertoire n'est pas un dépôt Git"
@@ -80,23 +84,51 @@ mkdir -p public/js
 mkdir -p public/assets
 
 # Déplacer les fichiers CSS
-cp css/* public/css/
-cp style.css public/css/
+if [ -d "css" ]; then
+    cp -r css/* public/css/
+else
+    info "Dossier css introuvable, étape ignorée"
+fi
+
+if [ -f "style.css" ]; then
+    cp style.css public/css/
+else
+    info "Fichier style.css introuvable, étape ignorée"
+fi
 
 # Déplacer les fichiers JS
-cp js/* public/js/
-cp script.js public/js/
+if [ -d "js" ]; then
+    cp -r js/* public/js/
+else
+    info "Dossier js introuvable, étape ignorée"
+fi
+
+if [ -f "script.js" ]; then
+    cp script.js public/js/
+else
+    info "Fichier script.js introuvable, étape ignorée"
+fi
 
 # Déplacer les assets
-cp -r assets/* public/assets/
+if [ -d "assets" ]; then
+    cp -r assets/* public/assets/
+else
+    info "Dossier assets introuvable, étape ignorée"
+fi
 
 # Déplacer le fichier index.html
-cp index.html public/
+if [ -f "index.html" ]; then
+    cp index.html public/
+else
+    info "Fichier index.html introuvable, étape ignorée"
+fi
 
-# Installer les dépendances
-npm install
-
-# Construire le projet
-npm run build
+# Installer les dépendances et construire le projet web si disponible
+if [ -d "web" ]; then
+    npm install
+    npm run build
+else
+    info "Dossier web introuvable, build web ignoré"
+fi
 
 echo "Mise à jour terminée !" 
