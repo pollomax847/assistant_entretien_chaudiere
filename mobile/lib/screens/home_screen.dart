@@ -9,7 +9,7 @@ import '../modules/tirage/tirage_screen.dart';
 import '../modules/ecs/ecs_screen.dart';
 import '../modules/vase_expansion/vase_expansion_screen.dart';
 import '../modules/equilibrage/equilibrage_screen.dart';
-import '../modules/releves/screens/releve_technique_screen.dart';
+import '../modules/releves/screens/releve_technique_selector_screen.dart';
 import '../services/github_update_service.dart';
 import '../services/update_service.dart';
 import '../theme/app_theme.dart';
@@ -234,7 +234,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const ReleveTechniqueScreen(),
+                          builder: (context) => const ReleveTechniqueSelectorScreen(),
                         ),
                       ),
                     ),
@@ -579,7 +579,7 @@ class _HomeScreenState extends State<HomeScreen> {
               'onTap': () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const ReleveTechniqueScreen(),
+                      builder: (context) => const ReleveTechniqueSelectorScreen(),
                     ),
                   ),
             },

@@ -12,7 +12,7 @@ import 'modules/vmc/vmc_integration_screen.dart';
 import 'modules/chaudiere/chaudiere_screen.dart';
 import 'modules/reglementation_gaz/reglementation_gaz_screen.dart';
 import 'modules/tests/enhanced_top_gaz_screen.dart';
-import 'modules/releves/screens/releve_technique_screen.dart';
+import 'modules/releves/screens/releve_technique_selector_screen.dart';
 import 'modules/tirage/tirage_screen.dart';
 
 void main() {
@@ -41,7 +41,7 @@ class ChauffageExpertApp extends StatelessWidget {
               '/vmc': (context) => const VMCIntegrationScreen(),
               '/test-compteur-gaz': (context) => const EnhancedTopGazScreen(),
               '/tirage': (context) => const TirageScreen(),
-              '/releve-technique': (context) => const ReleveTechniqueScreen(),
+              '/releve-technique': (context) => const ReleveTechniqueSelectorScreen(),
               '/ecs': (context) => const EcsScreen(),
               '/vase-expansion': (context) => const VaseExpansionScreen(),
               '/reglementation-gaz': (context) => const ReglementationGazScreen(),
