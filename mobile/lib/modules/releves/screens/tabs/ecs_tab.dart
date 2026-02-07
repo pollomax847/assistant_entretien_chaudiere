@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/sections/ecs_section.dart';
+import 'package:assistant_entreiten_chaudiere/utils/mixins/mixins.dart';
 
 /// Tab Écran - ECS (Eau Chaude Sanitaire)
 class EcsTab extends StatefulWidget {
@@ -7,16 +8,17 @@ class EcsTab extends StatefulWidget {
   final Function(EcsSection) onUpdate;
 
   const EcsTab({
-    Key? key,
+    super.key,
     this.initialData,
     required this.onUpdate,
-  }) : super(key: key);
+  });
 
   @override
-  _EcsTabState createState() => _EcsTabState();
+  State<EcsTab> createState() => _EcsTabState();
 }
 
-class _EcsTabState extends State<EcsTab> {
+class _EcsTabState extends State<EcsTab>
+    with SingleTickerProviderStateMixin, AnimationStyleMixin {
   late TextEditingController _debitLController;
   late TextEditingController _debitM3hController;
   late TextEditingController _tempFroideController;
@@ -32,10 +34,15 @@ class _EcsTabState extends State<EcsTab> {
   bool? _crepine;
   bool? _filtresSanitaires;
   bool? _clapet;
+  late final AnimationController _introController = AnimationController(
+    vsync: this,
+    duration: entranceDuration,
+  );
 
   @override
   void initState() {
     super.initState();
+    _introController.forward();
     _initializeControllers();
   }
 
@@ -65,6 +72,7 @@ class _EcsTabState extends State<EcsTab> {
 
   @override
   void dispose() {
+    _introController.dispose();
     _debitLController.dispose();
     _debitM3hController.dispose();
     _tempFroideController.dispose();
@@ -107,13 +115,18 @@ class _EcsTabState extends State<EcsTab> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
+    final fade = buildStaggeredFade(_introController, 0);
+    final slide = buildStaggeredSlide(fade);
+    return buildFadeSlide(
+      fade: fade,
+      slide: slide,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
         Text('Configuration ECS', style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 16),
         DropdownButtonFormField<String>(
-          value: _typeEcs,
+          initialValue: _typeEcs,
           decoration: const InputDecoration(
             labelText: 'Type ECS',
             border: OutlineInputBorder(),
@@ -256,7 +269,8 @@ class _EcsTabState extends State<EcsTab> {
           maxLines: 3,
           onChanged: (_) => _saveData(),
         ),
-      ],
+        ],
+      ),
     );
   }
 }

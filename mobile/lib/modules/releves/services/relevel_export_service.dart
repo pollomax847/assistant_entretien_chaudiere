@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/releve_technique.dart';
 
@@ -122,7 +123,7 @@ class RelevelExportService {
       final content = await exportToTxt(releve);
       return await file.writeAsString(content);
     } catch (e) {
-      print('Erreur sauvegarde fichier: $e');
+      debugPrint('Erreur sauvegarde fichier: $e');
       return null;
     }
   }
@@ -137,8 +138,8 @@ class RelevelExportService {
     final buffer = StringBuffer();
     
     buffer.writeln('RELEVÉ ${releve.id}');
-    buffer.writeln('${releve.client?.nom ?? "Sans nom"}');
-    buffer.writeln('${releve.client?.adresseChantier ?? "Adresse inconnue"}');
+    buffer.writeln(releve.client?.nom ?? 'Sans nom');
+    buffer.writeln(releve.client?.adresseChantier ?? 'Adresse inconnue');
     buffer.writeln('Créé: ${releve.dateCreation.day}/${releve.dateCreation.month}/${releve.dateCreation.year}');
     buffer.writeln('Complétion: ${releve.pourcentageCompletion}%');
     

@@ -6,6 +6,7 @@ import 'package:assistant_entreiten_chaudiere/utils/mixins/snackbar_mixin.dart';
 import 'package:assistant_entreiten_chaudiere/utils/mixins/controller_dispose_mixin.dart';
 import 'package:assistant_entreiten_chaudiere/utils/mixins/pagination_mixin.dart';
 import 'package:assistant_entreiten_chaudiere/utils/mixins/photo_section_mixin.dart';
+import 'package:assistant_entreiten_chaudiere/utils/mixins/animation_style_mixin.dart';
 import 'models/photo_category.dart';
 import 'widgets/single_photo_widget.dart';
 
@@ -20,6 +21,8 @@ class RTPACForm extends StatefulWidget {
 
 class _RTPACFormState extends State<RTPACForm>
     with
+        SingleTickerProviderStateMixin,
+        AnimationStyleMixin,
         FormFieldBuilderMixin,
         FormStateMixin,
         SnackBarMixin,
@@ -27,6 +30,10 @@ class _RTPACFormState extends State<RTPACForm>
         PaginationMixin,
         PhotoSectionMixin {
   final _formKey = GlobalKey<FormState>();
+  late final AnimationController _introController = AnimationController(
+    vsync: this,
+    duration: entranceDuration,
+  );
 
   // ===== CONTROLLERS PAGE 1 (Infos + Habitation) =====
   late TextEditingController ctrlNomClient;
@@ -156,6 +163,7 @@ class _RTPACFormState extends State<RTPACForm>
   @override
   void initState() {
     super.initState();
+    _introController.forward();
     _initializeControllers();
     loadFormData();
   }
@@ -229,8 +237,14 @@ class _RTPACFormState extends State<RTPACForm>
 
   @override
   void dispose() {
+    _introController.dispose();
     disposeControllers();
     super.dispose();
+  }
+
+  void _setPage(int page) {
+    setState(() => currentPage = page);
+    _introController.forward(from: 0);
   }
 
   @override
@@ -247,11 +261,23 @@ class _RTPACFormState extends State<RTPACForm>
           Expanded(
             child: PageView(
               controller: pageController,
-              onPageChanged: (page) => setState(() => currentPage = page),
+              onPageChanged: _setPage,
               children: [
-                _buildPage1(),
-                _buildPage2(),
-                _buildPage3(),
+                buildFadeSlide(
+                  fade: buildStaggeredFade(_introController, 0),
+                  slide: buildStaggeredSlide(buildStaggeredFade(_introController, 0)),
+                  child: _buildPage1(),
+                ),
+                buildFadeSlide(
+                  fade: buildStaggeredFade(_introController, 0),
+                  slide: buildStaggeredSlide(buildStaggeredFade(_introController, 0)),
+                  child: _buildPage2(),
+                ),
+                buildFadeSlide(
+                  fade: buildStaggeredFade(_introController, 0),
+                  slide: buildStaggeredSlide(buildStaggeredFade(_introController, 0)),
+                  child: _buildPage3(),
+                ),
               ],
             ),
           ),

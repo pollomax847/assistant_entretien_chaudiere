@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/mixins/mixins.dart';
 
 class EquilibrageScreen extends StatefulWidget {
   const EquilibrageScreen({super.key});
@@ -7,18 +8,25 @@ class EquilibrageScreen extends StatefulWidget {
   State<EquilibrageScreen> createState() => _EquilibrageScreenState();
 }
 
-class _EquilibrageScreenState extends State<EquilibrageScreen> {
+class _EquilibrageScreenState extends State<EquilibrageScreen>
+    with SingleTickerProviderStateMixin, AnimationStyleMixin {
   final TextEditingController _searchController = TextEditingController();
   bool _isGridView = false;
+  late final AnimationController _introController = AnimationController(
+    vsync: this,
+    duration: entranceDuration,
+  );
 
   @override
   void initState() {
     super.initState();
+    _introController.forward();
     _searchController.addListener(_onSearchChanged);
   }
 
   @override
   void dispose() {
+    _introController.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -31,6 +39,12 @@ class _EquilibrageScreenState extends State<EquilibrageScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Widget wrapSection(Widget child, int index) {
+      final fade = buildStaggeredFade(_introController, index);
+      final slide = buildStaggeredSlide(fade);
+      return buildFadeSlide(fade: fade, slide: slide, child: child);
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Équilibrage Réseaux'),
@@ -47,19 +61,25 @@ class _EquilibrageScreenState extends State<EquilibrageScreen> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: const InputDecoration(
-                labelText: 'Rechercher un chantier',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
+          wrapSection(
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                controller: _searchController,
+                decoration: const InputDecoration(
+                  labelText: 'Rechercher un chantier',
+                  prefixIcon: Icon(Icons.search),
+                  border: OutlineInputBorder(),
+                ),
               ),
             ),
+            0,
           ),
           Expanded(
-            child: _isGridView ? _buildGridView() : _buildListView(),
+            child: wrapSection(
+              _isGridView ? _buildGridView() : _buildListView(),
+              1,
+            ),
           ),
         ],
       ),

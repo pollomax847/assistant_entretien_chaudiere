@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import '../../utils/mixins/measurement_photo_storage_mixin.dart';
+import '../../utils/mixins/animation_style_mixin.dart';
 import '../reglementation_gaz/widgets/measurement_photo_widget.dart';
 
 // Type de bouche : extraction ou soufflage
@@ -58,10 +59,14 @@ class VMCIntegrationScreen extends StatefulWidget {
 }
 
 class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
-    with MeasurementPhotoStorageMixin {
+    with SingleTickerProviderStateMixin, AnimationStyleMixin, MeasurementPhotoStorageMixin {
   // Pagination
   int _currentPage = 0;
   final int _totalPages = 4;
+  late final AnimationController _introController = AnimationController(
+    vsync: this,
+    duration: entranceDuration,
+  );
 
   // Données
   final List<Piece> _pieces = [Piece(type: 'chambre', nom: 'Chambre 1')];
@@ -92,7 +97,25 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
   @override
   void initState() {
     super.initState();
+    _introController.forward();
     _diagnostiquer();
+  }
+
+  @override
+  void dispose() {
+    _introController.dispose();
+    super.dispose();
+  }
+
+  void _setPage(int nextPage) {
+    setState(() => _currentPage = nextPage);
+    _introController.forward(from: 0);
+  }
+
+  Widget _wrapSection(Widget child, int index) {
+    final fade = buildStaggeredFade(_introController, index);
+    final slide = buildStaggeredSlide(fade);
+    return buildFadeSlide(fade: fade, slide: slide, child: child);
   }
 
   void _ajouterPiece() {
@@ -209,8 +232,9 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
           ok = m.pressionPa >= 50 && m.pressionPa <= 150;
         }
 
-        if (ok) nbConformes++;
-        else {
+        if (ok) {
+          nbConformes++;
+        } else {
           problemes.add('${m.pieceNom} (${m.typeBouche.name}) : ${m.pressionPa.toStringAsFixed(0)} Pa → hors plage');
         }
       }
@@ -243,8 +267,8 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
     // Intégration pression au diagnostic
     if (_mesuresPression.isNotEmpty && !_pressionConforme) {
       _statut = 'alerte';
-      _message = (_message ?? '') + '\nNon-conformité pression RE2020 (protocole §8.3.5)';
-      _recommandation = (_recommandation ?? '') + '\nVérifiez encrassement, réglages bouches ou réseau (pression nominale ~80 Pa).';
+      _message = '${_message ?? ''}\nNon-conformité pression RE2020 (protocole §8.3.5)';
+      _recommandation = '${_recommandation ?? ''}\nVérifiez encrassement, réglages bouches ou réseau (pression nominale ~80 Pa).';
     }
 
     setState(() {});
@@ -260,12 +284,15 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
       body: Column(
         children: [
           // Étape courante
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'Étape ${_currentPage + 1}/$_totalPages',
-              style: Theme.of(context).textTheme.titleMedium,
+          _wrapSection(
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'Étape ${_currentPage + 1}/$_totalPages',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
             ),
+            0,
           ),
           // Contenu de la page
           Expanded(
@@ -287,7 +314,7 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
               children: [
                 ElevatedButton.icon(
                   onPressed: _currentPage > 0
-                      ? () => setState(() => _currentPage--)
+                      ? () => _setPage(_currentPage - 1)
                       : null,
                   icon: const Icon(Icons.arrow_back),
                   label: const Text('Précédent'),
@@ -304,7 +331,7 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
                 ),
                 ElevatedButton.icon(
                   onPressed: _currentPage < _totalPages - 1
-                      ? () => setState(() => _currentPage++)
+                      ? () => _setPage(_currentPage + 1)
                       : null,
                   icon: const Icon(Icons.arrow_forward),
                   label: const Text('Suivant'),
@@ -342,143 +369,154 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '🏠 Étape 1 : Pièces et Fenêtres',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+        _wrapSection(
+          Text(
+            '🏠 Étape 1 : Pièces et Fenêtres',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          0,
         ),
         const SizedBox(height: 24),
 
         // Pièces
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Pièces du logement', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 12),
-                ..._pieces.asMap().entries.map((entry) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: ListTile(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    tileColor: Colors.blue.withOpacity(0.05),
-                    leading: const Icon(Icons.home, color: Colors.blue),
-                    title: Text('${entry.value.nom}'),
-                    subtitle: Text(entry.value.type),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () {
-                        setState(() => _pieces.removeAt(entry.key));
-                        _diagnostiquer();
+        _wrapSection(
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Pièces du logement', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 12),
+                  ..._pieces.asMap().entries.map((entry) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: ListTile(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      tileColor: Colors.blue.withValues(alpha: 0.05),
+                      leading: const Icon(Icons.home, color: Colors.blue),
+                      title: Text(entry.value.nom),
+                      subtitle: Text(entry.value.type),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () {
+                          setState(() => _pieces.removeAt(entry.key));
+                          _diagnostiquer();
+                        },
+                      ),
+                      onTap: () async {
+                        final type = await showDialog<String>(
+                          context: context,
+                          builder: (ctx) => SimpleDialog(
+                            title: const Text('Type de pièce'),
+                            children: _typesPiece.map((t) => SimpleDialogOption(
+                              child: Text(t),
+                              onPressed: () => Navigator.pop(ctx, t),
+                            )).toList(),
+                          ),
+                        );
+                        if (type != null) {
+                          setState(() => entry.value.type = type);
+                          _diagnostiquer();
+                        }
                       },
                     ),
-                    onTap: () async {
-                      final type = await showDialog<String>(
-                        context: context,
-                        builder: (ctx) => SimpleDialog(
-                          title: const Text('Type de pièce'),
-                          children: _typesPiece.map((t) => SimpleDialogOption(
-                            child: Text(t),
-                            onPressed: () => Navigator.pop(ctx, t),
-                          )).toList(),
-                        ),
-                      );
-                      if (type != null) {
-                        setState(() => entry.value.type = type);
-                        _diagnostiquer();
-                      }
-                    },
+                  )),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.add),
+                      label: const Text('Ajouter une pièce'),
+                      onPressed: _ajouterPiece,
+                    ),
                   ),
-                )),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.add),
-                    label: const Text('Ajouter une pièce'),
-                    onPressed: _ajouterPiece,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
+          1,
         ),
 
         const SizedBox(height: 24),
 
         // Fenêtres
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Fenêtres', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 12),
-                ..._fenetres.asMap().entries.map((entry) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: ListTile(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    tileColor: entry.value.ouverte ? Colors.green.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
-                    leading: Icon(
-                      entry.value.ouverte ? Icons.lightbulb_outline : Icons.lightbulb,
-                      color: entry.value.ouverte ? Colors.green : Colors.grey,
-                    ),
-                    title: Text('Fenêtre ${entry.key + 1}'),
-                    subtitle: Text('${entry.value.taille} - ${entry.value.ouverte ? "Ouverte" : "Fermée"}'),
-                    trailing: SizedBox(
-                      width: 80,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Checkbox(
-                            value: entry.value.ouverte,
-                            onChanged: (val) {
-                              setState(() => entry.value.ouverte = val ?? false);
-                              _diagnostiquer();
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            iconSize: 20,
-                            onPressed: () {
-                              setState(() => _fenetres.removeAt(entry.key));
-                              _diagnostiquer();
-                            },
-                          ),
-                        ],
+        _wrapSection(
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Fenêtres', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 12),
+                  ..._fenetres.asMap().entries.map((entry) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: ListTile(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        tileColor: entry.value.ouverte
+                          ? Colors.green.withValues(alpha: 0.1)
+                          : Colors.grey.withValues(alpha: 0.1),
+                      leading: Icon(
+                        entry.value.ouverte ? Icons.lightbulb_outline : Icons.lightbulb,
+                        color: entry.value.ouverte ? Colors.green : Colors.grey,
                       ),
-                    ),
-                    onTap: () async {
-                      final taille = await showDialog<String>(
-                        context: context,
-                        builder: (ctx) => SimpleDialog(
-                          title: const Text('Taille de fenêtre'),
-                          children: _taillesFenetre.map((t) => SimpleDialogOption(
-                            child: Text(t),
-                            onPressed: () => Navigator.pop(ctx, t),
-                          )).toList(),
+                      title: Text('Fenêtre ${entry.key + 1}'),
+                      subtitle: Text('${entry.value.taille} - ${entry.value.ouverte ? "Ouverte" : "Fermée"}'),
+                      trailing: SizedBox(
+                        width: 80,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Checkbox(
+                              value: entry.value.ouverte,
+                              onChanged: (val) {
+                                setState(() => entry.value.ouverte = val ?? false);
+                                _diagnostiquer();
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              iconSize: 20,
+                              onPressed: () {
+                                setState(() => _fenetres.removeAt(entry.key));
+                                _diagnostiquer();
+                              },
+                            ),
+                          ],
                         ),
-                      );
-                      if (taille != null) {
-                        setState(() => entry.value.taille = taille);
-                        _diagnostiquer();
-                      }
-                    },
+                      ),
+                      onTap: () async {
+                        final taille = await showDialog<String>(
+                          context: context,
+                          builder: (ctx) => SimpleDialog(
+                            title: const Text('Taille de fenêtre'),
+                            children: _taillesFenetre.map((t) => SimpleDialogOption(
+                              child: Text(t),
+                              onPressed: () => Navigator.pop(ctx, t),
+                            )).toList(),
+                          ),
+                        );
+                        if (taille != null) {
+                          setState(() => entry.value.taille = taille);
+                          _diagnostiquer();
+                        }
+                      },
+                    ),
+                  )),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.add),
+                      label: const Text('Ajouter une fenêtre'),
+                      onPressed: _ajouterFenetre,
+                    ),
                   ),
-                )),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.add),
-                    label: const Text('Ajouter une fenêtre'),
-                    onPressed: _ajouterFenetre,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
+          2,
         ),
       ],
     );
@@ -488,111 +526,117 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '📊 Étape 2 : Mesures VMC',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+        _wrapSection(
+          Text(
+            '📊 Étape 2 : Mesures VMC',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          0,
         ),
         const SizedBox(height: 24),
 
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Mesures des débits (m³/h)', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 12),
-                ..._mesuresVMC.asMap().entries.map((entry) {
-                  final idx = entry.key;
-                  final mesure = entry.value;
-                  
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ListTile(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          tileColor: Colors.orange.withOpacity(0.05),
-                          leading: const Icon(Icons.speed, color: Colors.orange),
-                          title: Text(mesure.piece),
-                          subtitle: Text('${mesure.debit.toStringAsFixed(1)} m³/h'),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit, color: Colors.blue),
-                                onPressed: () {
-                                  final controller = TextEditingController(text: mesure.debit.toString());
-                                  showDialog(
-                                    context: context,
-                                    builder: (ctx) => AlertDialog(
-                                      title: const Text('Modifier la mesure'),
-                                      content: TextField(
-                                        controller: controller,
-                                        decoration: const InputDecoration(labelText: 'Débit (m³/h)'),
-                                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        _wrapSection(
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Mesures des débits (m³/h)', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 12),
+                  ..._mesuresVMC.asMap().entries.map((entry) {
+                    final idx = entry.key;
+                    final mesure = entry.value;
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ListTile(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            tileColor: Colors.orange.withValues(alpha: 0.05),
+                            leading: const Icon(Icons.speed, color: Colors.orange),
+                            title: Text(mesure.piece),
+                            subtitle: Text('${mesure.debit.toStringAsFixed(1)} m³/h'),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit, color: Colors.blue),
+                                  onPressed: () {
+                                    final controller = TextEditingController(text: mesure.debit.toString());
+                                    showDialog(
+                                      context: context,
+                                      builder: (ctx) => AlertDialog(
+                                        title: const Text('Modifier la mesure'),
+                                        content: TextField(
+                                          controller: controller,
+                                          decoration: const InputDecoration(labelText: 'Débit (m³/h)'),
+                                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(ctx),
+                                            child: const Text('Annuler'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              final val = double.tryParse(controller.text);
+                                              if (val != null) {
+                                                setState(() => mesure.debit = val);
+                                                _diagnostiquer();
+                                                Navigator.pop(ctx);
+                                              }
+                                            },
+                                            child: const Text('OK'),
+                                          ),
+                                        ],
                                       ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => Navigator.pop(ctx),
-                                          child: const Text('Annuler'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () {
-                                            final val = double.tryParse(controller.text);
-                                            if (val != null) {
-                                              setState(() => mesure.debit = val);
-                                              _diagnostiquer();
-                                              Navigator.pop(ctx);
-                                            }
-                                          },
-                                          child: const Text('OK'),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () {
-                                  setState(() => _mesuresVMC.removeAt(idx));
-                                  _diagnostiquer();
-                                },
-                              ),
-                            ],
+                                    );
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () {
+                                    setState(() => _mesuresVMC.removeAt(idx));
+                                    _diagnostiquer();
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        MeasurementPhotoWidget(
-                          title: '📸 Photos de la mesure VMC',
-                          initialPhotos: mesure.photos,
-                          onPhotosChanged: (photos) {
-                            setState(() {
-                              mesure.photos = photos;
-                            });
-                            saveMeasurementPhotos('vmc_mesure_${mesure.piece}_$idx', photos);
-                          },
-                          maxPhotos: 3,
-                          recommended: false,
-                        ),
-                      ],
+                          const SizedBox(height: 8),
+                          MeasurementPhotoWidget(
+                            title: '📸 Photos de la mesure VMC',
+                            initialPhotos: mesure.photos,
+                            onPhotosChanged: (photos) {
+                              setState(() {
+                                mesure.photos = photos;
+                              });
+                              saveMeasurementPhotos('vmc_mesure_${mesure.piece}_$idx', photos);
+                            },
+                            maxPhotos: 3,
+                            recommended: false,
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.add),
+                      label: const Text('Ajouter une mesure'),
+                      onPressed: _ajouterMesureVMC,
                     ),
-                  );
-                }),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.add),
-                    label: const Text('Ajouter une mesure'),
-                    onPressed: _ajouterMesureVMC,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
+          1,
         ),
       ],
     );
@@ -602,14 +646,20 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '🔬 Étape 3 : Mesures de pression (RE2020)',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+        _wrapSection(
+          Text(
+            '🔬 Étape 3 : Mesures de pression (RE2020)',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          0,
         ),
         const SizedBox(height: 8),
-        Text(
-          'Mesurez à ~80 Pa nominal. Plage typique extraction : 40-120 Pa.',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[700]),
+        _wrapSection(
+          Text(
+            'Mesurez à ~80 Pa nominal. Plage typique extraction : 40-120 Pa.',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[700]),
+          ),
+          1,
         ),
         const SizedBox(height: 16),
 
@@ -623,7 +673,8 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
               ? Colors.green
               : (m.pressionPa < minPa ? Colors.orange : Colors.red);
 
-          return Column(
+          return _wrapSection(
+            Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Card(
@@ -690,17 +741,22 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
               ),
               const SizedBox(height: 16),
             ],
+            ),
+            idx + 2,
           );
         }),
 
         const SizedBox(height: 16),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            icon: const Icon(Icons.add),
-            label: const Text('Ajouter mesure pression'),
-            onPressed: _ajouterMesurePression,
+        _wrapSection(
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.add),
+              label: const Text('Ajouter mesure pression'),
+              onPressed: _ajouterMesurePression,
+            ),
           ),
+          _mesuresPression.length + 2,
         ),
       ],
     );
@@ -710,23 +766,27 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '✅ Étape 4 : Diagnostic complet',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+        _wrapSection(
+          Text(
+            '✅ Étape 4 : Diagnostic complet',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          0,
         ),
         const SizedBox(height: 24),
 
-        Card(
-          color: _statut == 'succès'
-              ? Colors.green.withOpacity(0.1)
+        _wrapSection(
+          Card(
+            color: _statut == 'succès'
+              ? Colors.green.withValues(alpha: 0.1)
               : _statut == 'alerte'
-                  ? Colors.orange.withOpacity(0.1)
-                  : Colors.red.withOpacity(0.1),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+                ? Colors.orange.withValues(alpha: 0.1)
+                : Colors.red.withValues(alpha: 0.1),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 Row(
                   children: [
                     Icon(
@@ -771,22 +831,25 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
                 Text('Détails du diagnostic:', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 12),
                 _buildDetailRow('Type de logement', _typeLogement ?? 'N/A'),
-                _buildDetailRow('Débit fenêtres (m³/h)', '${_debitTotalFenetres?.toStringAsFixed(1) ?? 0}'),
-                _buildDetailRow('Débit VMC (m³/h)', '${_debitTotalVMC?.toStringAsFixed(1) ?? 0}'),
-                _buildDetailRow('Différence', '${_diff?.toStringAsFixed(1) ?? 0} m³/h (${_diffPct?.toStringAsFixed(1) ?? 0}%)'),
+                _buildDetailRow('Débit fenêtres (m³/h)', _debitTotalFenetres?.toStringAsFixed(1) ?? '0'),
+                _buildDetailRow('Débit VMC (m³/h)', _debitTotalVMC?.toStringAsFixed(1) ?? '0'),
+                _buildDetailRow(
+                  'Différence',
+                  '${_diff?.toStringAsFixed(1) ?? '0'} m³/h (${_diffPct?.toStringAsFixed(1) ?? '0'}%)',
+                ),
                 if (_mesuresPression.isNotEmpty)
                   _buildDetailRow(
                     'Pression moyenne (Pa)',
-                    '${(_mesuresPression.map((m) => m.pressionPa).reduce((a, b) => a + b) / _mesuresPression.length).toStringAsFixed(1)}',
+                    (_mesuresPression.map((m) => m.pressionPa).reduce((a, b) => a + b) / _mesuresPression.length).toStringAsFixed(1),
                   ),
                 const SizedBox(height: 20),
                 if (_pressionMessage != null && _pressionMessage!.isNotEmpty)
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: _pressionConforme ? Colors.blue.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+                      color: _pressionConforme ? Colors.blue.withValues(alpha: 0.1) : Colors.orange.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: (_pressionConforme ? Colors.blue : Colors.orange).withOpacity(0.3)),
+                      border: Border.all(color: (_pressionConforme ? Colors.blue : Colors.orange).withValues(alpha: 0.3)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -801,9 +864,9 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
+                    color: Colors.blue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                    border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -814,9 +877,11 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
                     ],
                   ),
                 ),
-              ],
+                ],
+              ),
             ),
           ),
+          1,
         ),
       ],
     );

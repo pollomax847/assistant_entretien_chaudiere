@@ -1,5 +1,5 @@
-/// Énumérations pour le Relevé Technique
-/// Reprises de releve_technique_model_complet.dart et modules existants
+// Énumérations pour le Relevé Technique
+// Reprises de releve_technique_model_complet.dart et modules existants
 
 // Types d'équipement principal
 enum TypeReleve {

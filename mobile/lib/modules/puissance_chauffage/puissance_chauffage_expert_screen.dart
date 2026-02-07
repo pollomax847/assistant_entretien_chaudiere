@@ -13,9 +13,18 @@ class PuissanceChauffageExpertScreen extends StatefulWidget {
 }
 
 class _PuissanceChauffageExpertScreenState extends State<PuissanceChauffageExpertScreen>
-    with ControllerDisposeMixin, SnackBarMixin, SharedPreferencesMixin {
+    with
+        SingleTickerProviderStateMixin,
+        AnimationStyleMixin,
+        ControllerDisposeMixin,
+        SnackBarMixin,
+        SharedPreferencesMixin {
   bool _isExpertMode = false;
   final _formKey = GlobalKey<FormState>();
+  late final AnimationController _introController = AnimationController(
+    vsync: this,
+    duration: entranceDuration,
+  );
 
   // Données générales
   late final _surfaceController = registerController(TextEditingController(text: '100'));
@@ -46,11 +55,13 @@ class _PuissanceChauffageExpertScreenState extends State<PuissanceChauffageExper
   @override
   void initState() {
     super.initState();
+    _introController.forward();
     _chargerDonnees();
   }
 
   @override
   void dispose() {
+    _introController.dispose();
     disposeControllers();
     super.dispose();
   }
@@ -213,9 +224,11 @@ class _PuissanceChauffageExpertScreenState extends State<PuissanceChauffageExper
         observations: null,
       );
 
-      await Share.shareXFiles(
-        [XFile(pdfFile.path)],
-        text: 'Rapport de calcul puissance chauffage',
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(pdfFile.path)],
+          text: 'Rapport de calcul puissance chauffage',
+        ),
       );
 
       showSuccess('PDF généré et partagé avec succès');
@@ -226,6 +239,12 @@ class _PuissanceChauffageExpertScreenState extends State<PuissanceChauffageExper
 
   @override
   Widget build(BuildContext context) {
+    Widget wrapSection(Widget child, int index) {
+      final fade = buildStaggeredFade(_introController, index);
+      final slide = buildStaggeredSlide(fade);
+      return buildFadeSlide(fade: fade, slide: slide, child: child);
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_isExpertMode ? 'Dimensionnement Thermique Expert' : 'Calcul Puissance Simple'),
@@ -252,442 +271,463 @@ class _PuissanceChauffageExpertScreenState extends State<PuissanceChauffageExper
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Description
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Calculateur de Puissance Chauffage',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Calculez la puissance de chauffage nécessaire selon les normes thermiques en vigueur.',
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Méthode: Calcul des déperditions thermiques selon NF EN 12831',
-                        style: TextStyle(fontStyle: FontStyle.italic),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Données générales
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Données générales',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _surfaceController,
-                              decoration: const InputDecoration(
-                                labelText: 'Surface habitable (m²)',
-                                suffixText: 'm²',
-                              ),
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Champ requis';
-                                }
-                                if (double.tryParse(value) == null) {
-                                  return 'Nombre valide requis';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _hauteurController,
-                              decoration: const InputDecoration(
-                                labelText: 'Hauteur sous plafond (m)',
-                                suffixText: 'm',
-                              ),
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Champ requis';
-                                }
-                                if (double.tryParse(value) == null) {
-                                  return 'Nombre valide requis';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _nbOccupantsController,
-                              decoration: const InputDecoration(
-                                labelText: 'Nombre d\'occupants',
-                              ),
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Champ requis';
-                                }
-                                if (int.tryParse(value) == null) {
-                                  return 'Nombre entier requis';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Températures
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Températures de calcul',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _tempExterieureController,
-                              decoration: const InputDecoration(
-                                labelText: 'Température extérieure (°C)',
-                                suffixText: '°C',
-                              ),
-                              keyboardType: TextInputType.numberWithOptions(signed: true),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Champ requis';
-                                }
-                                if (double.tryParse(value) == null) {
-                                  return 'Nombre valide requis';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _tempInterieureController,
-                              decoration: const InputDecoration(
-                                labelText: 'Température intérieure (°C)',
-                                suffixText: '°C',
-                              ),
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Champ requis';
-                                }
-                                if (double.tryParse(value) == null) {
-                                  return 'Nombre valide requis';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              if (_isExpertMode) // Coefficients d'isolation
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Coefficients d\'isolation (U - W/m².K)',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _coeffMurController,
-                              decoration: const InputDecoration(
-                                labelText: 'Murs',
-                                suffixText: 'W/m².K',
-                              ),
-                              keyboardType: TextInputType.numberWithOptions(decimal: true),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _coeffToitController,
-                              decoration: const InputDecoration(
-                                labelText: 'Toit',
-                                suffixText: 'W/m².K',
-                              ),
-                              keyboardType: TextInputType.numberWithOptions(decimal: true),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _coeffPlancherController,
-                              decoration: const InputDecoration(
-                                labelText: 'Plancher',
-                                suffixText: 'W/m².K',
-                              ),
-                              keyboardType: TextInputType.numberWithOptions(decimal: true),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _coeffFenetresController,
-                              decoration: const InputDecoration(
-                                labelText: 'Fenêtres',
-                                suffixText: 'W/m².K',
-                              ),
-                              keyboardType: TextInputType.numberWithOptions(decimal: true),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              if (_isExpertMode) // Surfaces des éléments
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Surfaces des éléments (m²)',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _surfaceMurController,
-                              decoration: const InputDecoration(
-                                labelText: 'Murs',
-                                suffixText: 'm²',
-                              ),
-                              keyboardType: TextInputType.numberWithOptions(decimal: true),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _surfaceToitController,
-                              decoration: const InputDecoration(
-                                labelText: 'Toit',
-                                suffixText: 'm²',
-                              ),
-                              keyboardType: TextInputType.numberWithOptions(decimal: true),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _surfacePlancherController,
-                              decoration: const InputDecoration(
-                                labelText: 'Plancher',
-                                suffixText: 'm²',
-                              ),
-                              keyboardType: TextInputType.numberWithOptions(decimal: true),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _surfaceFenetresController,
-                              decoration: const InputDecoration(
-                                labelText: 'Fenêtres',
-                                suffixText: 'm²',
-                              ),
-                              keyboardType: TextInputType.numberWithOptions(decimal: true),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Bouton Calculer
-              Center(
-                child: ElevatedButton.icon(
-                  onPressed: _calculerPuissance,
-                  icon: const Icon(Icons.calculate),
-                  label: const Text('Calculer la puissance'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Résultats
-              if (_puissanceChauffage != null) ...[
+              wrapSection(
                 Card(
-                  color: Colors.deepOrange.shade50,
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Résultats du dimensionnement',
+                          'Calculateur de Puissance Chauffage',
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
-                        const SizedBox(height: 20),
-
-                        // Résumé principal
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.deepOrange.shade200),
-                          ),
-                          child: Column(
-                            children: [
-                              _buildResultRow(
-                                'Déperditions totales',
-                                '${_deperditionsTotales!.toStringAsFixed(1)} W',
-                                Icons.thermostat,
-                              ),
-                              const Divider(),
-                              _buildResultRow(
-                                'Puissance chauffage nécessaire',
-                                '${_puissanceChauffage!.toStringAsFixed(1)} W',
-                                Icons.bolt,
-                                isHighlight: true,
-                              ),
-                              const Divider(),
-                              _buildResultRow(
-                                'Puissance avec sécurité (+15%)',
-                                '${_puissanceAvecSecurite!.toStringAsFixed(1)} W',
-                                Icons.security,
-                              ),
-                              const Divider(),
-                              _buildResultRow(
-                                'Type d\'appareil recommandé',
-                                _typeAppareilRecommande!,
-                                Icons.device_thermostat,
-                              ),
-                            ],
-                          ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Calculez la puissance de chauffage nécessaire selon les normes thermiques en vigueur.',
                         ),
-
-                        const SizedBox(height: 20),
-
-                        // Détail des déperditions
-                        Text(
-                          'Détail des déperditions thermiques',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Column(
-                            children: _detailDeperditions!.entries.map((entry) {
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(entry.key),
-                                    Text('${entry.value.toStringAsFixed(1)} W'),
-                                  ],
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // Note technique
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.shade50,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.blue.shade200),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.info, color: Colors.blue.shade700),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  'Calcul selon NF EN 12831. Une étude thermique complète sur site est recommandée pour un dimensionnement précis.',
-                                  style: TextStyle(color: Colors.blue.shade700),
-                                ),
-                              ),
-                            ],
-                          ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Méthode: Calcul des déperditions thermiques selon NF EN 12831',
+                          style: TextStyle(fontStyle: FontStyle.italic),
                         ),
                       ],
                     ),
                   ),
+                ),
+                0,
+              ),
+
+              const SizedBox(height: 16),
+
+              // Données générales
+              wrapSection(
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Données générales',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: _surfaceController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Surface habitable (m²)',
+                                  suffixText: 'm²',
+                                ),
+                                keyboardType: TextInputType.number,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Champ requis';
+                                  }
+                                  if (double.tryParse(value) == null) {
+                                    return 'Nombre valide requis';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _hauteurController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Hauteur sous plafond (m)',
+                                  suffixText: 'm',
+                                ),
+                                keyboardType: TextInputType.number,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Champ requis';
+                                  }
+                                  if (double.tryParse(value) == null) {
+                                    return 'Nombre valide requis';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: _nbOccupantsController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Nombre d\'occupants',
+                                ),
+                                keyboardType: TextInputType.number,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Champ requis';
+                                  }
+                                  if (int.tryParse(value) == null) {
+                                    return 'Nombre entier requis';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                1,
+              ),
+
+              const SizedBox(height: 16),
+
+              // Températures
+              wrapSection(
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Températures de calcul',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: _tempExterieureController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Température extérieure (°C)',
+                                  suffixText: '°C',
+                                ),
+                                keyboardType: TextInputType.numberWithOptions(signed: true),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Champ requis';
+                                  }
+                                  if (double.tryParse(value) == null) {
+                                    return 'Nombre valide requis';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _tempInterieureController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Température intérieure (°C)',
+                                  suffixText: '°C',
+                                ),
+                                keyboardType: TextInputType.number,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Champ requis';
+                                  }
+                                  if (double.tryParse(value) == null) {
+                                    return 'Nombre valide requis';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                2,
+              ),
+
+              const SizedBox(height: 16),
+
+              if (_isExpertMode)
+                wrapSection(
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Coefficients d\'isolation (U - W/m².K)',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _coeffMurController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Murs',
+                                    suffixText: 'W/m².K',
+                                  ),
+                                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _coeffToitController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Toit',
+                                    suffixText: 'W/m².K',
+                                  ),
+                                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _coeffPlancherController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Plancher',
+                                    suffixText: 'W/m².K',
+                                  ),
+                                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _coeffFenetresController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Fenêtres',
+                                    suffixText: 'W/m².K',
+                                  ),
+                                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  3,
+                ),
+
+              const SizedBox(height: 16),
+
+              if (_isExpertMode)
+                wrapSection(
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Surfaces des éléments (m²)',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _surfaceMurController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Murs',
+                                    suffixText: 'm²',
+                                  ),
+                                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _surfaceToitController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Toit',
+                                    suffixText: 'm²',
+                                  ),
+                                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _surfacePlancherController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Plancher',
+                                    suffixText: 'm²',
+                                  ),
+                                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _surfaceFenetresController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Fenêtres',
+                                    suffixText: 'm²',
+                                  ),
+                                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  4,
+                ),
+
+              const SizedBox(height: 16),
+
+              // Bouton Calculer
+              wrapSection(
+                Center(
+                  child: ElevatedButton.icon(
+                    onPressed: _calculerPuissance,
+                    icon: const Icon(Icons.calculate),
+                    label: const Text('Calculer la puissance'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    ),
+                  ),
+                ),
+                5,
+              ),
+
+              const SizedBox(height: 16),
+
+              // Résultats
+              if (_puissanceChauffage != null) ...[
+                wrapSection(
+                  Card(
+                    color: Colors.deepOrange.shade50,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Résultats du dimensionnement',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Résumé principal
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.deepOrange.shade200),
+                            ),
+                            child: Column(
+                              children: [
+                                _buildResultRow(
+                                  'Déperditions totales',
+                                  '${_deperditionsTotales!.toStringAsFixed(1)} W',
+                                  Icons.thermostat,
+                                ),
+                                const Divider(),
+                                _buildResultRow(
+                                  'Puissance chauffage nécessaire',
+                                  '${_puissanceChauffage!.toStringAsFixed(1)} W',
+                                  Icons.bolt,
+                                  isHighlight: true,
+                                ),
+                                const Divider(),
+                                _buildResultRow(
+                                  'Puissance avec sécurité (+15%)',
+                                  '${_puissanceAvecSecurite!.toStringAsFixed(1)} W',
+                                  Icons.security,
+                                ),
+                                const Divider(),
+                                _buildResultRow(
+                                  'Type d\'appareil recommandé',
+                                  _typeAppareilRecommande!,
+                                  Icons.device_thermostat,
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // Détail des déperditions
+                          Text(
+                            'Détail des déperditions thermiques',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Column(
+                              children: _detailDeperditions!.entries.map((entry) {
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(entry.key),
+                                      Text('${entry.value.toStringAsFixed(1)} W'),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // Note technique
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.blue.shade200),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.info, color: Colors.blue.shade700),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'Calcul selon NF EN 12831. Une étude thermique complète sur site est recommandée pour un dimensionnement précis.',
+                                    style: TextStyle(color: Colors.blue.shade700),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  6,
                 ),
               ],
             ],

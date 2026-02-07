@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import '../models/photo_category.dart';
 import '../../../utils/mixins/photo_manager_mixin.dart';
+import '../../../utils/mixins/mixins.dart';
 
 /// Widget pour gérer les photos par catégories
 class CategorizedPhotoWidget extends StatefulWidget {
@@ -19,8 +20,12 @@ class CategorizedPhotoWidget extends StatefulWidget {
 }
 
 class _CategorizedPhotoWidgetState extends State<CategorizedPhotoWidget>
-    with PhotoManagerMixin {
+    with PhotoManagerMixin, SingleTickerProviderStateMixin, AnimationStyleMixin {
   final Map<String, File?> _photos = {};
+  late final AnimationController _introController = AnimationController(
+    vsync: this,
+    duration: panelDuration,
+  );
 
   @override
   void initState() {
@@ -28,6 +33,13 @@ class _CategorizedPhotoWidgetState extends State<CategorizedPhotoWidget>
     for (var category in widget.categories) {
       _photos[category.id] = null;
     }
+    _introController.forward();
+  }
+
+  @override
+  void dispose() {
+    _introController.dispose();
+    super.dispose();
   }
 
   Future<void> _capturePhoto(String categoryId) async {
@@ -64,11 +76,16 @@ class _CategorizedPhotoWidgetState extends State<CategorizedPhotoWidget>
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: widget.categories.map((category) {
-        final hasPhoto = _photos[category.id] != null;
-        return Padding(
+    final children = List.generate(widget.categories.length, (index) {
+      final category = widget.categories[index];
+      final hasPhoto = _photos[category.id] != null;
+      final fade = buildStaggeredFade(_introController, index);
+      final slide = buildStaggeredSlide(fade);
+
+      return buildFadeSlide(
+        fade: fade,
+        slide: slide,
+        child: Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: Card(
             elevation: 2,
@@ -188,8 +205,13 @@ class _CategorizedPhotoWidgetState extends State<CategorizedPhotoWidget>
               ),
             ),
           ),
-        );
-      }).toList(),
+        ),
+      );
+    });
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: children,
     );
   }
 }

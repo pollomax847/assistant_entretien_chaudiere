@@ -18,15 +18,16 @@ dependencies:
   cupertino_icons: ^1.0.2
   shared_preferences: ^2.3.0
   provider: ^6.1.1
-  flutter_riverpod: ^2.3.6
+  flutter_riverpod: ^3.2.1
   material_design_icons_flutter: ^7.0.7296
+  uuid: ^4.5.1
   
   # Graphiques
-  fl_chart: ^0.68.0
-  share_plus: ^7.2.2
+  fl_chart: ^1.1.1
+  share_plus: ^12.0.1
 #   vibration: ^1.8.4
-  device_info_plus: ^9.1.1
-  package_info_plus: ^4.2.0
+  device_info_plus: ^12.3.0
+  package_info_plus: ^9.0.0
   http: ^1.1.2
   image: ^4.1.7
   intl: ^0.17.0
@@ -38,15 +39,15 @@ dependencies:
   printing: ^5.11.0
   in_app_update: ^4.2.0
   image_picker: ^1.1.1
-  geolocator: ^10.0.0
-  geocoding: ^2.2.0
-  permission_handler: ^11.0.0
+  geolocator: ^14.0.2
+  geocoding: ^4.0.0
+  permission_handler: ^12.0.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^3.0.1
+  flutter_lints: ^6.0.0
 
 
 flutter:

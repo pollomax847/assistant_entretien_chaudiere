@@ -1,6 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/releve_technique.dart';
-import '../models/sections/client_section.dart';
 import '../models/sections/chaudiere_section.dart';
 import '../models/sections/ecs_section.dart';
 import '../models/sections/tirage_section.dart';
@@ -27,7 +27,7 @@ class DataBridgeService {
         commentaire: 'Migré depuis ancienne structure (tirage: $tirage)',
       );
     } catch (e) {
-      print('Erreur import chaudière: $e');
+      debugPrint('Erreur import chaudière: $e');
       return null;
     }
   }
@@ -45,7 +45,7 @@ class DataBridgeService {
         commentaire: 'Migré depuis ancienne structure',
       );
     } catch (e) {
-      print('Erreur import ECS: $e');
+      debugPrint('Erreur import ECS: $e');
       return null;
     }
   }
@@ -68,7 +68,7 @@ class DataBridgeService {
         commentaire: 'Migré depuis ancienne structure',
       );
     } catch (e) {
-      print('Erreur import tirage: $e');
+      debugPrint('Erreur import tirage: $e');
       return null;
     }
   }
@@ -94,18 +94,12 @@ class DataBridgeService {
   /// Archive les anciennes données (ne les supprime pas)
   static Future<bool> archiveOldData() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      
       // Copier toutes les anciennes clés vers une clé archive
-      final oldTirage = prefs.getDouble(_chaudiereTirageKey);
-      final oldEquipements = prefs.getStringList(_ecsEquipementsKey);
-      final oldCo = prefs.getDouble(_tireageCoKey);
-      
       // Créer une archive (optionnel - les données restent en place)
-      print('Archivage des anciennes données effectué');
+      debugPrint('Archivage des anciennes données effectué');
       return true;
     } catch (e) {
-      print('Erreur archivage: $e');
+      debugPrint('Erreur archivage: $e');
       return false;
     }
   }
@@ -129,7 +123,7 @@ class DataBridgeService {
       
       return true;
     } catch (e) {
-      print('Erreur nettoyage: $e');
+      debugPrint('Erreur nettoyage: $e');
       return false;
     }
   }
@@ -145,7 +139,7 @@ class DataBridgeService {
         'tirage': prefs.containsKey(_tireageCoKey),
       };
     } catch (e) {
-      print('Erreur détection: $e');
+      debugPrint('Erreur détection: $e');
       return {};
     }
   }

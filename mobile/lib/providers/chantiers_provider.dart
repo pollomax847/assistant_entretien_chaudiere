@@ -4,14 +4,15 @@ import '../services/storage_service.dart';
 
 final storageServiceProvider = Provider<StorageService>((ref) => StorageService());
 
-final chantiersProvider = StateNotifierProvider<ChantiersNotifier, List<Chantier>>((ref) {
-  return ChantiersNotifier(ref);
-});
+final chantiersProvider = NotifierProvider<ChantiersNotifier, List<Chantier>>(
+  ChantiersNotifier.new,
+);
 
-class ChantiersNotifier extends StateNotifier<List<Chantier>> {
-  final Ref ref;
-  ChantiersNotifier(this.ref) : super([]) {
-    _loadChantiers(); // Charge au démarrage
+class ChantiersNotifier extends Notifier<List<Chantier>> {
+  @override
+  List<Chantier> build() {
+    _loadChantiers();
+    return [];
   }
 
   Future<void> _loadChantiers() async {

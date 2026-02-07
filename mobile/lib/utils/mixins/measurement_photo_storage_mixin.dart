@@ -1,6 +1,7 @@
 import 'dart:io';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Mixin pour gérer les photos associées aux mesures et non-conformités
 mixin MeasurementPhotoStorageMixin {
@@ -28,7 +29,7 @@ mixin MeasurementPhotoStorageMixin {
           .where((f) => f.existsSync()) // Vérifier que les fichiers existent
           .toList();
     } catch (e) {
-      print('Erreur chargement photos: $e');
+      debugPrint('Erreur chargement photos: $e');
       return [];
     }
   }

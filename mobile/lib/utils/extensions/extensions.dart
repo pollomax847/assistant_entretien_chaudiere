@@ -243,6 +243,7 @@ extension ColorExtensions on Color {
   
   /// Retourne la couleur en hex
   String toHex() {
-    return '#${value.toRadixString(16).padLeft(8, '0').substring(2)}';
+    final argb = toARGB32();
+    return '#${argb.toRadixString(16).padLeft(8, '0').substring(2)}';
   }
 }

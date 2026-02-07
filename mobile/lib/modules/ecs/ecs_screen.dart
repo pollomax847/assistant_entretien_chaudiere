@@ -11,8 +11,17 @@ class EcsScreen extends StatefulWidget {
   State<EcsScreen> createState() => _EcsScreenState();
 }
 
-class _EcsScreenState extends State<EcsScreen> 
-    with ControllerDisposeMixin, SnackBarMixin, SharedPreferencesMixin {
+class _EcsScreenState extends State<EcsScreen>
+    with
+        SingleTickerProviderStateMixin,
+        AnimationStyleMixin,
+        ControllerDisposeMixin,
+        SnackBarMixin,
+        SharedPreferencesMixin {
+  late final AnimationController _introController = AnimationController(
+    vsync: this,
+    duration: entranceDuration,
+  );
   final _formKey = GlobalKey<FormState>();
 
   // Contrôleurs pour les équipements
@@ -37,12 +46,14 @@ class _EcsScreenState extends State<EcsScreen>
   @override
   void initState() {
     super.initState();
+    _introController.forward();
     _chargerDonnees();
     _ajouterEquipement(); // Au moins un équipement par défaut
   }
 
   @override
   void dispose() {
+    _introController.dispose();
     for (var controller in _debitControllers) {
       controller.dispose();
     }
@@ -173,9 +184,11 @@ class _EcsScreenState extends State<EcsScreen>
         temperatureEcs: double.parse(_tempChaudeController.text),
       );
 
-      await Share.shareXFiles(
-        [XFile(pdfFile.path)],
-        text: 'Rapport de calcul ECS',
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(pdfFile.path)],
+          text: 'Rapport de calcul ECS',
+        ),
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -190,6 +203,12 @@ class _EcsScreenState extends State<EcsScreen>
 
   @override
   Widget build(BuildContext context) {
+    Widget wrapSection(Widget child, int index) {
+      final fade = buildStaggeredFade(_introController, index);
+      final slide = buildStaggeredSlide(fade);
+      return buildFadeSlide(fade: fade, slide: slide, child: child);
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Module ECS'),
@@ -209,253 +228,271 @@ class _EcsScreenState extends State<EcsScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Description
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Calculateur ECS - Eau Chaude Sanitaire',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Calculez le débit simultané et la puissance nécessaire pour votre installation d\'eau chaude sanitaire.',
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Formule: Débit simultané = Σ(débit équipement × coefficient simultanéité)',
-                        style: TextStyle(fontStyle: FontStyle.italic),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Températures
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Températures de calcul',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _tempFroideController,
-                              decoration: const InputDecoration(
-                                labelText: 'Température eau froide (°C)',
-                                suffixText: '°C',
-                              ),
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Champ requis';
-                                }
-                                if (double.tryParse(value) == null) {
-                                  return 'Nombre valide requis';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _tempChaudeController,
-                              decoration: const InputDecoration(
-                                labelText: 'Température eau chaude (°C)',
-                                suffixText: '°C',
-                              ),
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Champ requis';
-                                }
-                                if (double.tryParse(value) == null) {
-                                  return 'Nombre valide requis';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Puissance chaudière
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Données chaudière',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _puissanceChaidiereController,
-                        decoration: const InputDecoration(
-                          labelText: 'Puissance chaudière (kW)',
-                          suffixText: 'kW',
-                          hintText: 'Ex: 30',
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Équipements',
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          IconButton(
-                            onPressed: _ajouterEquipement,
-                            icon: const Icon(Icons.add),
-                            tooltip: 'Ajouter un équipement',
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      ...List.generate(_equipements.length, (index) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 16.0),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                flex: 3,
-                                child: TextFormField(
-                                  controller: _debitControllers[index],
-                                  decoration: InputDecoration(
-                                    labelText: 'Débit ${_equipements[index]} (L/min)',
-                                    suffixText: 'L/min',
-                                  ),
-                                  keyboardType: TextInputType.number,
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Champ requis';
-                                    }
-                                    if (double.tryParse(value) == null) {
-                                      return 'Nombre valide requis';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                flex: 2,
-                                child: TextFormField(
-                                  controller: _coeffControllers[index],
-                                  decoration: const InputDecoration(
-                                    labelText: 'Coeff simultanéité',
-                                  ),
-                                  keyboardType: TextInputType.number,
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Champ requis';
-                                    }
-                                    if (double.tryParse(value) == null) {
-                                      return 'Nombre valide requis';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                              IconButton(
-                                onPressed: () => _supprimerEquipement(index),
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                tooltip: 'Supprimer',
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Bouton Calculer
-              Center(
-                child: ElevatedButton.icon(
-                  onPressed: _calculer,
-                  icon: const Icon(Icons.calculate),
-                  label: const Text('Calculer'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Résultats
-              if (_debitSimultaneLmin != null) ...[
+              wrapSection(
                 Card(
-                  color: Colors.green.shade50,
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Résultats du calcul',
-                          style: Theme.of(context).textTheme.titleMedium,
+                          'Calculateur ECS - Eau Chaude Sanitaire',
+                          style: Theme.of(context).textTheme.titleLarge,
                         ),
-                        const SizedBox(height: 16),
-                        _buildResultRow('Débit simultané', '${_debitSimultaneLmin!.toStringAsFixed(1)} L/min'),
-                        _buildResultRow('Débit simultané', '${_debitSimultaneM3h!.toStringAsFixed(2)} m³/h'),
-                        _buildResultRow('Puissance instantanée', '${_puissanceInstantanee!.toStringAsFixed(1)} kW'),
-                        if (_puissanceChaidiereController.text.isNotEmpty) ...[
-                          const Divider(),
-                          _buildResultRow('Puissance chaudière', '${_puissanceChaidiereController.text} kW'),
-                          Builder(
-                            builder: (context) {
-                              final puissanceChaudiere = double.tryParse(_puissanceChaidiereController.text) ?? 0;
-                              final ecart = _puissanceInstantanee! - puissanceChaudiere;
-                              final couleur = ecart > 0 ? Colors.red : Colors.green;
-                              return _buildResultRow(
-                                'Écart',
-                                '${ecart.toStringAsFixed(1)} kW',
-                                color: couleur,
-                              );
-                            },
-                          ),
-                        ],
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Calculez le débit simultané et la puissance nécessaire pour votre installation d\'eau chaude sanitaire.',
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Formule: Débit simultané = Σ(débit équipement × coefficient simultanéité)',
+                          style: TextStyle(fontStyle: FontStyle.italic),
+                        ),
                       ],
                     ),
                   ),
+                ),
+                0,
+              ),
+
+              const SizedBox(height: 16),
+
+              // Températures
+              wrapSection(
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Températures de calcul',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: _tempFroideController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Température eau froide (°C)',
+                                  suffixText: '°C',
+                                ),
+                                keyboardType: TextInputType.number,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Champ requis';
+                                  }
+                                  if (double.tryParse(value) == null) {
+                                    return 'Nombre valide requis';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _tempChaudeController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Température eau chaude (°C)',
+                                  suffixText: '°C',
+                                ),
+                                keyboardType: TextInputType.number,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Champ requis';
+                                  }
+                                  if (double.tryParse(value) == null) {
+                                    return 'Nombre valide requis';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                1,
+              ),
+
+              const SizedBox(height: 16),
+
+              // Puissance chaudière
+              wrapSection(
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Données chaudière',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _puissanceChaidiereController,
+                          decoration: const InputDecoration(
+                            labelText: 'Puissance chaudière (kW)',
+                            suffixText: 'kW',
+                            hintText: 'Ex: 30',
+                          ),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                2,
+              ),
+
+              const SizedBox(height: 16),
+              wrapSection(
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Équipements',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            IconButton(
+                              onPressed: _ajouterEquipement,
+                              icon: const Icon(Icons.add),
+                              tooltip: 'Ajouter un équipement',
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        ...List.generate(_equipements.length, (index) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 3,
+                                  child: TextFormField(
+                                    controller: _debitControllers[index],
+                                    decoration: InputDecoration(
+                                      labelText: 'Débit ${_equipements[index]} (L/min)',
+                                      suffixText: 'L/min',
+                                    ),
+                                    keyboardType: TextInputType.number,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Champ requis';
+                                      }
+                                      if (double.tryParse(value) == null) {
+                                        return 'Nombre valide requis';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  flex: 2,
+                                  child: TextFormField(
+                                    controller: _coeffControllers[index],
+                                    decoration: const InputDecoration(
+                                      labelText: 'Coeff simultanéité',
+                                    ),
+                                    keyboardType: TextInputType.number,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Champ requis';
+                                      }
+                                      if (double.tryParse(value) == null) {
+                                        return 'Nombre valide requis';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () => _supprimerEquipement(index),
+                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  tooltip: 'Supprimer',
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+                ),
+                3,
+              ),
+
+              const SizedBox(height: 16),
+
+              // Bouton Calculer
+              wrapSection(
+                Center(
+                  child: ElevatedButton.icon(
+                    onPressed: _calculer,
+                    icon: const Icon(Icons.calculate),
+                    label: const Text('Calculer'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    ),
+                  ),
+                ),
+                4,
+              ),
+
+              const SizedBox(height: 16),
+
+              // Résultats
+              if (_debitSimultaneLmin != null) ...[
+                wrapSection(
+                  Card(
+                    color: Colors.green.shade50,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Résultats du calcul',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildResultRow('Débit simultané', '${_debitSimultaneLmin!.toStringAsFixed(1)} L/min'),
+                          _buildResultRow('Débit simultané', '${_debitSimultaneM3h!.toStringAsFixed(2)} m³/h'),
+                          _buildResultRow('Puissance instantanée', '${_puissanceInstantanee!.toStringAsFixed(1)} kW'),
+                          if (_puissanceChaidiereController.text.isNotEmpty) ...[
+                            const Divider(),
+                            _buildResultRow('Puissance chaudière', '${_puissanceChaidiereController.text} kW'),
+                            Builder(
+                              builder: (context) {
+                                final puissanceChaudiere = double.tryParse(_puissanceChaidiereController.text) ?? 0;
+                                final ecart = _puissanceInstantanee! - puissanceChaudiere;
+                                final couleur = ecart > 0 ? Colors.red : Colors.green;
+                                return _buildResultRow(
+                                  'Écart',
+                                  '${ecart.toStringAsFixed(1)} kW',
+                                  color: couleur,
+                                );
+                              },
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                  5,
                 ),
               ],
             ],

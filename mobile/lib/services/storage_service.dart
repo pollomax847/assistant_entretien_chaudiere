@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/chantier.dart';
 
@@ -22,7 +23,7 @@ class StorageService {
         return jsonList.map((json) => Chantier.fromJson(json)).toList();
       }
     } catch (e) {
-      print('Erreur lors du chargement des chantiers: $e');
+      debugPrint('Erreur lors du chargement des chantiers: $e');
     }
     return [];
   }
@@ -34,7 +35,7 @@ class StorageService {
       final jsonList = chantiers.map((chantier) => chantier.toJson()).toList();
       await file.writeAsString(json.encode(jsonList));
     } catch (e) {
-      print('Erreur lors de la sauvegarde des chantiers: $e');
+      debugPrint('Erreur lors de la sauvegarde des chantiers: $e');
     }
   }
 }

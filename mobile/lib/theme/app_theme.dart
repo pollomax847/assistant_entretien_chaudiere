@@ -211,7 +211,6 @@ class AppTheme {
         secondary: AppColors.secondary,
         error: AppColors.error,
         surface: AppColors.cardLight,
-        background: AppColors.backgroundLight,
       ),
       
       // AppBar
@@ -285,21 +284,21 @@ class AppTheme {
         activeTrackColor: AppColors.primary,
         inactiveTrackColor: AppColors.lightGray,
         thumbColor: AppColors.primary,
-        overlayColor: AppColors.primary.withOpacity(0.2),
+        overlayColor: AppColors.primary.withValues(alpha: 0.2),
         valueIndicatorColor: AppColors.primary,
       ),
       
       // Switch
       switchTheme: SwitchThemeData(
-        thumbColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return AppColors.primary;
           }
           return AppColors.lightGray;
         }),
-        trackColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
-            return AppColors.primary.withOpacity(0.5);
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return AppColors.primary.withValues(alpha: 0.5);
           }
           return AppColors.superLightGray;
         }),
@@ -307,8 +306,8 @@ class AppTheme {
       
       // Checkbox
       checkboxTheme: CheckboxThemeData(
-        fillColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return AppColors.primary;
           }
           return AppColors.white;
@@ -352,7 +351,6 @@ class AppTheme {
         secondary: AppColors.secondaryLight,
         error: AppColors.error,
         surface: AppColors.cardDark,
-        background: AppColors.backgroundDark,
       ),
       
       // Reprendre les mêmes configurations adaptées au dark mode

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import '../../utils/mixins/mixins.dart';
 
 class EnhancedTopGazScreen extends StatefulWidget {
   const EnhancedTopGazScreen({super.key});
@@ -8,7 +9,12 @@ class EnhancedTopGazScreen extends StatefulWidget {
   State<EnhancedTopGazScreen> createState() => _EnhancedTopGazScreenState();
 }
 
-class _EnhancedTopGazScreenState extends State<EnhancedTopGazScreen> {
+class _EnhancedTopGazScreenState extends State<EnhancedTopGazScreen>
+    with SingleTickerProviderStateMixin, AnimationStyleMixin {
+  late final AnimationController _introController = AnimationController(
+    vsync: this,
+    duration: entranceDuration,
+  );
   bool _isTestRunning = false;
   int _countdown = 0;
   Timer? _timer;
@@ -56,7 +62,14 @@ class _EnhancedTopGazScreenState extends State<EnhancedTopGazScreen> {
   double? _efficiency;
 
   @override
+  void initState() {
+    super.initState();
+    _introController.forward();
+  }
+
+  @override
   void dispose() {
+    _introController.dispose();
     _timer?.cancel();
     _indexBeforeController.dispose();
     _indexAfterController.dispose();
@@ -180,6 +193,12 @@ class _EnhancedTopGazScreenState extends State<EnhancedTopGazScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Widget wrapSection(Widget child, int index) {
+      final fade = buildStaggeredFade(_introController, index);
+      final slide = buildStaggeredSlide(fade);
+      return buildFadeSlide(fade: fade, slide: slide, child: child);
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('TOP GAZ'),
@@ -206,336 +225,359 @@ class _EnhancedTopGazScreenState extends State<EnhancedTopGazScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Gas type selection
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Type de gaz',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    DropdownButtonFormField<String>(
-                      value: _selectedGasType,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
+            wrapSection(
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Type de gaz',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
-                      items: _gasTypes.keys.map((type) {
-                        final gasInfo = _gasTypes[type]!;
-                        return DropdownMenuItem(
-                          value: type,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('$type (${gasInfo['pcs']} kWh/m³)'),
-                              Text(
-                                '${gasInfo['description']} - ${gasInfo['pressure']}',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        initialValue: _selectedGasType,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                        ),
+                        items: _gasTypes.keys.map((type) {
+                          final gasInfo = _gasTypes[type]!;
+                          return DropdownMenuItem(
+                            value: type,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('$type (${gasInfo['pcs']} kWh/m³)'),
+                                Text(
+                                  '${gasInfo['description']} - ${gasInfo['pressure']}',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: !_isTestRunning ? (value) {
-                        setState(() => _selectedGasType = value!);
-                      } : null,
-                    ),
-                  ],
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: !_isTestRunning
+                            ? (value) {
+                                setState(() => _selectedGasType = value!);
+                              }
+                            : null,
+                      ),
+                    ],
+                  ),
                 ),
               ),
+              0,
             ),
 
             const SizedBox(height: 16),
 
             // Index inputs
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Relevé des index',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: _indexBeforeController,
-                            decoration: const InputDecoration(
-                              labelText: 'Index AVANT (m³)',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.start),
+            wrapSection(
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Relevé des index',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _indexBeforeController,
+                              decoration: const InputDecoration(
+                                labelText: 'Index AVANT (m³)',
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(Icons.start),
+                              ),
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              enabled: !_isTestRunning,
                             ),
-                            keyboardType: TextInputType.numberWithOptions(decimal: true),
-                            enabled: !_isTestRunning,
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: TextFormField(
-                            controller: _indexAfterController,
-                            decoration: const InputDecoration(
-                              labelText: 'Index APRÈS (m³)',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.stop),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _indexAfterController,
+                              decoration: const InputDecoration(
+                                labelText: 'Index APRÈS (m³)',
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(Icons.stop),
+                              ),
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              enabled: !_isTestRunning,
                             ),
-                            keyboardType: TextInputType.numberWithOptions(decimal: true),
-                            enabled: !_isTestRunning,
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
+              1,
             ),
 
             const SizedBox(height: 24),
 
             // Analog timer (simplified circular progress)
-            Card(
-              elevation: 6,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: _isTestRunning
-                        ? [Colors.orange[50]!, Colors.orange[100]!]
-                        : [Colors.blue[50]!, Colors.blue[100]!],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+            wrapSection(
+              Card(
+                elevation: 6,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: _isTestRunning
+                          ? [Colors.orange[50]!, Colors.orange[100]!]
+                          : [Colors.blue[50]!, Colors.blue[100]!],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    if (_isTestRunning) ...[
-                      const Text(
-                        'TEST EN COURS',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.orange,
+                  child: Column(
+                    children: [
+                      if (_isTestRunning) ...[
+                        const Text(
+                          'TEST EN COURS',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      Container(
-                        width: 120,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: _countdown <= 10 ? Colors.red : Colors.orange,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Text(
-                            '$_countdown',
-                            style: const TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                        const SizedBox(height: 16),
+                        Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _countdown <= 10 ? Colors.red : Colors.orange,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Text(
+                              '$_countdown',
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'secondes restantes',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.orange[700],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      if (!_flameExtinguished) ...[
-                        ElevatedButton.icon(
-                          onPressed: _stopFlame,
-                          icon: const Icon(Icons.local_fire_department),
-                          label: const Text('Flamme éteinte'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        const SizedBox(height: 16),
+                        Text(
+                          'secondes restantes',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.orange[700],
                           ),
                         ),
-                      ] else if (!_gazCutOff) ...[
+                        const SizedBox(height: 24),
+                        if (!_flameExtinguished) ...[
+                          ElevatedButton.icon(
+                            onPressed: _stopFlame,
+                            icon: const Icon(Icons.local_fire_department),
+                            label: const Text('Flamme éteinte'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            ),
+                          ),
+                        ] else if (!_gazCutOff) ...[
+                          ElevatedButton.icon(
+                            onPressed: _confirmGazCutOff,
+                            icon: const Icon(Icons.block),
+                            label: const Text('Gaz coupé'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            ),
+                          ),
+                        ],
+                      ] else ...[
+                        const Text(
+                          'Prêt pour le test',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
                         ElevatedButton.icon(
-                          onPressed: _confirmGazCutOff,
-                          icon: const Icon(Icons.block),
-                          label: const Text('Gaz coupé'),
+                          onPressed: _startTest,
+                          icon: const Icon(Icons.play_arrow),
+                          label: const Text('Démarrer le test'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
+                            backgroundColor: Colors.green,
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                           ),
                         ),
                       ],
-                    ] else ...[
-                      const Text(
-                        'Prêt pour le test',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      ElevatedButton.icon(
-                        onPressed: _startTest,
-                        icon: const Icon(Icons.play_arrow),
-                        label: const Text('Démarrer le test'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                        ),
-                      ),
                     ],
-                  ],
+                  ),
                 ),
               ),
+              2,
             ),
 
             const SizedBox(height: 24),
 
             // Calculate button
             if (!_isTestRunning)
-              Center(
-                child: ElevatedButton.icon(
-                  onPressed: _calculateResults,
-                  icon: const Icon(Icons.calculate),
-                  label: const Text('Calculer les résultats'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              wrapSection(
+                Center(
+                  child: ElevatedButton.icon(
+                    onPressed: _calculateResults,
+                    icon: const Icon(Icons.calculate),
+                    label: const Text('Calculer les résultats'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    ),
                   ),
                 ),
+                3,
               ),
 
             const SizedBox(height: 16),
 
             // Results
             if (_gasFlow != null && _power != null) ...[
-              Card(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.assessment, size: 32),
-                          const SizedBox(width: 16),
-                          Text(
-                            'Résultats du test',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      _buildResultRow('Type de gaz', _selectedGasType),
-                      _buildResultRow('Débit gaz', '${_gasFlow!.toStringAsFixed(3)} m³/h'),
-                      _buildResultRow('Puissance', '${_power!.toStringAsFixed(1)} kW'),
-                      _buildResultRow('Rendement', '${_efficiency!.toStringAsFixed(1)}%'),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                // TODO: Share results
-                              },
-                              icon: const Icon(Icons.share),
-                              label: const Text('Partager'),
+              wrapSection(
+                Card(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.assessment, size: 32),
+                            const SizedBox(width: 16),
+                            Text(
+                              'Résultats du test',
+                              style: Theme.of(context).textTheme.titleLarge,
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                // TODO: Save to history
-                              },
-                              icon: const Icon(Icons.save),
-                              label: const Text('Sauvegarder'),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        _buildResultRow('Type de gaz', _selectedGasType),
+                        _buildResultRow('Débit gaz', '${_gasFlow!.toStringAsFixed(3)} m³/h'),
+                        _buildResultRow('Puissance', '${_power!.toStringAsFixed(1)} kW'),
+                        _buildResultRow('Rendement', '${_efficiency!.toStringAsFixed(1)}%'),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  // TODO: Share results
+                                },
+                                icon: const Icon(Icons.share),
+                                label: const Text('Partager'),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  // TODO: Save to history
+                                },
+                                icon: const Icon(Icons.save),
+                                label: const Text('Sauvegarder'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
+                4,
               ),
             ],
 
             // Test result message
             if (_testResult.isNotEmpty) ...[
               const SizedBox(height: 16),
-              Card(
-                elevation: 4,
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: _testResult.contains('✅') ? Colors.green[50] : Colors.red[50],
-                    border: Border.all(
-                      color: _testResult.contains('✅') ? Colors.green : Colors.red,
-                      width: 2,
+              wrapSection(
+                Card(
+                  elevation: 4,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: _testResult.contains('✅') ? Colors.green[50] : Colors.red[50],
+                      border: Border.all(
+                        color: _testResult.contains('✅') ? Colors.green : Colors.red,
+                        width: 2,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Résultat du test de sécurité',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: _testResult.contains('✅') ? Colors.green[800] : Colors.red[800],
+                    child: Column(
+                      children: [
+                        Text(
+                          'Résultat du test de sécurité',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: _testResult.contains('✅') ? Colors.green[800] : Colors.red[800],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _testResult,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: _testResult.contains('✅') ? Colors.green[700] : Colors.red[700],
+                        const SizedBox(height: 8),
+                        Text(
+                          _testResult,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: _testResult.contains('✅') ? Colors.green[700] : Colors.red[700],
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
+                5,
               ),
             ],
 
             const SizedBox(height: 16),
 
             // Reset button
-            Center(
-              child: ElevatedButton.icon(
-                onPressed: _resetTest,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Nouveau test'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
+            wrapSection(
+              Center(
+                child: ElevatedButton.icon(
+                  onPressed: _resetTest,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Nouveau test'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                  ),
                 ),
               ),
+              6,
             ),
           ],
         ),

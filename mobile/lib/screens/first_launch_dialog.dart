@@ -25,8 +25,8 @@ class _FirstLaunchDialogState extends State<FirstLaunchDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false, // Empêche de fermer le dialogue sans remplir
+    return PopScope(
+      canPop: false,
       child: AlertDialog(
         title: const Text(
           'Bienvenue !',

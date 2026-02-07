@@ -2,8 +2,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:fl_chart/fl_chart.dart';
 import '../../utils/mixins/mixins.dart';
 
 class TirageScreen extends StatefulWidget {
@@ -13,8 +11,16 @@ class TirageScreen extends StatefulWidget {
   State<TirageScreen> createState() => _TirageScreenState();
 }
 
-class _TirageScreenState extends State<TirageScreen> 
-    with SharedPreferencesMixin, SnackBarMixin {
+class _TirageScreenState extends State<TirageScreen>
+    with
+        SingleTickerProviderStateMixin,
+        AnimationStyleMixin,
+        SharedPreferencesMixin,
+        SnackBarMixin {
+  late final AnimationController _introController = AnimationController(
+    vsync: this,
+    duration: entranceDuration,
+  );
   double _tirage = -0.200; // hPa
   double _co = 150.0; // ppm
   double _o2 = 5.2; // %
@@ -29,8 +35,15 @@ class _TirageScreenState extends State<TirageScreen>
   @override
   void initState() {
     super.initState();
+    _introController.forward();
     _charger();
     _updateSimu(); // init
+  }
+
+  @override
+  void dispose() {
+    _introController.dispose();
+    super.dispose();
   }
 
   Future<void> _charger() async {
@@ -89,6 +102,12 @@ class _TirageScreenState extends State<TirageScreen>
 
   @override
   Widget build(BuildContext context) {
+    Widget wrapSection(Widget child, int index) {
+      final fade = buildStaggeredFade(_introController, index);
+      final slide = buildStaggeredSlide(fade);
+      return buildFadeSlide(fade: fade, slide: slide, child: child);
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Simulation Tirage Chaudière')),
       body: SingleChildScrollView(
@@ -96,174 +115,222 @@ class _TirageScreenState extends State<TirageScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Center(
-              child: Text(
-                '${_tirage.toStringAsFixed(3)} hPa',
-                style: TextStyle(fontSize: 52, fontWeight: FontWeight.bold, color: _couleur),
-              ),
-            ),
-            Center(child: Text('Dépression mesurée', style: TextStyle(color: Colors.grey[700]))),
-            const SizedBox(height: 20),
-
-            SizedBox(
-              height: 30,
-              child: Stack(
+            wrapSection(
+              Column(
                 children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
-                      color: Colors.grey[200],
+                  Center(
+                    child: Text(
+                      '${_tirage.toStringAsFixed(3)} hPa',
+                      style: TextStyle(fontSize: 52, fontWeight: FontWeight.bold, color: _couleur),
                     ),
                   ),
-                  FractionallySizedBox(
-                    widthFactor: (_tirage.abs() / 0.50).clamp(0.0, 1.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(15),
-                        color: _couleur,
-                      ),
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Center(child: Text('Dépression mesurée', style: TextStyle(color: Colors.grey[700]))),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    height: 30,
+                    child: Stack(
                       children: [
-                        Text('-0.10', style: TextStyle(fontSize: 12)),
-                        Text('-0.20', style: TextStyle(fontSize: 12)),
-                        Text('-0.30', style: TextStyle(fontSize: 12)),
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(15),
+                            color: Colors.grey[200],
+                          ),
+                        ),
+                        FractionallySizedBox(
+                          widthFactor: (_tirage.abs() / 0.50).clamp(0.0, 1.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(15),
+                              color: _couleur,
+                            ),
+                          ),
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 12),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('-0.10', style: TextStyle(fontSize: 12)),
+                              Text('-0.20', style: TextStyle(fontSize: 12)),
+                              Text('-0.30', style: TextStyle(fontSize: 12)),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ],
               ),
+              0,
             ),
 
             const SizedBox(height: 32),
 
-            Slider(
-              value: -_tirage,
-              min: 0.050,
-              max: 0.500,
-              divisions: 450,
-              label: _tirage.toStringAsFixed(3),
-              activeColor: _couleur,
-              onChanged: (v) {
-                setState(() {
-                  _tirage = -(v * 1000).round() / 1000;
-                  _updateSimu();
-                });
-                _sauvegarder();
-              },
-            ),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [Text('-0.05'), Text('-0.50')],
+            wrapSection(
+              Column(
+                children: [
+                  Slider(
+                    value: -_tirage,
+                    min: 0.050,
+                    max: 0.500,
+                    divisions: 450,
+                    label: _tirage.toStringAsFixed(3),
+                    activeColor: _couleur,
+                    onChanged: (v) {
+                      setState(() {
+                        _tirage = -(v * 1000).round() / 1000;
+                        _updateSimu();
+                      });
+                      _sauvegarder();
+                    },
+                  ),
+                  const Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [Text('-0.05'), Text('-0.50')],
+                  ),
+                ],
+              ),
+              1,
             ),
 
             const SizedBox(height: 32),
 
             // Graphe des zones de tirage
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Zones de tirage',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Position du curseur sur l\'échelle :',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 16),
-                    
-                    // Visualisation des zones avec le curseur
-                    SizedBox(
-                      height: 100,
-                      child: CustomPaint(
-                        painter: TirageZonePainter(_tirage, _limiteBasse, _idealMin, _idealMax),
-                        child: Container(),
+            wrapSection(
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Zones de tirage',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
-                    ),
-                    
-                    const SizedBox(height: 16),
-                    const Divider(),
-                    const SizedBox(height: 8),
-                    
-                    // Légende des zones
-                    _buildZoneLegend(Colors.red, 'Zone DANGER', '> -0.10 hPa', 'Tirage insuffisant - Risque CO'),
-                    const SizedBox(height: 8),
-                    _buildZoneLegend(Colors.orange, 'Zone LIMITE', '-0.10 à -0.20 hPa', 'Acceptable mais à surveiller'),
-                    const SizedBox(height: 8),
-                    _buildZoneLegend(Colors.green, 'Zone OPTIMALE', '-0.20 à -0.30 hPa', 'Tirage idéal pour combustion'),
-                    const SizedBox(height: 8),
-                    _buildZoneLegend(Colors.blue, 'Zone FORT', '< -0.30 hPa', 'Tirage très élevé - Vérifier'),
-                  ],
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Position du curseur sur l\'échelle :',
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Visualisation des zones avec le curseur
+                      SizedBox(
+                        height: 100,
+                        child: CustomPaint(
+                          painter: TirageZonePainter(_tirage, _limiteBasse, _idealMin, _idealMax),
+                          child: Container(),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+                      const Divider(),
+                      const SizedBox(height: 8),
+
+                      // Légende des zones
+                      _buildZoneLegend(Colors.red, 'Zone DANGER', '> -0.10 hPa', 'Tirage insuffisant - Risque CO'),
+                      const SizedBox(height: 8),
+                      _buildZoneLegend(Colors.orange, 'Zone LIMITE', '-0.10 à -0.20 hPa', 'Acceptable mais à surveiller'),
+                      const SizedBox(height: 8),
+                      _buildZoneLegend(Colors.green, 'Zone OPTIMALE', '-0.20 à -0.30 hPa', 'Tirage idéal pour combustion'),
+                      const SizedBox(height: 8),
+                      _buildZoneLegend(Colors.blue, 'Zone FORT', '< -0.30 hPa', 'Tirage très élevé - Vérifier'),
+                    ],
+                  ),
                 ),
               ),
+              2,
             ),
 
             const SizedBox(height: 24),
 
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Valeurs mesurées/simulées',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildMeasureRow('CO', '${_co.toStringAsFixed(0)} ppm', _co > 200 ? Colors.red : Colors.green, 
-                      _co > 200 ? '⚠️ Élevé' : '✓ OK'),
-                    const Divider(height: 20),
-                    _buildMeasureRow('O₂', '${_o2.toStringAsFixed(1)} %', _o2 < 3 ? Colors.orange : Colors.blue,
-                      _o2 < 3 ? '⚠️ Faible' : '✓ Normal'),
-                    const Divider(height: 20),
-                    _buildMeasureRow('CO₂', '${_co2.toStringAsFixed(1)} %', _co2 > 9 ? Colors.green : Colors.orange,
-                      _co2 > 9 ? '✓ Bon' : 'ℹ️ Moyen'),
-                  ],
+            wrapSection(
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Valeurs mesurées/simulées',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildMeasureRow(
+                        'CO',
+                        '${_co.toStringAsFixed(0)} ppm',
+                        _co > 200 ? Colors.red : Colors.green,
+                        _co > 200 ? '⚠️ Élevé' : '✓ OK',
+                      ),
+                      const Divider(height: 20),
+                      _buildMeasureRow(
+                        'O₂',
+                        '${_o2.toStringAsFixed(1)} %',
+                        _o2 < 3 ? Colors.orange : Colors.blue,
+                        _o2 < 3 ? '⚠️ Faible' : '✓ Normal',
+                      ),
+                      const Divider(height: 20),
+                      _buildMeasureRow(
+                        'CO₂',
+                        '${_co2.toStringAsFixed(1)} %',
+                        _co2 > 9 ? Colors.green : Colors.orange,
+                        _co2 > 9 ? '✓ Bon' : 'ℹ️ Moyen',
+                      ),
+                    ],
+                  ),
                 ),
               ),
+              3,
             ),
 
             const SizedBox(height: 24),
-            Text(_message, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: _couleur), textAlign: TextAlign.center),
+            wrapSection(
+              Text(
+                _message,
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: _couleur),
+                textAlign: TextAlign.center,
+              ),
+              4,
+            ),
 
             const SizedBox(height: 32),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Reset -0.180'),
-                  onPressed: () {
-                    setState(() => _tirage = -0.180);
-                    _updateSimu();
-                    _sauvegarder();
-                  },
-                ),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.copy),
-                  label: const Text('Exporter'),
-                  onPressed: () {
-                    final text = 'Tirage: ${_tirage.toStringAsFixed(3)} hPa | CO: ${_co.toStringAsFixed(0)} ppm | O₂: ${_o2.toStringAsFixed(1)} % | CO₂: ${_co2.toStringAsFixed(1)} %';
-                    Clipboard.setData(ClipboardData(text: text));
-                    showCopied();
-                  },
-                ),
-              ],
+            wrapSection(
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Reset -0.180'),
+                    onPressed: () {
+                      setState(() => _tirage = -0.180);
+                      _updateSimu();
+                      _sauvegarder();
+                    },
+                  ),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.copy),
+                    label: const Text('Exporter'),
+                    onPressed: () {
+                      final text = 'Tirage: ${_tirage.toStringAsFixed(3)} hPa | CO: ${_co.toStringAsFixed(0)} ppm | O₂: ${_o2.toStringAsFixed(1)} % | CO₂: ${_co2.toStringAsFixed(1)} %';
+                      Clipboard.setData(ClipboardData(text: text));
+                      showCopied();
+                    },
+                  ),
+                ],
+              ),
+              5,
             ),
 
             const SizedBox(height: 40),
-            const Text('Simulation illustrative – toujours utiliser un vrai analyseur !', style: TextStyle(color: Colors.grey, fontSize: 13), textAlign: TextAlign.center),
+            wrapSection(
+              const Text(
+                'Simulation illustrative – toujours utiliser un vrai analyseur !',
+                style: TextStyle(color: Colors.grey, fontSize: 13),
+                textAlign: TextAlign.center,
+              ),
+              6,
+            ),
           ],
         ),
       ),
@@ -350,28 +417,28 @@ class TirageZonePainter extends CustomPainter {
     }
 
     // Zone DANGER (rouge) : > -0.10
-    paint.color = Colors.red.withOpacity(0.3);
+    paint.color = Colors.red.withValues(alpha: 0.3);
     canvas.drawRect(
       Rect.fromLTWH(getX(limiteBasse), 0, size.width - getX(limiteBasse), size.height),
       paint,
     );
 
     // Zone LIMITE (orange) : -0.10 à -0.20
-    paint.color = Colors.orange.withOpacity(0.3);
+    paint.color = Colors.orange.withValues(alpha: 0.3);
     canvas.drawRect(
       Rect.fromLTWH(getX(idealMin), 0, getX(limiteBasse) - getX(idealMin), size.height),
       paint,
     );
 
     // Zone OPTIMALE (vert) : -0.20 à -0.30
-    paint.color = Colors.green.withOpacity(0.3);
+    paint.color = Colors.green.withValues(alpha: 0.3);
     canvas.drawRect(
       Rect.fromLTWH(getX(idealMax), 0, getX(idealMin) - getX(idealMax), size.height),
       paint,
     );
 
     // Zone FORT (bleu) : < -0.30
-    paint.color = Colors.blue.withOpacity(0.3);
+    paint.color = Colors.blue.withValues(alpha: 0.3);
     canvas.drawRect(
       Rect.fromLTWH(0, 0, getX(idealMax), size.height),
       paint,

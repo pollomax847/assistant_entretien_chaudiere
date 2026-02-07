@@ -175,7 +175,7 @@ mixin ReglementationGazMixin<T extends StatefulWidget> on State<T> {
   /// Champ select avec options
   Widget _buildSelectField(DiagnosticQuestion question, dynamic currentValue) {
     return DropdownButtonFormField<String>(
-      value: currentValue?.toString(),
+      initialValue: currentValue?.toString(),
       decoration: const InputDecoration(
         border: OutlineInputBorder(),
         isDense: true,

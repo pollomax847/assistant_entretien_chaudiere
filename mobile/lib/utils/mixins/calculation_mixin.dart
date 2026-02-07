@@ -116,7 +116,7 @@ mixin CalculationMixin<T extends StatefulWidget> on State<T>, SharedPreferencesM
     IconData? icon,
   }) {
     return DropdownButtonFormField<V>(
-      value: value,
+      initialValue: value,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: icon != null ? Icon(icon) : null,

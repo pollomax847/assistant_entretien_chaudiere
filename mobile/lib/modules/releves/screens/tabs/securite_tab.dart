@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/sections/securite_section.dart';
+import 'package:assistant_entreiten_chaudiere/utils/mixins/mixins.dart';
 
 /// Tab Écran - Sécurité
 class SecuriteTab extends StatefulWidget {
@@ -7,16 +8,17 @@ class SecuriteTab extends StatefulWidget {
   final Function(SecuriteSection) onUpdate;
 
   const SecuriteTab({
-    Key? key,
+    super.key,
     this.initialData,
     required this.onUpdate,
-  }) : super(key: key);
+  });
 
   @override
-  _SecuriteTabState createState() => _SecuriteTabState();
+  State<SecuriteTab> createState() => _SecuriteTabState();
 }
 
-class _SecuriteTabState extends State<SecuriteTab> {
+class _SecuriteTabState extends State<SecuriteTab>
+    with SingleTickerProviderStateMixin, AnimationStyleMixin {
   late TextEditingController _commentaireAccessibiliteController;
   late TextEditingController _particularitesController;
   late TextEditingController _travailsAChargerController;
@@ -28,10 +30,15 @@ class _SecuriteTabState extends State<SecuriteTab> {
   bool? _toitPentu;
   bool? _comblePresent;
   bool? _cavitePresente;
+  late final AnimationController _introController = AnimationController(
+    vsync: this,
+    duration: entranceDuration,
+  );
 
   @override
   void initState() {
     super.initState();
+    _introController.forward();
     _initializeControllers();
   }
 
@@ -56,6 +63,7 @@ class _SecuriteTabState extends State<SecuriteTab> {
 
   @override
   void dispose() {
+    _introController.dispose();
     _commentaireAccessibiliteController.dispose();
     _particularitesController.dispose();
     _travailsAChargerController.dispose();
@@ -89,9 +97,14 @@ class _SecuriteTabState extends State<SecuriteTab> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
+    final fade = buildStaggeredFade(_introController, 0);
+    final slide = buildStaggeredSlide(fade);
+    return buildFadeSlide(
+      fade: fade,
+      slide: slide,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
         Text('Accessibilité Lieu',
             style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 16),
@@ -190,7 +203,8 @@ class _SecuriteTabState extends State<SecuriteTab> {
           maxLines: 3,
           onChanged: (_) => _saveData(),
         ),
-      ],
+        ],
+      ),
     );
   }
 }
