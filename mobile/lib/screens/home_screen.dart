@@ -23,7 +23,12 @@ import 'first_launch_dialog.dart';
 import 'preferences_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final bool enableBackgroundWork;
+
+  const HomeScreen({
+    super.key,
+    this.enableBackgroundWork = true,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -56,7 +61,9 @@ class _HomeScreenState extends State<HomeScreen>
     _waveAnimation = Tween<double>(begin: -0.05, end: 0.05).animate(
       CurvedAnimation(parent: _waveController, curve: waveCurve),
     );
-    _startWaveLoop();
+    if (widget.enableBackgroundWork) {
+      _startWaveLoop();
+    }
     _enterController = AnimationController(
       vsync: this,
       duration: entranceDuration,
@@ -119,12 +126,14 @@ class _HomeScreenState extends State<HomeScreen>
     _userName = preferences.technician ?? 'Utilisateur';
     
     // Vérifier les mises à jour au démarrage
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkFirstLaunch();
-      _requestPermissions();
-      // Essayer la mise à jour in-app Google Play d'abord, puis fallback GitHub
-      _checkForUpdates();
-    });
+    if (widget.enableBackgroundWork) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _checkFirstLaunch();
+        _requestPermissions();
+        // Essayer la mise à jour in-app Google Play d'abord, puis fallback GitHub
+        _checkForUpdates();
+      });
+    }
   }
 
   @override

@@ -23,7 +23,12 @@ Future<void> main() async {
 }
 
 class ChauffageExpertApp extends StatelessWidget {
-  const ChauffageExpertApp({super.key});
+  final bool enableBackgroundWork;
+
+  const ChauffageExpertApp({
+    super.key,
+    this.enableBackgroundWork = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +42,7 @@ class ChauffageExpertApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: preferences.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-            home: const HomeScreen(),
+            home: HomeScreen(enableBackgroundWork: enableBackgroundWork),
             routes: {
               '/preferences': (context) => const PreferencesScreen(),
               '/puissance-simple': (context) => const GestionPiecesScreen(),

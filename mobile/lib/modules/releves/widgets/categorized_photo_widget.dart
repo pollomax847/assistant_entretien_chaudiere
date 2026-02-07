@@ -24,7 +24,7 @@ class _CategorizedPhotoWidgetState extends State<CategorizedPhotoWidget>
   final Map<String, File?> _photos = {};
   late final AnimationController _introController = AnimationController(
     vsync: this,
-    duration: mediumDuration,
+    duration: panelDuration,
   );
 
   @override
