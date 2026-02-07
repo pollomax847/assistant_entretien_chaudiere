@@ -192,7 +192,7 @@ class _MeasurementPhotoWidgetState extends State<MeasurementPhotoWidget>
                               color: Colors.red.shade400,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.2),
+                                  color: Colors.black.withValues(alpha: 0.2),
                                   spreadRadius: 1,
                                 ),
                               ],

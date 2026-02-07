@@ -25,7 +25,6 @@ class _PuissanceExpertScreenState extends State<PuissanceExpertScreen>
   late final _tempExtController = registerController(TextEditingController());
   late final _isolationController = registerController(TextEditingController(text: '1.0'));
   late final _ventilationController = registerController(TextEditingController(text: '0.5'));
-  late final _orientationController = registerController(TextEditingController(text: '1.0'));
 
   // Variables d'état
   bool _isolationCombles = false;

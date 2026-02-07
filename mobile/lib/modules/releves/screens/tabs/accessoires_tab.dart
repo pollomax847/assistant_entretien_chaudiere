@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/sections/accessoires_section.dart';
-import '../../../utils/mixins/mixins.dart';
+import 'package:assistant_entreiten_chaudiere/utils/mixins/mixins.dart';
 
 /// Tab Écran - Accessoires
 class AccessoiresTab extends StatefulWidget {
@@ -8,13 +8,13 @@ class AccessoiresTab extends StatefulWidget {
   final Function(AccessoiresSection) onUpdate;
 
   const AccessoiresTab({
-    Key? key,
+    super.key,
     this.initialData,
     required this.onUpdate,
-  }) : super(key: key);
+  });
 
   @override
-  _AccessoiresTabState createState() => _AccessoiresTabState();
+  State<AccessoiresTab> createState() => _AccessoiresTabState();
 }
 
 class _AccessoiresTabState extends State<AccessoiresTab>
@@ -185,7 +185,7 @@ class _AccessoiresTabState extends State<AccessoiresTab>
         ),
         const SizedBox(height: 12),
         DropdownButtonFormField<String>(
-          value: _typeVase,
+          initialValue: _typeVase,
           decoration: const InputDecoration(
             labelText: 'Type vase',
             border: OutlineInputBorder(),

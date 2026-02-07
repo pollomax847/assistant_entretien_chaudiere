@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/sections/ecs_section.dart';
-import '../../../utils/mixins/mixins.dart';
+import 'package:assistant_entreiten_chaudiere/utils/mixins/mixins.dart';
 
 /// Tab Écran - ECS (Eau Chaude Sanitaire)
 class EcsTab extends StatefulWidget {
@@ -8,13 +8,13 @@ class EcsTab extends StatefulWidget {
   final Function(EcsSection) onUpdate;
 
   const EcsTab({
-    Key? key,
+    super.key,
     this.initialData,
     required this.onUpdate,
-  }) : super(key: key);
+  });
 
   @override
-  _EcsTabState createState() => _EcsTabState();
+  State<EcsTab> createState() => _EcsTabState();
 }
 
 class _EcsTabState extends State<EcsTab>
@@ -126,7 +126,7 @@ class _EcsTabState extends State<EcsTab>
         Text('Configuration ECS', style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 16),
         DropdownButtonFormField<String>(
-          value: _typeEcs,
+          initialValue: _typeEcs,
           decoration: const InputDecoration(
             labelText: 'Type ECS',
             border: OutlineInputBorder(),

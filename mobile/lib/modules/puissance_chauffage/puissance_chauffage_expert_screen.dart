@@ -224,9 +224,11 @@ class _PuissanceChauffageExpertScreenState extends State<PuissanceChauffageExper
         observations: null,
       );
 
-      await Share.shareXFiles(
-        [XFile(pdfFile.path)],
-        text: 'Rapport de calcul puissance chauffage',
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(pdfFile.path)],
+          text: 'Rapport de calcul puissance chauffage',
+        ),
       );
 
       showSuccess('PDF généré et partagé avec succès');

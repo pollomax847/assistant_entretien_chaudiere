@@ -1,4 +1,3 @@
-import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/mixins/shared_preferences_mixin.dart';
 
 class StorageService with SharedPreferencesMixin {

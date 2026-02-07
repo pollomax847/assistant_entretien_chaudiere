@@ -293,7 +293,12 @@ class ExportService {
       await file.writeAsString(contenu);
 
       // Partager le fichier
-      await Share.shareXFiles([XFile(file.path)], text: 'Relevé technique exporté');
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path)],
+          text: 'Relevé technique exporté',
+        ),
+      );
     } catch (e) {
       throw Exception('Erreur lors de l\'export: $e');
     }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/sections/evacuation_section.dart';
-import '../../../utils/mixins/mixins.dart';
+import 'package:assistant_entreiten_chaudiere/utils/mixins/mixins.dart';
 
 /// Tab Écran - Évacuation
 class EvacuationTab extends StatefulWidget {
@@ -8,13 +8,13 @@ class EvacuationTab extends StatefulWidget {
   final Function(EvacuationSection) onUpdate;
 
   const EvacuationTab({
-    Key? key,
+    super.key,
     this.initialData,
     required this.onUpdate,
-  }) : super(key: key);
+  });
 
   @override
-  _EvacuationTabState createState() => _EvacuationTabState();
+  State<EvacuationTab> createState() => _EvacuationTabState();
 }
 
 class _EvacuationTabState extends State<EvacuationTab>

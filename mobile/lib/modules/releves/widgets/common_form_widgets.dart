@@ -144,7 +144,7 @@ class CommonFormWidgets {
     return Padding(
       padding: padding,
       child: DropdownButtonFormField<T>(
-        value: value,
+        initialValue: value,
         decoration: InputDecoration(
           labelText: label,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16),

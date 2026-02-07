@@ -232,8 +232,9 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
           ok = m.pressionPa >= 50 && m.pressionPa <= 150;
         }
 
-        if (ok) nbConformes++;
-        else {
+        if (ok) {
+          nbConformes++;
+        } else {
           problemes.add('${m.pieceNom} (${m.typeBouche.name}) : ${m.pressionPa.toStringAsFixed(0)} Pa → hors plage');
         }
       }
@@ -266,8 +267,8 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
     // Intégration pression au diagnostic
     if (_mesuresPression.isNotEmpty && !_pressionConforme) {
       _statut = 'alerte';
-      _message = (_message ?? '') + '\nNon-conformité pression RE2020 (protocole §8.3.5)';
-      _recommandation = (_recommandation ?? '') + '\nVérifiez encrassement, réglages bouches ou réseau (pression nominale ~80 Pa).';
+      _message = '${_message ?? ''}\nNon-conformité pression RE2020 (protocole §8.3.5)';
+      _recommandation = '${_recommandation ?? ''}\nVérifiez encrassement, réglages bouches ou réseau (pression nominale ~80 Pa).';
     }
 
     setState(() {});
@@ -391,9 +392,9 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: ListTile(
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      tileColor: Colors.blue.withOpacity(0.05),
+                      tileColor: Colors.blue.withValues(alpha: 0.05),
                       leading: const Icon(Icons.home, color: Colors.blue),
-                      title: Text('${entry.value.nom}'),
+                      title: Text(entry.value.nom),
                       subtitle: Text(entry.value.type),
                       trailing: IconButton(
                         icon: const Icon(Icons.delete, color: Colors.red),
@@ -452,7 +453,9 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: ListTile(
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      tileColor: entry.value.ouverte ? Colors.green.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
+                        tileColor: entry.value.ouverte
+                          ? Colors.green.withValues(alpha: 0.1)
+                          : Colors.grey.withValues(alpha: 0.1),
                       leading: Icon(
                         entry.value.ouverte ? Icons.lightbulb_outline : Icons.lightbulb,
                         color: entry.value.ouverte ? Colors.green : Colors.grey,
@@ -552,7 +555,7 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
                         children: [
                           ListTile(
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            tileColor: Colors.orange.withOpacity(0.05),
+                            tileColor: Colors.orange.withValues(alpha: 0.05),
                             leading: const Icon(Icons.speed, color: Colors.orange),
                             title: Text(mesure.piece),
                             subtitle: Text('${mesure.debit.toStringAsFixed(1)} m³/h'),
@@ -775,10 +778,10 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
         _wrapSection(
           Card(
             color: _statut == 'succès'
-                ? Colors.green.withOpacity(0.1)
-                : _statut == 'alerte'
-                    ? Colors.orange.withOpacity(0.1)
-                    : Colors.red.withOpacity(0.1),
+              ? Colors.green.withValues(alpha: 0.1)
+              : _statut == 'alerte'
+                ? Colors.orange.withValues(alpha: 0.1)
+                : Colors.red.withValues(alpha: 0.1),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -828,22 +831,25 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
                 Text('Détails du diagnostic:', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 12),
                 _buildDetailRow('Type de logement', _typeLogement ?? 'N/A'),
-                _buildDetailRow('Débit fenêtres (m³/h)', '${_debitTotalFenetres?.toStringAsFixed(1) ?? 0}'),
-                _buildDetailRow('Débit VMC (m³/h)', '${_debitTotalVMC?.toStringAsFixed(1) ?? 0}'),
-                _buildDetailRow('Différence', '${_diff?.toStringAsFixed(1) ?? 0} m³/h (${_diffPct?.toStringAsFixed(1) ?? 0}%)'),
+                _buildDetailRow('Débit fenêtres (m³/h)', _debitTotalFenetres?.toStringAsFixed(1) ?? '0'),
+                _buildDetailRow('Débit VMC (m³/h)', _debitTotalVMC?.toStringAsFixed(1) ?? '0'),
+                _buildDetailRow(
+                  'Différence',
+                  '${_diff?.toStringAsFixed(1) ?? '0'} m³/h (${_diffPct?.toStringAsFixed(1) ?? '0'}%)',
+                ),
                 if (_mesuresPression.isNotEmpty)
                   _buildDetailRow(
                     'Pression moyenne (Pa)',
-                    '${(_mesuresPression.map((m) => m.pressionPa).reduce((a, b) => a + b) / _mesuresPression.length).toStringAsFixed(1)}',
+                    (_mesuresPression.map((m) => m.pressionPa).reduce((a, b) => a + b) / _mesuresPression.length).toStringAsFixed(1),
                   ),
                 const SizedBox(height: 20),
                 if (_pressionMessage != null && _pressionMessage!.isNotEmpty)
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: _pressionConforme ? Colors.blue.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+                      color: _pressionConforme ? Colors.blue.withValues(alpha: 0.1) : Colors.orange.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: (_pressionConforme ? Colors.blue : Colors.orange).withOpacity(0.3)),
+                      border: Border.all(color: (_pressionConforme ? Colors.blue : Colors.orange).withValues(alpha: 0.3)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -858,9 +864,9 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
+                    color: Colors.blue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                    border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

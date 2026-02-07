@@ -6,7 +6,6 @@ import '../modules/puissance_chauffage/puissance_chauffage_expert_screen.dart';
 import '../modules/reglementation_gaz/reglementation_gaz_screen.dart';
 import '../modules/vmc/vmc_integration_screen.dart';
 import '../modules/tests/enhanced_top_gaz_screen.dart';
-import '../modules/chaudiere/chaudiere_screen.dart';
 import '../modules/tirage/tirage_screen.dart';
 import '../modules/ecs/ecs_screen.dart';
 import '../modules/vase_expansion/vase_expansion_screen.dart';
@@ -123,7 +122,9 @@ class _HomeScreenState extends State<HomeScreen>
     _enterController.forward();
     // Charger le nom du technicien depuis les préférences
     final preferences = Provider.of<PreferencesProvider>(context, listen: false);
-    _userName = preferences.technician ?? 'Utilisateur';
+    _userName = preferences.technician.isNotEmpty
+      ? preferences.technician
+      : 'Utilisateur';
     
     // Vérifier les mises à jour au démarrage
     if (widget.enableBackgroundWork) {
@@ -142,7 +143,9 @@ class _HomeScreenState extends State<HomeScreen>
     // Recharger le nom du technicien quand l'écran reprend le focus
     final preferences = Provider.of<PreferencesProvider>(context);
     setState(() {
-      _userName = preferences.technician ?? 'Utilisateur';
+        _userName = preferences.technician.isNotEmpty
+          ? preferences.technician
+          : 'Utilisateur';
     });
   }
 
@@ -246,10 +249,10 @@ class _HomeScreenState extends State<HomeScreen>
         backgroundColor: const Color(0xFF2F5BB7),
         elevation: 0,
       ),
-      drawer: Drawer(
+      drawer: const Drawer(
         child: SafeArea(
           child: SingleChildScrollView(
-            child: const PreferencesPanel(),
+            child: PreferencesPanel(),
           ),
         ),
       ),
@@ -258,6 +261,14 @@ class _HomeScreenState extends State<HomeScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             
+            if (_updateInfo != null && !_dismissedUpdate)
+              UpdateBannerWidget(
+                updateInfo: _updateInfo!,
+                onDismiss: () {
+                  setState(() => _dismissedUpdate = true);
+                },
+              ),
+
             // Carte de bienvenue orange
             buildFadeSlide(
               fade: _bannerFade,
@@ -273,7 +284,7 @@ class _HomeScreenState extends State<HomeScreen>
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.orange.withOpacity(0.3),
+                      color: Colors.orange.withValues(alpha: 0.3),
                       blurRadius: 15,
                       offset: const Offset(0, 5),
                     ),
@@ -308,7 +319,7 @@ class _HomeScreenState extends State<HomeScreen>
                             Text(
                               'Expert en chauffage',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
+                                color: Colors.white.withValues(alpha: 0.9),
                                 fontSize: 16,
                               ),
                             ),
@@ -395,7 +406,7 @@ class _HomeScreenState extends State<HomeScreen>
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.primary.withOpacity(0.8),
+                    color: AppColors.primary.withValues(alpha: 0.8),
                   ),
                 ),
               ),
@@ -487,7 +498,7 @@ class _HomeScreenState extends State<HomeScreen>
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         elevation: 2,
-        shadowColor: color.withOpacity(0.2),
+        shadowColor: color.withValues(alpha: 0.2),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(16),
@@ -499,7 +510,7 @@ class _HomeScreenState extends State<HomeScreen>
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
+                    color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -539,7 +550,7 @@ class _HomeScreenState extends State<HomeScreen>
       color: Colors.white,
       borderRadius: BorderRadius.circular(20),
       elevation: 2,
-      shadowColor: color.withOpacity(0.2),
+      shadowColor: color.withValues(alpha: 0.2),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(20),
@@ -552,7 +563,7 @@ class _HomeScreenState extends State<HomeScreen>
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(

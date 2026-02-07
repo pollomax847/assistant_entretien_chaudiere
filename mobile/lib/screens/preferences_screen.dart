@@ -194,7 +194,7 @@ class _PreferencesPanelState extends State<PreferencesPanel>
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<String>(
-                        value: preferences.defaultModule,
+                        initialValue: preferences.defaultModule,
                         decoration: const InputDecoration(
                           labelText: 'Module de démarrage',
                           prefixIcon: Icon(Icons.home),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/sections/conformite_section.dart';
-import '../../../utils/mixins/mixins.dart';
+import 'package:assistant_entreiten_chaudiere/utils/mixins/mixins.dart';
 
 /// Tab Écran - Conformité
 class ConformiteTab extends StatefulWidget {
@@ -8,13 +8,13 @@ class ConformiteTab extends StatefulWidget {
   final Function(ConformiteSection) onUpdate;
 
   const ConformiteTab({
-    Key? key,
+    super.key,
     this.initialData,
     required this.onUpdate,
-  }) : super(key: key);
+  });
 
   @override
-  _ConformiteTabState createState() => _ConformiteTabState();
+  State<ConformiteTab> createState() => _ConformiteTabState();
 }
 
 class _ConformiteTabState extends State<ConformiteTab>

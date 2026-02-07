@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/sections/client_section.dart';
-import '../../../utils/mixins/mixins.dart';
+import 'package:assistant_entreiten_chaudiere/utils/mixins/mixins.dart';
 
 /// Tab Écran - Client
 /// Gère les informations du client et de l'environnement
@@ -9,13 +9,13 @@ class ClientTab extends StatefulWidget {
   final Function(ClientSection) onUpdate;
 
   const ClientTab({
-    Key? key,
+    super.key,
     this.initialData,
     required this.onUpdate,
-  }) : super(key: key);
+  });
 
   @override
-  _ClientTabState createState() => _ClientTabState();
+  State<ClientTab> createState() => _ClientTabState();
 }
 
 class _ClientTabState extends State<ClientTab>

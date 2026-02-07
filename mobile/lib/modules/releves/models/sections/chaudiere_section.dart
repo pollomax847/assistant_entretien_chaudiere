@@ -78,34 +78,35 @@ class ChaudiereSection {
     String? typeRaccordementEvacuation,
     String? diametre,
     bool? besoinPompeRelevage,
-    String? typeAlimentationElectrique,
+    String? typeAlimentationElectriqueValue,
     String? commentaire,
   }) {
+    final current = this;
     return ChaudiereSection(
-      marque: marque ?? this.marque,
-      modele: modele ?? this.modele,
-      anneeInstallation: anneeInstallation ?? this.anneeInstallation,
-      energie: energie ?? this.energie,
-      puissance: puissance ?? this.puissance,
-      chauffageSeul: chauffageSeul ?? this.chauffageSeul,
-      avecEcs: avecEcs ?? this.avecEcs,
-      typeBallonEcs: typeBallonEcs ?? this.typeBallonEcs,
-      volumeBallon: volumeBallon ?? this.volumeBallon,
-      marqueBallon: marqueBallon ?? this.marqueBallon,
-      hauteurBallon: hauteurBallon ?? this.hauteurBallon,
-      profondeurBallon: profondeurBallon ?? this.profondeurBallon,
-      radiateur: radiateur ?? this.radiateur,
-      plancherChauffant: plancherChauffant ?? this.plancherChauffant,
-      typeTuyauterie: typeTuyauterie ?? this.typeTuyauterie,
+      marque: marque ?? current.marque,
+      modele: modele ?? current.modele,
+      anneeInstallation: anneeInstallation ?? current.anneeInstallation,
+      energie: energie ?? current.energie,
+      puissance: puissance ?? current.puissance,
+      chauffageSeul: chauffageSeul ?? current.chauffageSeul,
+      avecEcs: avecEcs ?? current.avecEcs,
+      typeBallonEcs: typeBallonEcs ?? current.typeBallonEcs,
+      volumeBallon: volumeBallon ?? current.volumeBallon,
+      marqueBallon: marqueBallon ?? current.marqueBallon,
+      hauteurBallon: hauteurBallon ?? current.hauteurBallon,
+      profondeurBallon: profondeurBallon ?? current.profondeurBallon,
+      radiateur: radiateur ?? current.radiateur,
+      plancherChauffant: plancherChauffant ?? current.plancherChauffant,
+      typeTuyauterie: typeTuyauterie ?? current.typeTuyauterie,
       tuyauxDerriereChaudiere:
-          tuyauxDerriereChaudiere ?? this.tuyauxDerriereChaudiere,
+        tuyauxDerriereChaudiere ?? current.tuyauxDerriereChaudiere,
       typeRaccordementEvacuation:
-          typeRaccordementEvacuation ?? this.typeRaccordementEvacuation,
-      diametre: diametre ?? this.diametre,
-      besoinPompeRelevage: besoinPompeRelevage ?? this.besoinPompeRelevage,
-      typeAlimentationElectrique:
-          typeAlimentationElectrique ?? this.typeAlimentationElectrique,
-      commentaire: commentaire ?? this.commentaire,
+        typeRaccordementEvacuation ?? current.typeRaccordementEvacuation,
+      diametre: diametre ?? current.diametre,
+      besoinPompeRelevage: besoinPompeRelevage ?? current.besoinPompeRelevage,
+        typeAlimentationElectrique:
+        typeAlimentationElectriqueValue ?? current.typeAlimentationElectrique,
+      commentaire: commentaire ?? current.commentaire,
     );
   }
 

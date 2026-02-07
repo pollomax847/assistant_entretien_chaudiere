@@ -184,9 +184,11 @@ class _EcsScreenState extends State<EcsScreen>
         temperatureEcs: double.parse(_tempChaudeController.text),
       );
 
-      await Share.shareXFiles(
-        [XFile(pdfFile.path)],
-        text: 'Rapport de calcul ECS',
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(pdfFile.path)],
+          text: 'Rapport de calcul ECS',
+        ),
       );
 
       ScaffoldMessenger.of(context).showSnackBar(

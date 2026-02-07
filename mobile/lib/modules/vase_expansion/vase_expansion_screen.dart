@@ -13,7 +13,7 @@ class VaseExpansionScreen extends StatefulWidget {
 
 class _VaseExpansionScreenState extends State<VaseExpansionScreen>
     with SingleTickerProviderStateMixin, AnimationStyleMixin {
-  bool _conforme = false;
+  final bool _conforme = false;
   final _formKey = GlobalKey<FormState>();
   final _hauteurController = TextEditingController();
   late final AnimationController _introController = AnimationController(
@@ -114,9 +114,11 @@ class _VaseExpansionScreenState extends State<VaseExpansionScreen>
         observations: null,
       );
 
-      await Share.shareXFiles(
-        [XFile(pdfFile.path)],
-        text: 'Rapport de calcul vase d\'expansion',
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(pdfFile.path)],
+          text: 'Rapport de calcul vase d\'expansion',
+        ),
       );
 
       ScaffoldMessenger.of(context).showSnackBar(

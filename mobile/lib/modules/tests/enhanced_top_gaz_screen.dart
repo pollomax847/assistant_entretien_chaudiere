@@ -238,7 +238,7 @@ class _EnhancedTopGazScreenState extends State<EnhancedTopGazScreen>
                       ),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value: _selectedGasType,
+                        initialValue: _selectedGasType,
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                         ),
@@ -299,7 +299,7 @@ class _EnhancedTopGazScreenState extends State<EnhancedTopGazScreen>
                                 border: OutlineInputBorder(),
                                 prefixIcon: Icon(Icons.start),
                               ),
-                              keyboardType: TextInputType.numberWithOptions(decimal: true),
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
                               enabled: !_isTestRunning,
                             ),
                           ),
@@ -312,7 +312,7 @@ class _EnhancedTopGazScreenState extends State<EnhancedTopGazScreen>
                                 border: OutlineInputBorder(),
                                 prefixIcon: Icon(Icons.stop),
                               ),
-                              keyboardType: TextInputType.numberWithOptions(decimal: true),
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
                               enabled: !_isTestRunning,
                             ),
                           ),
@@ -364,7 +364,7 @@ class _EnhancedTopGazScreenState extends State<EnhancedTopGazScreen>
                             color: _countdown <= 10 ? Colors.red : Colors.orange,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: Colors.black.withValues(alpha: 0.1),
                                 blurRadius: 8,
                                 offset: const Offset(0, 4),
                               ),

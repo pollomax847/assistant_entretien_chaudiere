@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/releve_technique.dart';
 
@@ -15,7 +16,7 @@ class RelevelStorageService {
       final json = jsonEncode(releve.toJson());
       return await prefs.setString(_releveKey, json);
     } catch (e) {
-      print('Erreur sauvegarde relevé: $e');
+      debugPrint('Erreur sauvegarde relevé: $e');
       return false;
     }
   }
@@ -30,7 +31,7 @@ class RelevelStorageService {
       final json = jsonDecode(jsonStr) as Map<String, dynamic>;
       return ReleveTechnique.fromJson(json);
     } catch (e) {
-      print('Erreur chargement relevé: $e');
+      debugPrint('Erreur chargement relevé: $e');
       return null;
     }
   }
@@ -42,7 +43,7 @@ class RelevelStorageService {
       final jsonList = releves.map((r) => r.toJson()).toList();
       return await prefs.setString(_relevelistKey, jsonEncode(jsonList));
     } catch (e) {
-      print('Erreur sauvegarde liste: $e');
+      debugPrint('Erreur sauvegarde liste: $e');
       return false;
     }
   }
@@ -59,7 +60,7 @@ class RelevelStorageService {
           .map((json) => ReleveTechnique.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('Erreur chargement liste: $e');
+      debugPrint('Erreur chargement liste: $e');
       return [];
     }
   }
@@ -70,7 +71,7 @@ class RelevelStorageService {
       final prefs = await SharedPreferences.getInstance();
       return await prefs.remove(_releveKey);
     } catch (e) {
-      print('Erreur suppression: $e');
+      debugPrint('Erreur suppression: $e');
       return false;
     }
   }
@@ -81,7 +82,7 @@ class RelevelStorageService {
       final prefs = await SharedPreferences.getInstance();
       return await prefs.remove(_relevelistKey);
     } catch (e) {
-      print('Erreur suppression historique: $e');
+      debugPrint('Erreur suppression historique: $e');
       return false;
     }
   }
@@ -97,7 +98,7 @@ class RelevelStorageService {
       final json = jsonDecode(jsonStr) as Map<String, dynamic>;
       return ReleveTechnique.fromJson(json);
     } catch (e) {
-      print('Erreur import JSON: $e');
+      debugPrint('Erreur import JSON: $e');
       return null;
     }
   }

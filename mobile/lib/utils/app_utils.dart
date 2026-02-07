@@ -1,7 +1,7 @@
-/// Fichier d'exportation centralisé pour tous les utilitaires de l'application
-/// 
-/// Permet d'importer tous les utilitaires en une seule ligne:
-/// import 'package:assistant_entreiten_chaudiere/utils/app_utils.dart';
+// Fichier d'exportation centralisé pour tous les utilitaires de l'application
+//
+// Permet d'importer tous les utilitaires en une seule ligne:
+// import 'package:assistant_entreiten_chaudiere/utils/app_utils.dart';
 
 // Thème
 export 'package:assistant_entreiten_chaudiere/theme/app_theme.dart';

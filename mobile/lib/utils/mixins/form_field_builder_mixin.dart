@@ -45,7 +45,7 @@ mixin FormFieldBuilderMixin<T extends StatefulWidget> on State<T> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: DropdownButtonFormField<String>(
-        value: value,
+        initialValue: value,
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,

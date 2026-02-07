@@ -30,7 +30,7 @@ class _ReglementationGazScreenState extends State<ReglementationGazScreen>
   Map<String, dynamic>? _qualigazCodes;
   Map<String, String> _selectedCodes = {};
   Map<String, String> _observations = {};
-  Map<String, List<File>> _photosParCode = {}; // Photos par code Qualigaz
+  final Map<String, List<File>> _photosParCode = {}; // Photos par code Qualigaz
 
   // Données de l'installation
   late final _adresseController = registerController(TextEditingController());
@@ -72,7 +72,7 @@ class _ReglementationGazScreenState extends State<ReglementationGazScreen>
         _isLoading = false;
       });
     } catch (e) {
-      print('Erreur chargement codes Qualigaz: $e');
+      debugPrint('Erreur chargement codes Qualigaz: $e');
       setState(() {
         _isLoading = false;
       });
@@ -196,9 +196,11 @@ class _ReglementationGazScreenState extends State<ReglementationGazScreen>
         observations: 'Rapport généré avec codes Qualigaz officiels',
       );
 
-      await Share.shareXFiles(
-        [XFile(pdfFile.path)],
-        text: 'Rapport de contrôle régulation gaz',
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(pdfFile.path)],
+          text: 'Rapport de contrôle régulation gaz',
+        ),
       );
 
       if (!mounted) return;
@@ -333,7 +335,7 @@ class _ReglementationGazScreenState extends State<ReglementationGazScreen>
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: _getColorForAnomalyType(_getClassificationGlobale()).withOpacity(0.1),
+                        color: _getColorForAnomalyType(_getClassificationGlobale()).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: _getColorForAnomalyType(_getClassificationGlobale()),
@@ -442,7 +444,7 @@ class _ReglementationGazScreenState extends State<ReglementationGazScreen>
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: color.withOpacity(0.1),
+                          color: color.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Column(

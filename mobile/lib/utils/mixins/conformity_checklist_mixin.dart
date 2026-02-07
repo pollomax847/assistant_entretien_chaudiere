@@ -102,7 +102,7 @@ mixin ConformityChecklistMixin<T extends StatefulWidget> on State<T> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: statusColor.withOpacity(0.1),
+        color: statusColor.withValues(alpha: 0.1),
         border: Border.all(color: statusColor, width: 2),
         borderRadius: BorderRadius.circular(8),
       ),

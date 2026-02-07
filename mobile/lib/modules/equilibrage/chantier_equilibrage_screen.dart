@@ -55,7 +55,7 @@ class _ChantierEquilibrageScreenState extends ConsumerState<ChantierEquilibrageS
         _codesLoaded = true;
       });
     } catch (e) {
-      print('Erreur lors du chargement des codes Qualigaz: $e');
+      debugPrint('Erreur lors du chargement des codes Qualigaz: $e');
     }
   }
 
@@ -119,14 +119,14 @@ class _ChantierEquilibrageScreenState extends ConsumerState<ChantierEquilibrageS
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Icon(Icons.device_thermostat, size: 16, color: Colors.blue),
+                      const Icon(Icons.device_thermostat, size: 16, color: Colors.blue),
                       const SizedBox(width: 4),
                       Text(
                         '${_chantierCourant.radiateurs.length} radiateur(s)',
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       const SizedBox(width: 16),
-                      Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                      const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
                       const SizedBox(width: 4),
                       Text(
                         '${_chantierCourant.dateCreation.day}/${_chantierCourant.dateCreation.month}/${_chantierCourant.dateCreation.year}',
@@ -150,7 +150,7 @@ class _ChantierEquilibrageScreenState extends ConsumerState<ChantierEquilibrageS
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.thermostat, size: 64, color: Colors.grey),
+                          const Icon(Icons.thermostat, size: 64, color: Colors.grey),
                           const SizedBox(height: 16),
                           const Text(
                             'Aucun radiateur dans ce chantier',
@@ -192,8 +192,8 @@ class _ChantierEquilibrageScreenState extends ConsumerState<ChantierEquilibrageS
       floatingActionButton: _chantierCourant.radiateurs.isNotEmpty
           ? FloatingActionButton(
               onPressed: _sauvegarderChantier,
-              child: const Icon(Icons.save),
               tooltip: 'Sauvegarder les modifications',
+              child: const Icon(Icons.save),
             )
           : null,
     );
@@ -207,7 +207,7 @@ class _ChantierEquilibrageScreenState extends ConsumerState<ChantierEquilibrageS
       margin: const EdgeInsets.only(bottom: 12),
       child: ExpansionTile(
         leading: CircleAvatar(
-          backgroundColor: statutColor.withOpacity(0.2),
+          backgroundColor: statutColor.withValues(alpha: 0.2),
           child: Icon(statutIcon, color: statutColor),
         ),
         title: Row(
@@ -221,9 +221,9 @@ class _ChantierEquilibrageScreenState extends ConsumerState<ChantierEquilibrageS
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: statutColor.withOpacity(0.1),
+                color: statutColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: statutColor.withOpacity(0.3)),
+                border: Border.all(color: statutColor.withValues(alpha: 0.3)),
               ),
               child: Text(
                 radiateur.statut.displayName,
@@ -608,7 +608,6 @@ class _ChantierEquilibrageScreenState extends ConsumerState<ChantierEquilibrageS
 
     if (validDeltaTs.isEmpty) return issues;
 
-    final avgDeltaT = validDeltaTs.reduce((a, b) => a + b) / validDeltaTs.length;
     final maxDeltaT = validDeltaTs.reduce((a, b) => a > b ? a : b);
     final minDeltaT = validDeltaTs.reduce((a, b) => a < b ? a : b);
 

@@ -439,7 +439,7 @@ mixin PDFGeneratorMixin {
               pw.SizedBox(height: defaultPadding),
             ],
           );
-        }).toList(),
+        }),
       ],
     );
   }

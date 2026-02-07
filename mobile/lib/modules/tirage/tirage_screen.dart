@@ -2,8 +2,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:fl_chart/fl_chart.dart';
 import '../../utils/mixins/mixins.dart';
 
 class TirageScreen extends StatefulWidget {
@@ -419,28 +417,28 @@ class TirageZonePainter extends CustomPainter {
     }
 
     // Zone DANGER (rouge) : > -0.10
-    paint.color = Colors.red.withOpacity(0.3);
+    paint.color = Colors.red.withValues(alpha: 0.3);
     canvas.drawRect(
       Rect.fromLTWH(getX(limiteBasse), 0, size.width - getX(limiteBasse), size.height),
       paint,
     );
 
     // Zone LIMITE (orange) : -0.10 à -0.20
-    paint.color = Colors.orange.withOpacity(0.3);
+    paint.color = Colors.orange.withValues(alpha: 0.3);
     canvas.drawRect(
       Rect.fromLTWH(getX(idealMin), 0, getX(limiteBasse) - getX(idealMin), size.height),
       paint,
     );
 
     // Zone OPTIMALE (vert) : -0.20 à -0.30
-    paint.color = Colors.green.withOpacity(0.3);
+    paint.color = Colors.green.withValues(alpha: 0.3);
     canvas.drawRect(
       Rect.fromLTWH(getX(idealMax), 0, getX(idealMin) - getX(idealMax), size.height),
       paint,
     );
 
     // Zone FORT (bleu) : < -0.30
-    paint.color = Colors.blue.withOpacity(0.3);
+    paint.color = Colors.blue.withValues(alpha: 0.3);
     canvas.drawRect(
       Rect.fromLTWH(0, 0, getX(idealMax), size.height),
       paint,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/sections/securite_section.dart';
-import '../../../utils/mixins/mixins.dart';
+import 'package:assistant_entreiten_chaudiere/utils/mixins/mixins.dart';
 
 /// Tab Écran - Sécurité
 class SecuriteTab extends StatefulWidget {
@@ -8,13 +8,13 @@ class SecuriteTab extends StatefulWidget {
   final Function(SecuriteSection) onUpdate;
 
   const SecuriteTab({
-    Key? key,
+    super.key,
     this.initialData,
     required this.onUpdate,
-  }) : super(key: key);
+  });
 
   @override
-  _SecuriteTabState createState() => _SecuriteTabState();
+  State<SecuriteTab> createState() => _SecuriteTabState();
 }
 
 class _SecuriteTabState extends State<SecuriteTab>

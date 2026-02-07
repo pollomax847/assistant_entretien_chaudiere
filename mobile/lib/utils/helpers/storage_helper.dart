@@ -86,9 +86,11 @@ class StorageHelper {
   /// Partage un fichier
   static Future<void> shareFile(String path, {String? subject}) async {
     try {
-      await Share.shareXFiles(
-        [XFile(path)],
-        subject: subject,
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(path)],
+          subject: subject,
+        ),
       );
     } catch (e) {
       throw Exception('Erreur lors du partage du fichier: $e');
@@ -98,7 +100,12 @@ class StorageHelper {
   /// Partage du texte
   static Future<void> shareText(String text, {String? subject}) async {
     try {
-      await Share.share(text, subject: subject);
+      await SharePlus.instance.share(
+        ShareParams(
+          text: text,
+          subject: subject,
+        ),
+      );
     } catch (e) {
       throw Exception('Erreur lors du partage du texte: $e');
     }

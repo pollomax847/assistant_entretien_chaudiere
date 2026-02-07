@@ -29,12 +29,12 @@ class ReleveTechniqueScreen extends StatefulWidget {
   final String? releveId;
 
   const ReleveTechniqueScreen({
-    Key? key,
+    super.key,
     this.releveId,
-  }) : super(key: key);
+  });
 
   @override
-  _ReleveTechniqueScreenState createState() => _ReleveTechniqueScreenState();
+  State<ReleveTechniqueScreen> createState() => _ReleveTechniqueScreenState();
 }
 
 class _ReleveTechniqueScreenState extends State<ReleveTechniqueScreen>
@@ -84,7 +84,7 @@ class _ReleveTechniqueScreenState extends State<ReleveTechniqueScreen>
       
       setState(() => _isLoading = false);
     } catch (e) {
-      print('Erreur initialisation: $e');
+      debugPrint('Erreur initialisation: $e');
       setState(() {
         _isLoading = false;
         _hasError = true;
@@ -368,7 +368,7 @@ class _ReleveTechniqueScreenState extends State<ReleveTechniqueScreen>
       ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16),
-        color: Theme.of(context).primaryColor.withOpacity(0.1),
+        color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [

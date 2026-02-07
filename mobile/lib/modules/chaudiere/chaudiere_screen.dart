@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'dart:math';
 import '../../utils/mixins/mixins.dart';
@@ -212,11 +211,15 @@ class _ChaudiereScreenState extends State<ChaudiereScreen>
                               getTitlesWidget: (value, meta) => Text(value.toStringAsFixed(2)),
                             ),
                           ),
-                          leftTitles: AxisTitles(
+                          leftTitles: const AxisTitles(
                             sideTitles: SideTitles(showTitles: true, reservedSize: 40),
                           ),
-                          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                          topTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                          rightTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
                         ),
                         lineBarsData: [
                           // CO (rouge)

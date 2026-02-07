@@ -15,10 +15,6 @@ class GitHubUpdateService {
   static const String _versionUrl = 
       'https://gist.githubusercontent.com/pollomax847/4dde52dd2517fdde10148cd251ff505a/raw/version.json';
   
-  // Repo GitHub pour les releases
-  static const String _repoOwner = 'pollomax847';
-  static const String _repoName = 'assistant_entretien_chaudiere';
-
   /// Vérifier si une mise à jour est disponible
   Future<UpdateInfo?> checkForUpdate() async {
     try {
@@ -81,8 +77,8 @@ class GitHubUpdateService {
     return showDialog(
       context: context,
       barrierDismissible: !updateInfo.forceUpdate,
-      builder: (context) => WillPopScope(
-        onWillPop: () async => !updateInfo.forceUpdate,
+      builder: (context) => PopScope(
+        canPop: !updateInfo.forceUpdate,
         child: AlertDialog(
           title: Row(
             children: [
@@ -116,7 +112,7 @@ class GitHubUpdateService {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.1),
+                      color: Colors.orange.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: Colors.orange),
                     ),

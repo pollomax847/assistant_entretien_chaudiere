@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/sections/chaudiere_section.dart';
-import '../../../utils/mixins/mixins.dart';
+import 'package:assistant_entreiten_chaudiere/utils/mixins/mixins.dart';
 
 /// Tab Écran - Chaudière
 /// Gère les données chaudière, ECS, configuration, raccordements
@@ -9,13 +9,13 @@ class ChaudiereTab extends StatefulWidget {
   final Function(ChaudiereSection) onUpdate;
 
   const ChaudiereTab({
-    Key? key,
+    super.key,
     this.initialData,
     required this.onUpdate,
-  }) : super(key: key);
+  });
 
   @override
-  _ChaudiereTabState createState() => _ChaudiereTabState();
+  State<ChaudiereTab> createState() => _ChaudiereTabState();
 }
 
 class _ChaudiereTabState extends State<ChaudiereTab>
@@ -227,7 +227,7 @@ class _ChaudiereTabState extends State<ChaudiereTab>
         Text('Ballons ECS', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 12),
         DropdownButtonFormField<String>(
-          value: _typeBallonEcs,
+          initialValue: _typeBallonEcs,
           decoration: const InputDecoration(
             labelText: 'Type ballon ECS',
             border: OutlineInputBorder(),

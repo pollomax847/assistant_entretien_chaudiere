@@ -1,19 +1,12 @@
 import 'dart:io';
-import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart';
 
 class PdfGeneratorService {
-  static const String _companyName = 'Chauffage Expert';
-  static const String _companySlogan = 'Solutions de chauffage professionnelles';
-
   // Couleurs du thème
   static const PdfColor _primaryColor = PdfColor(0.2, 0.4, 0.8); // Bleu
-  static const PdfColor _secondaryColor = PdfColor(0.8, 0.2, 0.2); // Rouge
-  static const PdfColor _accentColor = PdfColor(0.2, 0.8, 0.4); // Vert
   static const PdfColor _textColor = PdfColor(0.2, 0.2, 0.2); // Gris foncé
   static const PdfColor _lightGray = PdfColor(0.9, 0.9, 0.9); // Gris clair
 

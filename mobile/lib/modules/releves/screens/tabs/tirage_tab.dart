@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/sections/tirage_section.dart';
-import '../../../utils/mixins/mixins.dart';
+import 'package:assistant_entreiten_chaudiere/utils/mixins/mixins.dart';
 
 /// Tab Écran - Tirage et mesures gaz
 class TirageTab extends StatefulWidget {
@@ -8,13 +8,13 @@ class TirageTab extends StatefulWidget {
   final Function(TirageSection) onUpdate;
 
   const TirageTab({
-    Key? key,
+    super.key,
     this.initialData,
     required this.onUpdate,
-  }) : super(key: key);
+  });
 
   @override
-  _TirageTabState createState() => _TirageTabState();
+  State<TirageTab> createState() => _TirageTabState();
 }
 
 class _TirageTabState extends State<TirageTab>

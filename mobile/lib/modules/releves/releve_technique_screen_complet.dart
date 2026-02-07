@@ -69,7 +69,6 @@ class _ReleveTechniqueScreenCompletState
   final _nomEntrepriseController = TextEditingController();
   final _nomTechnicienController = TextEditingController();
   late DateTime _dateReleve;
-  int _nombreReleves = 1;
   final List<Map<String, dynamic>> _releves = [];
   int _currentPage = 0;
   final int _totalPages = 3;
@@ -136,8 +135,10 @@ class _ReleveTechniqueScreenCompletState
         );
       }
 
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
 
       final placemarks = await placemarkFromCoordinates(
@@ -155,15 +156,17 @@ class _ReleveTechniqueScreenCompletState
       }
 
       final placemark = placemarks.first;
-      final streetParts = [placemark.street, placemark.subLocality]
-          .where((value) => value != null && value!.trim().isNotEmpty)
-          .map((value) => value!.trim())
-          .toList();
+          final streetParts = [placemark.street, placemark.subLocality]
+            .whereType<String>()
+            .map((value) => value.trim())
+            .where((value) => value.isNotEmpty)
+            .toList();
       final streetLine = streetParts.join(' ');
-      final cityLineParts = [placemark.postalCode, placemark.locality]
-          .where((value) => value != null && value!.trim().isNotEmpty)
-          .map((value) => value!.trim())
-          .toList();
+          final cityLineParts = [placemark.postalCode, placemark.locality]
+            .whereType<String>()
+            .map((value) => value.trim())
+            .where((value) => value.isNotEmpty)
+            .toList();
       final cityLine = cityLineParts.join(' ');
       final addressParts = <String>[];
       if (streetLine.isNotEmpty) {
@@ -172,8 +175,9 @@ class _ReleveTechniqueScreenCompletState
       if (cityLine.isNotEmpty) {
         addressParts.add(cityLine);
       }
-      if (placemark.country != null && placemark.country!.trim().isNotEmpty) {
-        addressParts.add(placemark.country!.trim());
+      final country = placemark.country?.trim() ?? '';
+      if (country.isNotEmpty) {
+        addressParts.add(country);
       }
 
       final fullAddress = addressParts.join(', ');
@@ -201,21 +205,6 @@ class _ReleveTechniqueScreenCompletState
           SnackBar(content: Text('❌ Erreur: $e')),
         );
       }
-    }
-  }
-
-  void _ajouterReleve() {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _releves.add({
-          'nomEntreprise': _nomEntrepriseController.text,
-          'nomTechnicien': _nomTechnicienController.text,
-          'dateReleve': _dateReleve,
-          'type': widget.type,
-          'donnees': {}, // Sera rempli par le formulaire spécifique
-        });
-        _nombreReleves++;
-      });
     }
   }
 
@@ -365,7 +354,7 @@ class _ReleveTechniqueScreenCompletState
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.info, color: Colors.blue, size: 32),
+                      const Icon(Icons.info, color: Colors.blue, size: 32),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Column(
@@ -497,7 +486,7 @@ class _ReleveTechniqueScreenCompletState
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.check_circle, color: Colors.green, size: 32),
+                      const Icon(Icons.check_circle, color: Colors.green, size: 32),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Text('Résumé et Validation',
@@ -522,7 +511,7 @@ class _ReleveTechniqueScreenCompletState
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.info, color: Colors.green),
+                        const Icon(Icons.info, color: Colors.green),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text('Cliquez sur "Sauvegarder" pour finaliser',
