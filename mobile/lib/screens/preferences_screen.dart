@@ -236,6 +236,11 @@ class _PreferencesPanelState extends State<PreferencesPanel>
                         title: const Text('Version'),
                         subtitle: Text('$_appVersion (build $_buildNumber)'),
                       ),
+                      const ListTile(
+                        leading: Icon(Icons.copyright),
+                        title: Text('Copyright'),
+                        subtitle: Text(AppConstants.appCopyright),
+                      ),
                       ListTile(
                         leading: const Icon(Icons.mail_outline),
                         title: const Text('Contact (bugs)'),

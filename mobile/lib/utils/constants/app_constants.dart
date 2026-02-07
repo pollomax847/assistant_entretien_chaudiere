@@ -3,6 +3,7 @@ class AppConstants {
   // Informations de l'app
   static const String appName = 'Chauffage Expert';
   static const String appVersion = '1.0.0';
+  static const String appCopyright = 'Copyright (c) 2026 pollomax84';
   
   // Clés SharedPreferences
   static const String prefKeyDernierTirage = 'dernier_tirage';
