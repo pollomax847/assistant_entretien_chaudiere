@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/sections/conformite_section.dart';
+import '../../../utils/mixins/mixins.dart';
 
 /// Tab Écran - Conformité
 class ConformiteTab extends StatefulWidget {
@@ -16,7 +17,8 @@ class ConformiteTab extends StatefulWidget {
   _ConformiteTabState createState() => _ConformiteTabState();
 }
 
-class _ConformiteTabState extends State<ConformiteTab> {
+class _ConformiteTabState extends State<ConformiteTab>
+    with SingleTickerProviderStateMixin, AnimationStyleMixin {
   late TextEditingController _raisonController;
   late TextEditingController _commentaireController;
 
@@ -33,10 +35,15 @@ class _ConformiteTabState extends State<ConformiteTab> {
   bool? _foyerOuvert;
   bool? _clapet;
   bool? _conformeReglementationGaz;
+  late final AnimationController _introController = AnimationController(
+    vsync: this,
+    duration: entranceDuration,
+  );
 
   @override
   void initState() {
     super.initState();
+    _introController.forward();
     _initializeControllers();
   }
 
@@ -62,6 +69,7 @@ class _ConformiteTabState extends State<ConformiteTab> {
 
   @override
   void dispose() {
+    _introController.dispose();
     _raisonController.dispose();
     _commentaireController.dispose();
     super.dispose();
@@ -91,9 +99,14 @@ class _ConformiteTabState extends State<ConformiteTab> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
+    final fade = buildStaggeredFade(_introController, 0);
+    final slide = buildStaggeredSlide(fade);
+    return buildFadeSlide(
+      fade: fade,
+      slide: slide,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
         Text('Vérifications Obligatoires',
             style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 16),
@@ -234,7 +247,8 @@ class _ConformiteTabState extends State<ConformiteTab> {
           maxLines: 3,
           onChanged: (_) => _saveData(),
         ),
-      ],
+        ],
+      ),
     );
   }
 }

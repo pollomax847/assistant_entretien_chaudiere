@@ -8,6 +8,7 @@ import 'rt_chaudiere_form.dart';
 import 'rt_pac_form.dart';
 import 'rt_clim_form.dart';
 import 'services/releve_pdf_generator.dart';
+import '../../utils/mixins/mixins.dart';
 
 class ReleveTechnique {
   String nomEntreprise;
@@ -62,7 +63,8 @@ class ReleveTechniqueScreenComplet extends StatefulWidget {
 }
 
 class _ReleveTechniqueScreenCompletState
-    extends State<ReleveTechniqueScreenComplet> {
+    extends State<ReleveTechniqueScreenComplet>
+    with SingleTickerProviderStateMixin, AnimationStyleMixin {
   final _formKey = GlobalKey<FormState>();
   final _nomEntrepriseController = TextEditingController();
   final _nomTechnicienController = TextEditingController();
@@ -71,18 +73,35 @@ class _ReleveTechniqueScreenCompletState
   final List<Map<String, dynamic>> _releves = [];
   int _currentPage = 0;
   final int _totalPages = 3;
+  late final AnimationController _introController = AnimationController(
+    vsync: this,
+    duration: entranceDuration,
+  );
 
   @override
   void initState() {
     super.initState();
     _dateReleve = DateTime.now();
+    _introController.forward();
   }
 
   @override
   void dispose() {
+    _introController.dispose();
     _nomEntrepriseController.dispose();
     _nomTechnicienController.dispose();
     super.dispose();
+  }
+
+  void _setPage(int nextPage) {
+    setState(() => _currentPage = nextPage);
+    _introController.forward(from: 0);
+  }
+
+  Widget _wrapSection(Widget child, int index) {
+    final fade = buildStaggeredFade(_introController, index);
+    final slide = buildStaggeredSlide(fade);
+    return buildFadeSlide(fade: fade, slide: slide, child: child);
   }
 
   /// Récupère la position GPS actuelle et met à jour l'adresse
@@ -304,7 +323,7 @@ class _ReleveTechniqueScreenCompletState
                 children: [
                   ElevatedButton.icon(
                     onPressed: _currentPage > 0
-                        ? () => setState(() => _currentPage--)
+                        ? () => _setPage(_currentPage - 1)
                         : null,
                     icon: const Icon(Icons.arrow_back),
                     label: const Text('Précédent'),
@@ -317,7 +336,7 @@ class _ReleveTechniqueScreenCompletState
                     onPressed: _currentPage < _totalPages - 1
                         ? () {
                             if (_formKey.currentState!.validate()) {
-                              setState(() => _currentPage++);
+                              _setPage(_currentPage + 1);
                             }
                           }
                         : null,
@@ -337,117 +356,120 @@ class _ReleveTechniqueScreenCompletState
   Widget _buildPage1() {
     return Column(
       children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.info, color: Colors.blue, size: 32),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+        _wrapSection(
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.info, color: Colors.blue, size: 32),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Informations Générales',
+                              style: Theme.of(context).textTheme.headlineSmall),
+                            const SizedBox(height: 4),
+                            Text(_getTitre(),
+                              style: Theme.of(context).textTheme.bodySmall),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _nomEntrepriseController,
+                          decoration: const InputDecoration(
+                            labelText: 'Adresse du client',
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.location_on),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Ce champ est obligatoire';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      FloatingActionButton.small(
+                        heroTag: 'gps_location',
+                        onPressed: _getGPSLocation,
+                        tooltip: 'Géolocalisation GPS',
+                        child: const Icon(Icons.gps_fixed),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _nomTechnicienController,
+                    decoration: const InputDecoration(
+                      labelText: 'Nom du technicien',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.person),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Ce champ est obligatoire';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  Card(
+                    color: Colors.blue.shade50,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
                         children: [
-                          Text('Informations Générales',
-                            style: Theme.of(context).textTheme.headlineSmall),
-                          const SizedBox(height: 4),
-                          Text(_getTitre(),
-                            style: Theme.of(context).textTheme.bodySmall),
+                          const Icon(Icons.calendar_today, color: Colors.blue),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Date du relevé',
+                                  style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                Text(DateFormat('dd MMMM yyyy', 'fr_FR').format(_dateReleve),
+                                  style: const TextStyle(fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: () async {
+                              final date = await showDatePicker(
+                                context: context,
+                                initialDate: _dateReleve,
+                                firstDate: DateTime(2020),
+                                lastDate: DateTime.now(),
+                              );
+                              if (date != null) {
+                                setState(() {
+                                  _dateReleve = date;
+                                });
+                              }
+                            },
+                            child: const Text('Changer'),
+                          ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-                const Divider(),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _nomEntrepriseController,
-                        decoration: const InputDecoration(
-                          labelText: 'Adresse du client',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.location_on),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Ce champ est obligatoire';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    FloatingActionButton.small(
-                      heroTag: 'gps_location',
-                      onPressed: _getGPSLocation,
-                      tooltip: 'Géolocalisation GPS',
-                      child: const Icon(Icons.gps_fixed),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _nomTechnicienController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nom du technicien',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.person),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Ce champ est obligatoire';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                Card(
-                  color: Colors.blue.shade50,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.calendar_today, color: Colors.blue),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Date du relevé',
-                                style: TextStyle(fontSize: 12, color: Colors.grey)),
-                              Text(DateFormat('dd MMMM yyyy', 'fr_FR').format(_dateReleve),
-                                style: const TextStyle(fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: () async {
-                            final date = await showDatePicker(
-                              context: context,
-                              initialDate: _dateReleve,
-                              firstDate: DateTime(2020),
-                              lastDate: DateTime.now(),
-                            );
-                            if (date != null) {
-                              setState(() {
-                                _dateReleve = date;
-                              });
-                            }
-                          },
-                          child: const Text('Changer'),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
+          0,
         ),
       ],
     );
@@ -457,7 +479,7 @@ class _ReleveTechniqueScreenCompletState
   Widget _buildPage2() {
     return Column(
       children: [
-        _buildForm(),
+        _wrapSection(_buildForm(), 0),
       ],
     );
   }
@@ -466,79 +488,82 @@ class _ReleveTechniqueScreenCompletState
   Widget _buildPage3() {
     return Column(
       children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.check_circle, color: Colors.green, size: 32),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Text('Résumé et Validation',
-                        style: Theme.of(context).textTheme.headlineSmall),
-                    ),
-                  ],
-                ),
-                const Divider(),
-                const SizedBox(height: 16),
-                _buildSummaryItem('Entreprise', _nomEntrepriseController.text),
-                _buildSummaryItem('Technicien', _nomTechnicienController.text),
-                _buildSummaryItem('Date',
-                  DateFormat('dd/MM/yyyy').format(_dateReleve)),
-                _buildSummaryItem('Type', _getTitre()),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.green.shade50,
-                    border: Border.all(color: Colors.green),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
+        _wrapSection(
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Icon(Icons.info, color: Colors.green),
-                      const SizedBox(width: 12),
+                      Icon(Icons.check_circle, color: Colors.green, size: 32),
+                      const SizedBox(width: 16),
                       Expanded(
-                        child: Text('Cliquez sur "Sauvegarder" pour finaliser',
-                          style: TextStyle(color: Colors.green.shade700)),
+                        child: Text('Résumé et Validation',
+                          style: Theme.of(context).textTheme.headlineSmall),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: _genererPDF,
-                        icon: const Icon(Icons.picture_as_pdf),
-                        label: const Text('Générer PDF'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange.shade600,
-                          minimumSize: const Size.fromHeight(45),
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  _buildSummaryItem('Entreprise', _nomEntrepriseController.text),
+                  _buildSummaryItem('Technicien', _nomTechnicienController.text),
+                  _buildSummaryItem('Date',
+                    DateFormat('dd/MM/yyyy').format(_dateReleve)),
+                  _buildSummaryItem('Type', _getTitre()),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      border: Border.all(color: Colors.green),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info, color: Colors.green),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text('Cliquez sur "Sauvegarder" pour finaliser',
+                            style: TextStyle(color: Colors.green.shade700)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _genererPDF,
+                          icon: const Icon(Icons.picture_as_pdf),
+                          label: const Text('Générer PDF'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange.shade600,
+                            minimumSize: const Size.fromHeight(45),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: _sauvegarderReleve,
-                        icon: const Icon(Icons.save),
-                        label: const Text('Sauvegarder'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          minimumSize: const Size.fromHeight(45),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _sauvegarderReleve,
+                          icon: const Icon(Icons.save),
+                          label: const Text('Sauvegarder'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            minimumSize: const Size.fromHeight(45),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
+          0,
         ),
       ],
     );

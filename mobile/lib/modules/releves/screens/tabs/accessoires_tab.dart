@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/sections/accessoires_section.dart';
+import '../../../utils/mixins/mixins.dart';
 
 /// Tab Écran - Accessoires
 class AccessoiresTab extends StatefulWidget {
@@ -16,7 +17,8 @@ class AccessoiresTab extends StatefulWidget {
   _AccessoiresTabState createState() => _AccessoiresTabState();
 }
 
-class _AccessoiresTabState extends State<AccessoiresTab> {
+class _AccessoiresTabState extends State<AccessoiresTab>
+    with SingleTickerProviderStateMixin, AnimationStyleMixin {
   late TextEditingController _typeFiltre;
   late TextEditingController _volumeVase;
   late TextEditingController _commentaireController;
@@ -35,12 +37,17 @@ class _AccessoiresTabState extends State<AccessoiresTab> {
   bool? _roaiPresent;
   bool? _daaf;
   bool? _detectionGaz;
+  late final AnimationController _introController = AnimationController(
+    vsync: this,
+    duration: entranceDuration,
+  );
 
   String? _typeVase;
 
   @override
   void initState() {
     super.initState();
+    _introController.forward();
     _initializeControllers();
   }
 
@@ -69,6 +76,7 @@ class _AccessoiresTabState extends State<AccessoiresTab> {
 
   @override
   void dispose() {
+    _introController.dispose();
     _typeFiltre.dispose();
     _volumeVase.dispose();
     _commentaireController.dispose();
@@ -102,9 +110,14 @@ class _AccessoiresTabState extends State<AccessoiresTab> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
+    final fade = buildStaggeredFade(_introController, 0);
+    final slide = buildStaggeredSlide(fade);
+    return buildFadeSlide(
+      fade: fade,
+      slide: slide,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
         Text('Filtration', style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 16),
         CheckboxListTile(
@@ -279,7 +292,8 @@ class _AccessoiresTabState extends State<AccessoiresTab> {
           maxLines: 3,
           onChanged: (_) => _saveData(),
         ),
-      ],
+        ],
+      ),
     );
   }
 }

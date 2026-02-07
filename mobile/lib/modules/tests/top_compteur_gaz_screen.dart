@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import 'package:assistant_entreiten_chaudiere/utils/widgets/app_snackbar.dart';
 import 'package:assistant_entreiten_chaudiere/services/pdf_generator.dart';
+import '../../utils/mixins/mixins.dart';
 
 class TopCompteurGazScreen extends StatefulWidget {
   const TopCompteurGazScreen({super.key});
@@ -11,12 +12,17 @@ class TopCompteurGazScreen extends StatefulWidget {
   State<TopCompteurGazScreen> createState() => _TopCompteurGazScreenState();
 }
 
-class _TopCompteurGazScreenState extends State<TopCompteurGazScreen> {
+class _TopCompteurGazScreenState extends State<TopCompteurGazScreen>
+    with SingleTickerProviderStateMixin, AnimationStyleMixin {
   // Contrôleurs
   final _indexDebutController = TextEditingController();
   final _indexFinController = TextEditingController();
   final _dureeController = TextEditingController();
   final _observationsController = TextEditingController();
+  late final AnimationController _introController = AnimationController(
+    vsync: this,
+    duration: entranceDuration,
+  );
   
   // Gas types with PCS values (kWh/m³) and pressure info
   final Map<String, Map<String, dynamic>> _gasTypes = {
@@ -74,6 +80,7 @@ class _TopCompteurGazScreenState extends State<TopCompteurGazScreen> {
   @override
   void initState() {
     super.initState();
+    _introController.forward();
     _chargerDonnees();
   }
 
@@ -240,6 +247,12 @@ class _TopCompteurGazScreenState extends State<TopCompteurGazScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Widget wrapSection(Widget child, int index) {
+      final fade = buildStaggeredFade(_introController, index);
+      final slide = buildStaggeredSlide(fade);
+      return buildFadeSlide(fade: fade, slide: slide, child: child);
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Top Compteur Gaz'),
@@ -257,397 +270,423 @@ class _TopCompteurGazScreenState extends State<TopCompteurGazScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Informations du test
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Informations du test',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        const Icon(Icons.person),
-                        const SizedBox(width: 8),
-                        Text('Technicien: $_technicien'),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const Icon(Icons.access_time),
-                        const SizedBox(width: 8),
-                        Text('Date: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}'),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Sélection du type de gaz
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Type de gaz',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    DropdownButtonFormField<String>(
-                      initialValue: _selectedGasType,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
-                      items: _gasTypes.keys.map((type) {
-                        final gasInfo = _gasTypes[type]!;
-                        return DropdownMenuItem(
-                          value: type,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('$type (${gasInfo['pcs']} kWh/m³)'),
-                              Text(
-                                '${gasInfo['description']} - ${gasInfo['pressure']}',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: !_testEnCours ? (value) {
-                        setState(() => _selectedGasType = value!);
-                      } : null,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Chronométrage (compte à rebours)
-            Card(
-              color: _chronometerActive
-                  ? Colors.orange.withAlpha((0.06 * 255).round())
-                  : Theme.of(context).cardColor,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Chronométrage',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 16),
-                    Center(
-                      child: Column(
-                        children: [
-                          if (_testEnCours) ...[
-                            Container(
-                              width: 120,
-                              height: 120,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: _countdown <= 10 ? Colors.red : Colors.orange,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: (_countdown <= 10 ? Colors.red : Colors.orange).withAlpha((0.3 * 255).round()),
-                                    blurRadius: 20,
-                                    spreadRadius: 5,
-                                  ),
-                                ],
-                              ),
-                              child: Center(
-                                child: Text(
-                                  '$_countdown',
-                                  style: const TextStyle(
-                                    fontSize: 36,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'secondes restantes',
-                              style: TextStyle(fontSize: 16, color: Colors.orange[700]),
-                            ),
-                            const SizedBox(height: 12),
-                            if (!_flameExtinguished)
-                              ElevatedButton.icon(
-                                onPressed: _stopFlame,
-                                icon: const Icon(Icons.local_fire_department),
-                                label: const Text('Flamme éteinte'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.orange,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                                ),
-                              )
-                            else if (!_gazCutOff)
-                              ElevatedButton.icon(
-                                onPressed: _confirmGazCutOff,
-                                icon: const Icon(Icons.block),
-                                label: const Text('Gaz coupé'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.red,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                                ),
-                              ),
-                          ] else ...[
-                            Text(
-                              'Prêt pour le test',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue[800]),
-                            ),
-                            const SizedBox(height: 12),
-                            ElevatedButton.icon(
-                              onPressed: _demarrerTest,
-                              icon: const Icon(Icons.play_arrow),
-                              label: const Text('Démarrer'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            if (_testResult.isNotEmpty) ...[
+            wrapSection(
               Card(
-                elevation: 4,
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: _testResult.contains('✅') ? Colors.green[50] : Colors.red[50],
-                    border: Border.all(
-                      color: _testResult.contains('✅') ? Colors.green : Colors.red,
-                      width: 1.5,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Résultat du test',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: _testResult.contains('✅') ? Colors.green[800] : Colors.red[800],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _testResult,
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-            ],
-
-            // Relevé des index
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Relevé des index du compteur',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: _indexDebutController,
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              labelText: 'Index début (m³)',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.start),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: TextFormField(
-                            controller: _indexFinController,
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              labelText: 'Index fin (m³)',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.stop),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _dureeController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Durée du test (secondes)',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.timer),
-                        helperText: 'Rempli automatiquement par le chrono',
-                      ),
-                      readOnly: true,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Observations
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Observations',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _observationsController,
-                      maxLines: 3,
-                      decoration: const InputDecoration(
-                        labelText: 'Observations du test',
-                        border: OutlineInputBorder(),
-                        hintText: 'Conditions particulières, anomalies observées...',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Bouton de calcul
-            Center(
-              child: ElevatedButton.icon(
-                onPressed: _calculerConsommation,
-                icon: const Icon(Icons.calculate),
-                label: const Text('Calculer la consommation'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Résultats
-            if (_consommation != null && _puissanceCalculee != null) ...[
-              Card(
-                color: Theme.of(context).colorScheme.primaryContainer,
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.assessment, size: 32),
-                          const SizedBox(width: 16),
-                          Text(
-                            'Résultats du test',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      
-                      // Grille des résultats
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          children: [
-                            _buildResultRow(
-                              'Consommation mesurée',
-                              '${_consommation!.toStringAsFixed(4)} m³',
-                              Icons.local_gas_station,
-                            ),
-                            const Divider(),
-                            _buildResultRow(
-                              'Puissance calculée',
-                              '${_puissanceCalculee!.toStringAsFixed(1)} kW',
-                              Icons.bolt,
-                              isHighlight: true,
-                            ),
-                            const Divider(),
-                            _buildResultRow(
-                              'Type d\'appareil identifié',
-                              _typeAppareil!,
-                              Icons.device_thermostat,
-                            ),
-                            const Divider(),
-                            _buildResultRow(
-                              'Durée du test',
-                              _formatDuree(_secondes),
-                              Icons.access_time,
-                            ),
-                          ],
-                        ),
+                      Text(
+                        'Informations du test',
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 16),
-                      
-                      // Note explicative
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withAlpha((0.1 * 255).round()),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.blue),
+                      Row(
+                        children: [
+                          const Icon(Icons.person),
+                          const SizedBox(width: 8),
+                          Text('Technicien: $_technicien'),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Icon(Icons.access_time),
+                          const SizedBox(width: 8),
+                          Text('Date: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}'),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              0,
+            ),
+            const SizedBox(height: 16),
+
+            // Sélection du type de gaz
+            wrapSection(
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Type de gaz',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        initialValue: _selectedGasType,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
                         ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.info, color: Colors.blue),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                'Calcul basé sur PCS du gaz naturel (9,6 kWh/m³)',
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
+                        items: _gasTypes.keys.map((type) {
+                          final gasInfo = _gasTypes[type]!;
+                          return DropdownMenuItem(
+                            value: type,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('$type (${gasInfo['pcs']} kWh/m³)'),
+                                Text(
+                                  '${gasInfo['description']} - ${gasInfo['pressure']}',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
                             ),
+                          );
+                        }).toList(),
+                        onChanged: !_testEnCours
+                            ? (value) {
+                                setState(() => _selectedGasType = value!);
+                              }
+                            : null,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              1,
+            ),
+            const SizedBox(height: 16),
+
+            // Chronométrage (compte à rebours)
+            wrapSection(
+              Card(
+                color: _chronometerActive
+                    ? Colors.orange.withAlpha((0.06 * 255).round())
+                    : Theme.of(context).cardColor,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Chronométrage',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 16),
+                      Center(
+                        child: Column(
+                          children: [
+                            if (_testEnCours) ...[
+                              Container(
+                                width: 120,
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: _countdown <= 10 ? Colors.red : Colors.orange,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: (_countdown <= 10 ? Colors.red : Colors.orange).withAlpha((0.3 * 255).round()),
+                                      blurRadius: 20,
+                                      spreadRadius: 5,
+                                    ),
+                                  ],
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    '$_countdown',
+                                    style: const TextStyle(
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'secondes restantes',
+                                style: TextStyle(fontSize: 16, color: Colors.orange[700]),
+                              ),
+                              const SizedBox(height: 12),
+                              if (!_flameExtinguished)
+                                ElevatedButton.icon(
+                                  onPressed: _stopFlame,
+                                  icon: const Icon(Icons.local_fire_department),
+                                  label: const Text('Flamme éteinte'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orange,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                  ),
+                                )
+                              else if (!_gazCutOff)
+                                ElevatedButton.icon(
+                                  onPressed: _confirmGazCutOff,
+                                  icon: const Icon(Icons.block),
+                                  label: const Text('Gaz coupé'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                  ),
+                                ),
+                            ] else ...[
+                              Text(
+                                'Prêt pour le test',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue[800]),
+                              ),
+                              const SizedBox(height: 12),
+                              ElevatedButton.icon(
+                                onPressed: _demarrerTest,
+                                icon: const Icon(Icons.play_arrow),
+                                label: const Text('Démarrer'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),
                     ],
                   ),
                 ),
+              ),
+              2,
+            ),
+            const SizedBox(height: 12),
+
+            if (_testResult.isNotEmpty) ...[
+              wrapSection(
+                Card(
+                  elevation: 4,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: _testResult.contains('✅') ? Colors.green[50] : Colors.red[50],
+                      border: Border.all(
+                        color: _testResult.contains('✅') ? Colors.green : Colors.red,
+                        width: 1.5,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Résultat du test',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: _testResult.contains('✅') ? Colors.green[800] : Colors.red[800],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _testResult,
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                3,
+              ),
+              const SizedBox(height: 12),
+            ],
+
+            // Relevé des index
+            wrapSection(
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Relevé des index du compteur',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _indexDebutController,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: 'Index début (m³)',
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(Icons.start),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _indexFinController,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: 'Index fin (m³)',
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(Icons.stop),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _dureeController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Durée du test (secondes)',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.timer),
+                          helperText: 'Rempli automatiquement par le chrono',
+                        ),
+                        readOnly: true,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              4,
+            ),
+            const SizedBox(height: 16),
+
+            // Observations
+            wrapSection(
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Observations',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _observationsController,
+                        maxLines: 3,
+                        decoration: const InputDecoration(
+                          labelText: 'Observations du test',
+                          border: OutlineInputBorder(),
+                          hintText: 'Conditions particulières, anomalies observées...',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              5,
+            ),
+            const SizedBox(height: 16),
+
+            // Bouton de calcul
+            wrapSection(
+              Center(
+                child: ElevatedButton.icon(
+                  onPressed: _calculerConsommation,
+                  icon: const Icon(Icons.calculate),
+                  label: const Text('Calculer la consommation'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  ),
+                ),
+              ),
+              6,
+            ),
+            const SizedBox(height: 16),
+
+            // Résultats
+            if (_consommation != null && _puissanceCalculee != null) ...[
+              wrapSection(
+                Card(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.assessment, size: 32),
+                            const SizedBox(width: 16),
+                            Text(
+                              'Résultats du test',
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Grille des résultats
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            children: [
+                              _buildResultRow(
+                                'Consommation mesurée',
+                                '${_consommation!.toStringAsFixed(4)} m³',
+                                Icons.local_gas_station,
+                              ),
+                              const Divider(),
+                              _buildResultRow(
+                                'Puissance calculée',
+                                '${_puissanceCalculee!.toStringAsFixed(1)} kW',
+                                Icons.bolt,
+                                isHighlight: true,
+                              ),
+                              const Divider(),
+                              _buildResultRow(
+                                'Type d\'appareil identifié',
+                                _typeAppareil!,
+                                Icons.device_thermostat,
+                              ),
+                              const Divider(),
+                              _buildResultRow(
+                                'Durée du test',
+                                _formatDuree(_secondes),
+                                Icons.access_time,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Note explicative
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withAlpha((0.1 * 255).round()),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.blue),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.info, color: Colors.blue),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Calcul basé sur PCS du gaz naturel (9,6 kWh/m³)',
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                7,
               ),
             ],
           ],
@@ -683,6 +722,7 @@ class _TopCompteurGazScreenState extends State<TopCompteurGazScreen> {
 
   @override
   void dispose() {
+    _introController.dispose();
     _timer?.cancel();
     _indexDebutController.dispose();
     _indexFinController.dispose();

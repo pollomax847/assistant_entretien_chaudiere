@@ -9,6 +9,7 @@ import '../../utils/mixins/form_state_mixin.dart';
 import '../../utils/mixins/controller_dispose_mixin.dart';
 import '../../utils/mixins/snackbar_mixin.dart';
 import '../../utils/mixins/measurement_photo_storage_mixin.dart';
+import '../../utils/mixins/animation_style_mixin.dart';
 import 'widgets/measurement_photo_widget.dart';
 
 class ReglementationGazScreen extends StatefulWidget {
@@ -19,7 +20,13 @@ class ReglementationGazScreen extends StatefulWidget {
 }
 
 class _ReglementationGazScreenState extends State<ReglementationGazScreen>
-    with FormStateMixin, ControllerDisposeMixin, SnackBarMixin, MeasurementPhotoStorageMixin {
+  with
+    SingleTickerProviderStateMixin,
+    AnimationStyleMixin,
+    FormStateMixin,
+    ControllerDisposeMixin,
+    SnackBarMixin,
+    MeasurementPhotoStorageMixin {
   Map<String, dynamic>? _qualigazCodes;
   Map<String, String> _selectedCodes = {};
   Map<String, String> _observations = {};
@@ -31,12 +38,29 @@ class _ReglementationGazScreenState extends State<ReglementationGazScreen>
   late final _technicienController = registerController(TextEditingController());
 
   bool _isLoading = true;
+  late final AnimationController _introController = AnimationController(
+    vsync: this,
+    duration: entranceDuration,
+  );
 
   @override
   void initState() {
     super.initState();
+    _introController.forward();
     _chargerDonnees();
     _chargerCodesQualigaz();
+  }
+
+  @override
+  void dispose() {
+    _introController.dispose();
+    super.dispose();
+  }
+
+  Widget _wrapSection(Widget child, int index) {
+    final fade = buildStaggeredFade(_introController, index);
+    final slide = buildStaggeredSlide(fade);
+    return buildFadeSlide(fade: fade, slide: slide, child: child);
   }
 
   Future<void> _chargerCodesQualigaz() async {
@@ -248,90 +272,96 @@ class _ReglementationGazScreenState extends State<ReglementationGazScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Informations de l\'installation',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _nomClientController,
-                    decoration: const InputDecoration(
-                      labelText: 'Nom du client',
-                      border: OutlineInputBorder(),
+          _wrapSection(
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Informations de l\'installation',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _adresseController,
-                    decoration: const InputDecoration(
-                      labelText: 'Adresse d\'installation',
-                      border: OutlineInputBorder(),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _nomClientController,
+                      decoration: const InputDecoration(
+                        labelText: 'Nom du client',
+                        border: OutlineInputBorder(),
+                      ),
                     ),
-                    maxLines: 2,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _technicienController,
-                    decoration: const InputDecoration(
-                      labelText: 'Technicien',
-                      border: OutlineInputBorder(),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _adresseController,
+                      decoration: const InputDecoration(
+                        labelText: 'Adresse d\'installation',
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLines: 2,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _technicienController,
+                      decoration: const InputDecoration(
+                        labelText: 'Technicien',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
+            0,
           ),
 
           const SizedBox(height: 16),
 
           // Résumé des contrôles
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Résumé des contrôles',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: _getColorForAnomalyType(_getClassificationGlobale()).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: _getColorForAnomalyType(_getClassificationGlobale()),
+          _wrapSection(
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Résumé des contrôles',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: _getColorForAnomalyType(_getClassificationGlobale()).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: _getColorForAnomalyType(_getClassificationGlobale()),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            'Classification globale: ${_getClassificationGlobale()}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: _getColorForAnomalyType(_getClassificationGlobale()),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '${_selectedCodes.length} point(s) de contrôle sélectionné(s)',
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ],
                       ),
                     ),
-                    child: Column(
-                      children: [
-                        Text(
-                          'Classification globale: ${_getClassificationGlobale()}',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: _getColorForAnomalyType(_getClassificationGlobale()),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '${_selectedCodes.length} point(s) de contrôle sélectionné(s)',
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
+            1,
           ),
         ],
       ),
@@ -346,19 +376,23 @@ class _ReglementationGazScreenState extends State<ReglementationGazScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                categoryName,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          _wrapSection(
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  categoryName,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
+            0,
           ),
 
           const SizedBox(height: 16),
 
-          ...codeIds.map((codeId) {
+          ...List.generate(codeIds.length, (index) {
+            final codeId = codeIds[index];
             final codeInfo = codes[codeId.toString()];
             if (codeInfo == null) return const SizedBox.shrink();
 
@@ -366,7 +400,7 @@ class _ReglementationGazScreenState extends State<ReglementationGazScreen>
             final anomalyType = codeInfo['anomaly_type'] as String;
             final color = _getColorForAnomalyType(anomalyType);
 
-            return Card(
+            final card = Card(
               margin: const EdgeInsets.only(bottom: 12.0),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -453,6 +487,10 @@ class _ReglementationGazScreenState extends State<ReglementationGazScreen>
                 ),
               ),
             );
+
+            final fade = buildStaggeredFade(_introController, index + 1);
+            final slide = buildStaggeredSlide(fade);
+            return buildFadeSlide(fade: fade, slide: slide, child: card);
           }),
         ],
       ),

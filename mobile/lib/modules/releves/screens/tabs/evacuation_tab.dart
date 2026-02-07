@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/sections/evacuation_section.dart';
+import '../../../utils/mixins/mixins.dart';
 
 /// Tab Écran - Évacuation
 class EvacuationTab extends StatefulWidget {
@@ -16,7 +17,8 @@ class EvacuationTab extends StatefulWidget {
   _EvacuationTabState createState() => _EvacuationTabState();
 }
 
-class _EvacuationTabState extends State<EvacuationTab> {
+class _EvacuationTabState extends State<EvacuationTab>
+    with SingleTickerProviderStateMixin, AnimationStyleMixin {
   late TextEditingController _typeEvacuationController;
   late TextEditingController _diameterController;
   late TextEditingController _materiereController;
@@ -39,10 +41,15 @@ class _EvacuationTabState extends State<EvacuationTab> {
   bool? _ventouseHorizontale;
   bool? _puregePresente;
   bool? _bouchonGaz;
+  late final AnimationController _introController = AnimationController(
+    vsync: this,
+    duration: entranceDuration,
+  );
 
   @override
   void initState() {
     super.initState();
+    _introController.forward();
     _initializeControllers();
   }
 
@@ -81,6 +88,7 @@ class _EvacuationTabState extends State<EvacuationTab> {
 
   @override
   void dispose() {
+    _introController.dispose();
     _typeEvacuationController.dispose();
     _diameterController.dispose();
     _materiereController.dispose();
@@ -139,9 +147,14 @@ class _EvacuationTabState extends State<EvacuationTab> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
+    final fade = buildStaggeredFade(_introController, 0);
+    final slide = buildStaggeredSlide(fade);
+    return buildFadeSlide(
+      fade: fade,
+      slide: slide,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
         Text('Système d\'Évacuation',
             style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 16),
@@ -339,7 +352,8 @@ class _EvacuationTabState extends State<EvacuationTab> {
           maxLines: 3,
           onChanged: (_) => _saveData(),
         ),
-      ],
+        ],
+      ),
     );
   }
 }

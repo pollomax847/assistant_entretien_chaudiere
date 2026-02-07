@@ -21,6 +21,7 @@ import '../screens/tabs/securite_tab.dart';
 import '../services/relevel_storage_service.dart';
 import '../services/relevel_export_service.dart';
 import '../services/data_bridge_service.dart';
+import '../../../utils/mixins/mixins.dart';
 
 /// Écran principal - Relevé Technique
 /// Conteneur pour les 8 onglets avec gestion globale du relevé
@@ -37,8 +38,12 @@ class ReleveTechniqueScreen extends StatefulWidget {
 }
 
 class _ReleveTechniqueScreenState extends State<ReleveTechniqueScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, AnimationStyleMixin {
   late TabController _tabController;
+  late final AnimationController _tabIntroController = AnimationController(
+    vsync: this,
+    duration: entranceDuration,
+  );
   late ReleveTechnique _releve;
   bool _isLoading = true;
   bool _hasError = false;
@@ -47,6 +52,12 @@ class _ReleveTechniqueScreenState extends State<ReleveTechniqueScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 8, vsync: this);
+    _tabIntroController.forward();
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) {
+        _tabIntroController.forward(from: 0);
+      }
+    });
     _initializeReleve();
   }
 
@@ -84,7 +95,14 @@ class _ReleveTechniqueScreenState extends State<ReleveTechniqueScreen>
   @override
   void dispose() {
     _tabController.dispose();
+    _tabIntroController.dispose();
     super.dispose();
+  }
+
+  Widget _wrapTab(Widget child, int index) {
+    final fade = buildStaggeredFade(_tabIntroController, index);
+    final slide = buildStaggeredSlide(fade);
+    return buildFadeSlide(fade: fade, slide: slide, child: child);
   }
 
   /// Callback pour mettre à jour une section
@@ -276,51 +294,75 @@ class _ReleveTechniqueScreenState extends State<ReleveTechniqueScreen>
         controller: _tabController,
         children: [
           // Onglet Client
-          ClientTab(
-            initialData: _releve.client,
-            onUpdate: _updateSection,
+          _wrapTab(
+            ClientTab(
+              initialData: _releve.client,
+              onUpdate: _updateSection,
+            ),
+            0,
           ),
           
           // Onglet Chaudière
-          ChaudiereTab(
-            initialData: _releve.chaudiere,
-            onUpdate: _updateSection,
+          _wrapTab(
+            ChaudiereTab(
+              initialData: _releve.chaudiere,
+              onUpdate: _updateSection,
+            ),
+            1,
           ),
           
           // Onglet ECS
-          EcsTab(
-            initialData: _releve.ecs,
-            onUpdate: _updateSection,
+          _wrapTab(
+            EcsTab(
+              initialData: _releve.ecs,
+              onUpdate: _updateSection,
+            ),
+            2,
           ),
           
           // Onglet Tirage
-          TirageTab(
-            initialData: _releve.tirage,
-            onUpdate: _updateSection,
+          _wrapTab(
+            TirageTab(
+              initialData: _releve.tirage,
+              onUpdate: _updateSection,
+            ),
+            3,
           ),
           
           // Onglet Évacuation
-          EvacuationTab(
-            initialData: _releve.evacuation,
-            onUpdate: _updateSection,
+          _wrapTab(
+            EvacuationTab(
+              initialData: _releve.evacuation,
+              onUpdate: _updateSection,
+            ),
+            4,
           ),
           
           // Onglet Conformité
-          ConformiteTab(
-            initialData: _releve.conformite,
-            onUpdate: _updateSection,
+          _wrapTab(
+            ConformiteTab(
+              initialData: _releve.conformite,
+              onUpdate: _updateSection,
+            ),
+            5,
           ),
           
           // Onglet Accessoires
-          AccessoiresTab(
-            initialData: _releve.accessoires,
-            onUpdate: _updateSection,
+          _wrapTab(
+            AccessoiresTab(
+              initialData: _releve.accessoires,
+              onUpdate: _updateSection,
+            ),
+            6,
           ),
           
           // Onglet Sécurité
-          SecuriteTab(
-            initialData: _releve.securite,
-            onUpdate: _updateSection,
+          _wrapTab(
+            SecuriteTab(
+              initialData: _releve.securite,
+              onUpdate: _updateSection,
+            ),
+            7,
           ),
         ],
       ),

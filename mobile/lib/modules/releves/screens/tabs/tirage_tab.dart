@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/sections/tirage_section.dart';
+import '../../../utils/mixins/mixins.dart';
 
 /// Tab Écran - Tirage et mesures gaz
 class TirageTab extends StatefulWidget {
@@ -16,7 +17,8 @@ class TirageTab extends StatefulWidget {
   _TirageTabState createState() => _TirageTabState();
 }
 
-class _TirageTabState extends State<TirageTab> {
+class _TirageTabState extends State<TirageTab>
+    with SingleTickerProviderStateMixin, AnimationStyleMixin {
   late TextEditingController _tirageController;
   late TextEditingController _coController;
   late TextEditingController _co2Controller;
@@ -33,10 +35,15 @@ class _TirageTabState extends State<TirageTab> {
   bool? _detectionGaz;
   bool? _ramonageOk;
   bool? _nettoyageOk;
+  late final AnimationController _introController = AnimationController(
+    vsync: this,
+    duration: entranceDuration,
+  );
 
   @override
   void initState() {
     super.initState();
+    _introController.forward();
     _initializeControllers();
   }
 
@@ -64,6 +71,7 @@ class _TirageTabState extends State<TirageTab> {
 
   @override
   void dispose() {
+    _introController.dispose();
     _tirageController.dispose();
     _coController.dispose();
     _co2Controller.dispose();
@@ -106,9 +114,14 @@ class _TirageTabState extends State<TirageTab> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
+    final fade = buildStaggeredFade(_introController, 0);
+    final slide = buildStaggeredSlide(fade);
+    return buildFadeSlide(
+      fade: fade,
+      slide: slide,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
         Text('Mesures de Tirage et Gaz',
             style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 16),
@@ -254,7 +267,8 @@ class _TirageTabState extends State<TirageTab> {
           maxLines: 3,
           onChanged: (_) => _saveData(),
         ),
-      ],
+        ],
+      ),
     );
   }
 }

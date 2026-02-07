@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import '../../../utils/mixins/photo_manager_mixin.dart';
+import '../../../utils/mixins/mixins.dart';
 
 /// Widget réutilisable pour gérer les photos dans les formulaires
 class PhotoGalleryWidget extends StatefulWidget {
@@ -22,13 +23,24 @@ class PhotoGalleryWidget extends StatefulWidget {
 }
 
 class _PhotoGalleryWidgetState extends State<PhotoGalleryWidget>
-    with PhotoManagerMixin {
+    with PhotoManagerMixin, SingleTickerProviderStateMixin, AnimationStyleMixin {
   final List<File> _photos = [];
+  late final AnimationController _introController = AnimationController(
+    vsync: this,
+    duration: fastDuration,
+  );
 
   @override
   void initState() {
     super.initState();
     _initializePhotoDirectory();
+    _introController.forward();
+  }
+
+  @override
+  void dispose() {
+    _introController.dispose();
+    super.dispose();
   }
 
   Future<void> _initializePhotoDirectory() async {
@@ -88,113 +100,120 @@ class _PhotoGalleryWidgetState extends State<PhotoGalleryWidget>
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.photo_camera,
-                    color: Colors.blue.shade600, size: 28),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+    final fade = buildStaggeredFade(_introController, 0);
+    final slide = buildStaggeredSlide(fade);
+
+    return buildFadeSlide(
+      fade: fade,
+      slide: slide,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.photo_camera,
+                      color: Colors.blue.shade600, size: 28),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.title,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          widget.subtitle,
+                          style:
+                              TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '${_photos.length}/${widget.maxPhotos}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue.shade700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              if (_photos.isEmpty)
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(32),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Colors.grey.shade300,
+                        style: BorderStyle.solid,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(Icons.add_a_photo,
+                            size: 48, color: Colors.grey.shade400),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Aucune photo',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: List.generate(
+                      _photos.length,
+                      (index) => Padding(
+                        padding: const EdgeInsets.only(right: 12),
+                        child: buildPhotoThumbnail(
+                          _photos[index],
+                          onDelete: () => _removePhoto(index),
+                          onPreview: () => _previewPhoto(_photos[index]),
                         ),
                       ),
-                      Text(
-                        widget.subtitle,
-                        style:
-                            TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    '${_photos.length}/${widget.maxPhotos}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue.shade700,
                     ),
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            if (_photos.isEmpty)
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.all(32),
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Colors.grey.shade300,
-                      style: BorderStyle.solid,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    children: [
-                      Icon(Icons.add_a_photo,
-                          size: 48, color: Colors.grey.shade400),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Aucune photo',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            else
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: List.generate(
-                    _photos.length,
-                    (index) => Padding(
-                      padding: const EdgeInsets.only(right: 12),
-                      child: buildPhotoThumbnail(
-                        _photos[index],
-                        onDelete: () => _removePhoto(index),
-                        onPreview: () => _previewPhoto(_photos[index]),
-                      ),
-                    ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _photos.length < widget.maxPhotos ? _addPhoto : null,
+                  icon: const Icon(Icons.add_photo_alternate),
+                  label: const Text('Ajouter une photo'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue.shade600,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: Colors.grey.shade300,
                   ),
                 ),
               ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _photos.length < widget.maxPhotos ? _addPhoto : null,
-                icon: const Icon(Icons.add_photo_alternate),
-                label: const Text('Ajouter une photo'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue.shade600,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: Colors.grey.shade300,
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

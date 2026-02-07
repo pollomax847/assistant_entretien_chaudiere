@@ -1,9 +1,33 @@
 import 'package:flutter/material.dart';
+import '../../../utils/mixins/mixins.dart';
 import '../type_releve.dart';
 import '../releve_technique_screen_complet.dart';
 
-class ReleveTechniqueSelectorScreen extends StatelessWidget {
+class ReleveTechniqueSelectorScreen extends StatefulWidget {
   const ReleveTechniqueSelectorScreen({super.key});
+
+  @override
+  State<ReleveTechniqueSelectorScreen> createState() => _ReleveTechniqueSelectorScreenState();
+}
+
+class _ReleveTechniqueSelectorScreenState extends State<ReleveTechniqueSelectorScreen>
+    with SingleTickerProviderStateMixin, AnimationStyleMixin {
+  late final AnimationController _listController = AnimationController(
+    vsync: this,
+    duration: entranceDuration,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _listController.forward();
+  }
+
+  @override
+  void dispose() {
+    _listController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,8 +38,9 @@ class ReleveTechniqueSelectorScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _buildCard(
+          _buildAnimatedCard(
             context,
+            index: 0,
             title: 'Chaudière',
             subtitle: 'Relevé technique chaudière',
             icon: Icons.fireplace,
@@ -23,8 +48,9 @@ class ReleveTechniqueSelectorScreen extends StatelessWidget {
             type: TypeReleve.chaudiere,
           ),
           const SizedBox(height: 12),
-          _buildCard(
+          _buildAnimatedCard(
             context,
+            index: 1,
             title: 'PAC',
             subtitle: 'Relevé technique pompe à chaleur',
             icon: Icons.ac_unit,
@@ -32,8 +58,9 @@ class ReleveTechniqueSelectorScreen extends StatelessWidget {
             type: TypeReleve.pac,
           ),
           const SizedBox(height: 12),
-          _buildCard(
+          _buildAnimatedCard(
             context,
+            index: 2,
             title: 'Climatisation',
             subtitle: 'Relevé technique climatisation',
             icon: Icons.cloud,
@@ -41,6 +68,31 @@ class ReleveTechniqueSelectorScreen extends StatelessWidget {
             type: TypeReleve.clim,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAnimatedCard(
+    BuildContext context, {
+    required int index,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required TypeReleve type,
+  }) {
+    final fade = buildStaggeredFade(_listController, index);
+    final slide = buildStaggeredSlide(fade);
+    return buildFadeSlide(
+      fade: fade,
+      slide: slide,
+      child: _buildCard(
+        context,
+        title: title,
+        subtitle: subtitle,
+        icon: icon,
+        color: color,
+        type: type,
       ),
     );
   }

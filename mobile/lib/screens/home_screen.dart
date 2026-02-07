@@ -15,10 +15,12 @@ import '../modules/releves/screens/releve_technique_selector_screen.dart';
 import '../services/github_update_service.dart';
 import '../services/update_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/mixins/mixins.dart';
 import '../utils/preferences_provider.dart';
 import '../utils/widgets/update_banner_widget.dart';
 import 'modules_list_screen.dart';
 import 'first_launch_dialog.dart';
+import 'preferences_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,14 +29,91 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with TickerProviderStateMixin, AnimationStyleMixin {
   String _userName = '';
   UpdateInfo? _updateInfo;
   bool _dismissedUpdate = false;
+  late final AnimationController _waveController;
+  late final Animation<double> _waveAnimation;
+  late final AnimationController _enterController;
+  late final Animation<double> _bannerFade;
+  late final Animation<Offset> _bannerSlide;
+  late final Animation<double> _shortcutsFade;
+  late final Animation<Offset> _shortcutsSlide;
+  late final Animation<double> _titleFade;
+  late final Animation<Offset> _titleSlide;
+  late final Animation<double> _categoriesFade;
+  late final Animation<Offset> _categoriesSlide;
 
   @override
   void initState() {
     super.initState();
+    _waveController = AnimationController(
+      vsync: this,
+      duration: waveDuration,
+    );
+    _waveAnimation = Tween<double>(begin: -0.05, end: 0.05).animate(
+      CurvedAnimation(parent: _waveController, curve: waveCurve),
+    );
+    _startWaveLoop();
+    _enterController = AnimationController(
+      vsync: this,
+      duration: entranceDuration,
+    );
+    _bannerFade = CurvedAnimation(
+      parent: _enterController,
+      curve: Interval(0.0, 0.45, curve: entranceCurve),
+    );
+    _bannerSlide = Tween<Offset>(
+      begin: const Offset(0, 0.08),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _enterController,
+        curve: Interval(0.0, 0.45, curve: entranceCurve),
+      ),
+    );
+    _shortcutsFade = CurvedAnimation(
+      parent: _enterController,
+      curve: Interval(0.15, 0.6, curve: entranceCurve),
+    );
+    _shortcutsSlide = Tween<Offset>(
+      begin: const Offset(0, 0.08),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _enterController,
+        curve: Interval(0.15, 0.6, curve: entranceCurve),
+      ),
+    );
+    _titleFade = CurvedAnimation(
+      parent: _enterController,
+      curve: Interval(0.35, 0.75, curve: entranceCurve),
+    );
+    _titleSlide = Tween<Offset>(
+      begin: const Offset(0, 0.08),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _enterController,
+        curve: Interval(0.35, 0.75, curve: entranceCurve),
+      ),
+    );
+    _categoriesFade = CurvedAnimation(
+      parent: _enterController,
+      curve: Interval(0.45, 1.0, curve: entranceCurve),
+    );
+    _categoriesSlide = Tween<Offset>(
+      begin: const Offset(0, 0.08),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _enterController,
+        curve: Interval(0.45, 1.0, curve: entranceCurve),
+      ),
+    );
+    _enterController.forward();
     // Charger le nom du technicien depuis les préférences
     final preferences = Provider.of<PreferencesProvider>(context, listen: false);
     _userName = preferences.technician ?? 'Utilisateur';
@@ -56,6 +135,24 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _userName = preferences.technician ?? 'Utilisateur';
     });
+  }
+
+  Future<void> _startWaveLoop() async {
+    while (mounted) {
+      for (var i = 0; i < 2; i++) {
+        await _waveController.forward();
+        await _waveController.reverse();
+      }
+      if (!mounted) return;
+      await Future.delayed(const Duration(seconds: 2));
+    }
+  }
+
+  @override
+  void dispose() {
+    _waveController.dispose();
+    _enterController.dispose();
+    super.dispose();
   }
 
   /// Vérifie les mises à jour (Google Play en priorité, puis GitHub en fallback)
@@ -139,63 +236,12 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         backgroundColor: const Color(0xFF2F5BB7),
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings, color: Colors.white),
-            tooltip: 'Paramètres',
-            onPressed: () => Navigator.pushNamed(context, '/preferences'),
-          ),
-        ],
       ),
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(
-                color: Color(0xFF2F5BB7),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  const Text(
-                    'Menu',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Bonjour $_userName',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.cloud_download),
-              title: const Text('Vérifier les mises à jour'),
-              onTap: () {
-                Navigator.pop(context);
-                GitHubUpdateService().checkManually(context);
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Paramètres'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/preferences');
-              },
-            ),
-          ],
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: const PreferencesPanel(),
+          ),
         ),
       ),
       body: SingleChildScrollView(
@@ -204,113 +250,125 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             
             // Carte de bienvenue orange
-            Container(
-              margin: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFFA726), Color(0xFFFF9800)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.orange.withOpacity(0.3),
-                    blurRadius: 15,
-                    offset: const Offset(0, 5),
+            buildFadeSlide(
+              fade: _bannerFade,
+              slide: _bannerSlide,
+              child: Container(
+                margin: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFFA726), Color(0xFFFF9800)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Row(
-                  children: [
-                    const Text(
-                      '👋',
-                      style: TextStyle(fontSize: 48),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Bonjour $_userName',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Expert en chauffage',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.9),
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.orange.withOpacity(0.3),
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
                     ),
                   ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Row(
+                    children: [
+                      RotationTransition(
+                        turns: _waveAnimation,
+                        alignment: Alignment.bottomLeft,
+                        child: const Text(
+                          '👋',
+                          style: TextStyle(fontSize: 48),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Bonjour $_userName',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Expert en chauffage',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
 
             // Raccourcis modules principaux
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: SizedBox(
-                height: 100,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    _buildQuickAccessCard(
-                      'Puissance',
-                      Icons.calculate_outlined,
-                      const Color(0xFF2196F3),
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PuissanceChauffageExpertScreen(),
+            buildFadeSlide(
+              fade: _shortcutsFade,
+              slide: _shortcutsSlide,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: SizedBox(
+                  height: 100,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      _buildQuickAccessCard(
+                        'Puissance',
+                        Icons.calculate_outlined,
+                        const Color(0xFF2196F3),
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PuissanceChauffageExpertScreen(),
+                          ),
                         ),
                       ),
-                    ),
-                    _buildQuickAccessCard(
-                      'VMC',
-                      Icons.wind_power,
-                      const Color(0xFF4CAF50),
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const VMCIntegrationScreen(),
+                      _buildQuickAccessCard(
+                        'VMC',
+                        Icons.wind_power,
+                        const Color(0xFF4CAF50),
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const VMCIntegrationScreen(),
+                          ),
                         ),
                       ),
-                    ),
-                    _buildQuickAccessCard(
-                      'Test Gaz',
-                      Icons.shield_outlined,
-                      const Color(0xFFF44336),
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const EnhancedTopGazScreen(),
+                      _buildQuickAccessCard(
+                        'Test Gaz',
+                        Icons.shield_outlined,
+                        const Color(0xFFF44336),
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const EnhancedTopGazScreen(),
+                          ),
                         ),
                       ),
-                    ),
-                    _buildQuickAccessCard(
-                      'Rapports',
-                      Icons.description_outlined,
-                      const Color(0xFF9C27B0),
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ReleveTechniqueSelectorScreen(),
+                      _buildQuickAccessCard(
+                        'Rapports',
+                        Icons.description_outlined,
+                        const Color(0xFF9C27B0),
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ReleveTechniqueSelectorScreen(),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -318,14 +376,18 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 24),
 
             // Section Modules Disponibles
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                'Modules Disponibles',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary.withOpacity(0.8),
+            buildFadeSlide(
+              fade: _titleFade,
+              slide: _titleSlide,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'Modules Disponibles',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary.withOpacity(0.8),
+                  ),
                 ),
               ),
             ),
@@ -333,62 +395,66 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 16),
 
             // Catégories de modules
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildCategoryCard(
-                          context,
-                          'Calculs',
-                          '1 modules',
-                          Icons.calculate,
-                          const Color(0xFF2196F3),
-                          () => _showCalculsModules(context),
+            buildFadeSlide(
+              fade: _categoriesFade,
+              slide: _categoriesSlide,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildCategoryCard(
+                            context,
+                            'Calculs',
+                            '1 modules',
+                            Icons.calculate,
+                            const Color(0xFF2196F3),
+                            () => _showCalculsModules(context),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildCategoryCard(
-                          context,
-                          'Tests',
-                          '2 modules',
-                          Icons.science,
-                          const Color(0xFF4CAF50),
-                          () => _showTestsModules(context),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildCategoryCard(
+                            context,
+                            'Tests',
+                            '2 modules',
+                            Icons.science,
+                            const Color(0xFF4CAF50),
+                            () => _showTestsModules(context),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildCategoryCard(
-                          context,
-                          'Relevés',
-                          '3 modules',
-                          Icons.assignment,
-                          const Color(0xFFFF9800),
-                          () => _showRelevesModules(context),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildCategoryCard(
+                            context,
+                            'Relevés',
+                            '3 modules',
+                            Icons.assignment,
+                            const Color(0xFFFF9800),
+                            () => _showRelevesModules(context),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildCategoryCard(
-                          context,
-                          'Contrôles',
-                          '5 modules',
-                          Icons.check_circle,
-                          const Color(0xFF9C27B0),
-                          () => _showControlesModules(context),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildCategoryCard(
+                            context,
+                            'Contrôles',
+                            '5 modules',
+                            Icons.check_circle,
+                            const Color(0xFF9C27B0),
+                            () => _showControlesModules(context),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/sections/client_section.dart';
+import '../../../utils/mixins/mixins.dart';
 
 /// Tab Écran - Client
 /// Gère les informations du client et de l'environnement
@@ -17,7 +18,8 @@ class ClientTab extends StatefulWidget {
   _ClientTabState createState() => _ClientTabState();
 }
 
-class _ClientTabState extends State<ClientTab> {
+class _ClientTabState extends State<ClientTab>
+    with SingleTickerProviderStateMixin, AnimationStyleMixin {
   late TextEditingController _numeroController;
   late TextEditingController _nomController;
   late TextEditingController _emailController;
@@ -36,10 +38,15 @@ class _ClientTabState extends State<ClientTab> {
   bool? _reperageAmiante;
   bool? _accordCopropriete;
   DateTime? _dateVisite;
+  late final AnimationController _introController = AnimationController(
+    vsync: this,
+    duration: entranceDuration,
+  );
 
   @override
   void initState() {
     super.initState();
+    _introController.forward();
     _initializeControllers();
   }
 
@@ -74,6 +81,7 @@ class _ClientTabState extends State<ClientTab> {
 
   @override
   void dispose() {
+    _introController.dispose();
     _numeroController.dispose();
     _nomController.dispose();
     _emailController.dispose();
@@ -128,9 +136,14 @@ class _ClientTabState extends State<ClientTab> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
+    final fade = buildStaggeredFade(_introController, 0);
+    final slide = buildStaggeredSlide(fade);
+    return buildFadeSlide(
+      fade: fade,
+      slide: slide,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
         // Section Client
         Text('Client', style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 16),
@@ -317,7 +330,8 @@ class _ClientTabState extends State<ClientTab> {
             _saveData();
           },
         ),
-      ],
+        ],
+      ),
     );
   }
 }

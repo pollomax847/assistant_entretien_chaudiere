@@ -6,6 +6,7 @@
 /// ```
 
 export 'controller_dispose_mixin.dart';
+export 'animation_style_mixin.dart';
 export 'form_state_mixin.dart';
 export 'pdf_generator_mixin.dart';
 export 'shared_preferences_mixin.dart';

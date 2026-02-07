@@ -5,6 +5,7 @@ import 'dart:convert';
 import '../../providers/chantiers_provider.dart';
 import '../../models/chantier.dart';
 import '../../models/radiateur.dart';
+import '../../utils/mixins/mixins.dart';
 
 class ChantierEquilibrageScreen extends ConsumerStatefulWidget {
   final Chantier chantier;
@@ -15,21 +16,34 @@ class ChantierEquilibrageScreen extends ConsumerStatefulWidget {
   ConsumerState<ChantierEquilibrageScreen> createState() => _ChantierEquilibrageScreenState();
 }
 
-class _ChantierEquilibrageScreenState extends ConsumerState<ChantierEquilibrageScreen> {
+class _ChantierEquilibrageScreenState extends ConsumerState<ChantierEquilibrageScreen>
+    with SingleTickerProviderStateMixin, AnimationStyleMixin {
   late Chantier _chantierCourant;
   List<Map<String, dynamic>> _qualigazCodes = [];
   bool _codesLoaded = false;
+  late final AnimationController _introController = AnimationController(
+    vsync: this,
+    duration: entranceDuration,
+  );
 
   @override
   void initState() {
     super.initState();
     _chantierCourant = widget.chantier;
+    _introController.forward();
     _loadQualigazCodes();
   }
 
   @override
   void dispose() {
+    _introController.dispose();
     super.dispose();
+  }
+
+  Widget _wrapSection(Widget child, int index) {
+    final fade = buildStaggeredFade(_introController, index);
+    final slide = buildStaggeredSlide(fade);
+    return buildFadeSlide(fade: fade, slide: slide, child: child);
   }
 
   Future<void> _loadQualigazCodes() async {
@@ -71,93 +85,105 @@ class _ChantierEquilibrageScreenState extends ConsumerState<ChantierEquilibrageS
       body: Column(
         children: [
           // En-tête avec infos chantier
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: Theme.of(context).colorScheme.surface,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _chantierCourant.nom,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                if (_chantierCourant.adresse != null) ...[
-                  const SizedBox(height: 4),
+          _wrapSection(
+            Container(
+              padding: const EdgeInsets.all(16),
+              color: Theme.of(context).colorScheme.surface,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    _chantierCourant.adresse!,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    _chantierCourant.nom,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ],
-                if (_chantierCourant.descriptionChaudiere != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    _chantierCourant.descriptionChaudiere!,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(Icons.device_thermostat, size: 16, color: Colors.blue),
-                    const SizedBox(width: 4),
+                  if (_chantierCourant.adresse != null) ...[
+                    const SizedBox(height: 4),
                     Text(
-                      '${_chantierCourant.radiateurs.length} radiateur(s)',
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      _chantierCourant.adresse!,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                    const SizedBox(width: 16),
-                    Icon(Icons.calendar_today, size: 16, color: Colors.grey),
-                    const SizedBox(width: 4),
+                  ],
+                  if (_chantierCourant.descriptionChaudiere != null) ...[
+                    const SizedBox(height: 4),
                     Text(
-                      '${_chantierCourant.dateCreation.day}/${_chantierCourant.dateCreation.month}/${_chantierCourant.dateCreation.year}',
+                      _chantierCourant.descriptionChaudiere!,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(Icons.device_thermostat, size: 16, color: Colors.blue),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${_chantierCourant.radiateurs.length} radiateur(s)',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(width: 16),
+                      Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${_chantierCourant.dateCreation.day}/${_chantierCourant.dateCreation.month}/${_chantierCourant.dateCreation.year}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
+            0,
           ),
 
           // Liste des radiateurs
           Expanded(
             child: _chantierCourant.radiateurs.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.thermostat, size: 64, color: Colors.grey),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'Aucun radiateur dans ce chantier',
-                          style: TextStyle(fontSize: 18, color: Colors.grey),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Ajoutez votre premier radiateur',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                        const SizedBox(height: 24),
-                        ElevatedButton.icon(
-                          onPressed: _ajouterRadiateur,
-                          icon: const Icon(Icons.add),
-                          label: const Text('Ajouter un radiateur'),
-                        ),
-                      ],
+                ? _wrapSection(
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.thermostat, size: 64, color: Colors.grey),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'Aucun radiateur dans ce chantier',
+                            style: TextStyle(fontSize: 18, color: Colors.grey),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Ajoutez votre premier radiateur',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: _ajouterRadiateur,
+                            icon: const Icon(Icons.add),
+                            label: const Text('Ajouter un radiateur'),
+                          ),
+                        ],
+                      ),
                     ),
+                    1,
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.all(16),
                     itemCount: _chantierCourant.radiateurs.length,
                     itemBuilder: (context, index) {
                       final radiateur = _chantierCourant.radiateurs[index];
-                      return _buildRadiateurCard(radiateur, index);
+                      final fade = buildStaggeredFade(_introController, index + 1);
+                      final slide = buildStaggeredSlide(fade);
+                      return buildFadeSlide(
+                        fade: fade,
+                        slide: slide,
+                        child: _buildRadiateurCard(radiateur, index),
+                      );
                     },
                   ),
           ),
