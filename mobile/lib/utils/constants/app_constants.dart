@@ -57,7 +57,7 @@ class AppConstants {
   
   // URLs
   static const String githubRepo = 'https://github.com/pollomax847/assitant_entreiten_chaudiere';
-  static const String supportEmail = 'support@chauffageexpert.fr';
+  static const String supportEmail = 'memo.chaudiere@gmail.com';
   
   // Gaz types avec PCS (kWh/m³)
   static const Map<String, Map<String, dynamic>> gasTypes = {
