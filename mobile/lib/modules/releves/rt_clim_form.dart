@@ -9,11 +9,15 @@ import 'package:assistant_entreiten_chaudiere/utils/mixins/photo_section_mixin.d
 import 'package:assistant_entreiten_chaudiere/utils/mixins/animation_style_mixin.dart';
 import 'package:assistant_entreiten_chaudiere/modules/releves/models/photo_category.dart';
 import 'package:assistant_entreiten_chaudiere/modules/releves/widgets/single_photo_widget.dart';
+import 'external_chauffage_expert/widgets/_photo_manager.dart';
+import 'external_chauffage_expert/models/photo_data.dart';
 
-/// Relevé Technique Climatisation - Formulaire complet 3 pages
+/// Relevé Technique Climatisation - Formulaire complet 4 pages
 /// 133 champs + 4 photos
 class RTClimForm extends StatefulWidget {
-  const RTClimForm({super.key});
+  final ValueChanged<Map<String, dynamic>>? onSaved;
+
+  const RTClimForm({super.key, this.onSaved});
 
   @override
   State<RTClimForm> createState() => _RTClimFormState();
@@ -30,6 +34,7 @@ class _RTClimFormState extends State<RTClimForm>
         PaginationMixin,
         PhotoSectionMixin {
   final _formKey = GlobalKey<FormState>();
+List<PhotoData> _photos = [];
   late final AnimationController _introController = AnimationController(
     vsync: this,
     duration: entranceDuration,
@@ -216,6 +221,11 @@ class _RTClimFormState extends State<RTClimForm>
                   fade: buildStaggeredFade(_introController, 0),
                   slide: buildStaggeredSlide(buildStaggeredFade(_introController, 0)),
                   child: _buildPage3(),
+                ),
+                buildFadeSlide(
+                  fade: buildStaggeredFade(_introController, 0),
+                  slide: buildStaggeredSlide(buildStaggeredFade(_introController, 0)),
+                  child: _buildPage4(),
                 ),
               ],
             ),
@@ -433,11 +443,32 @@ class _RTClimFormState extends State<RTClimForm>
             ),
           ),
           const SizedBox(height: 20),
-          buildNavigationButtons(previousPage, null, true),
+          buildNavigationButtons(previousPage, () {
+            final data = {
+              'type': 'clim',
+              'client': {
+                'nom': ctrlNomClient.text,
+                'adresse': ctrlAdresseFact.text,
+              },
+              'marque': ctrlMarqueClient.text,
+              'modele': ctrlModeleClient.text,
+              'commentaire': ctrlCommentaire.text,
+              'photos': _photos.map((p) => p.toMap()).toList(),
+            };
+            if (widget.onSaved != null) widget.onSaved!(data);
+          }, true),
         ],
       ),
     );
   }
+  Widget _buildPage4() {
+    return PhotoManager(
+      photos: _photos,
+      onPhotosChanged: (photos) => setState(() => _photos = photos),
+      categories: PhotoCategoriesByType.forClim(),
+    );
+  }
+
 
   void _submitForm() {
     showSuccess('✅ Relevé Clim enregistré avec succès');

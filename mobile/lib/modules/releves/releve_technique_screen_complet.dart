@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:intl/intl.dart';
-import 'package:geolocator/geolocator.dart';
 import 'dart:convert';
 import 'type_releve.dart';
 import 'rt_chaudiere_form.dart';
@@ -9,6 +8,8 @@ import 'rt_pac_form.dart';
 import 'rt_clim_form.dart';
 import 'services/releve_pdf_generator.dart';
 import '../../utils/mixins/mixins.dart';
+import 'releve_technique_adapter.dart';
+import 'external_chauffage_expert/services/location_service.dart';
 
 class ReleveTechnique {
   String nomEntreprise;
@@ -82,6 +83,7 @@ class _ReleveTechniqueScreenCompletState
     super.initState();
     _dateReleve = DateTime.now();
     _introController.forward();
+    _chargerSauvegarde();
   }
 
   @override
@@ -106,28 +108,7 @@ class _ReleveTechniqueScreenCompletState
   /// Récupère la position GPS actuelle et met à jour l'adresse
   Future<void> _getGPSLocation() async {
     try {
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('❌ Service de localisation désactivé')),
-          );
-        }
-        return;
-      }
-
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('❌ Permission refusée')),
-            );
-          }
-          return;
-        }
-      }
+      final locationService = LocationService();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -135,53 +116,14 @@ class _ReleveTechniqueScreenCompletState
         );
       }
 
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-        ),
-      );
+      final position = await locationService.getCurrentLocation();
 
-      final placemarks = await placemarkFromCoordinates(
+      final address = await locationService.getAddressFromCoordinates(
         position.latitude,
         position.longitude,
       );
 
-      if (placemarks.isEmpty) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('❌ Adresse postale introuvable')),
-          );
-        }
-        return;
-      }
-
-      final placemark = placemarks.first;
-          final streetParts = [placemark.street, placemark.subLocality]
-            .whereType<String>()
-            .map((value) => value.trim())
-            .where((value) => value.isNotEmpty)
-            .toList();
-      final streetLine = streetParts.join(' ');
-          final cityLineParts = [placemark.postalCode, placemark.locality]
-            .whereType<String>()
-            .map((value) => value.trim())
-            .where((value) => value.isNotEmpty)
-            .toList();
-      final cityLine = cityLineParts.join(' ');
-      final addressParts = <String>[];
-      if (streetLine.isNotEmpty) {
-        addressParts.add(streetLine);
-      }
-      if (cityLine.isNotEmpty) {
-        addressParts.add(cityLine);
-      }
-      final country = placemark.country?.trim() ?? '';
-      if (country.isNotEmpty) {
-        addressParts.add(country);
-      }
-
-      final fullAddress = addressParts.join(', ');
-      if (fullAddress.isEmpty) {
+      if (address == 'Adresse non trouvée' || address == 'Erreur lors de la récupération de l\'adresse') {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('❌ Adresse postale introuvable')),
@@ -191,7 +133,7 @@ class _ReleveTechniqueScreenCompletState
       }
 
       setState(() {
-        _nomEntrepriseController.text = fullAddress;
+        _nomEntrepriseController.text = address;
       });
 
       if (mounted) {
@@ -209,11 +151,55 @@ class _ReleveTechniqueScreenCompletState
   }
 
   void _sauvegarderReleve() {
-    if (_releves.isNotEmpty) {
-      // Logique de sauvegarde
+    if (_releves.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Relevé sauvegardé avec succès')),
+        const SnackBar(content: Text('Aucun relevé à sauvegarder')),
       );
+      return;
+    }
+
+    final key = 'releve_complet_${widget.type.toString().split('.').last}';
+
+    final flat = {
+      'nomEntreprise': _nomEntrepriseController.text,
+      'nomTechnicien': _nomTechnicienController.text,
+      'dateReleve': _dateReleve.toIso8601String(),
+      'type': widget.type.toString(),
+      'donnees': _releves.last['donnees'] ?? {},
+    };
+
+    // Sauvegarder legacy + structuré via l'adapter
+    ReleveTechniqueAdapter.instance.saveLegacy(key, flat).then((_) async {
+      try {
+        final structured = await ReleveTechniqueAdapter.instance.importLegacy(flat['donnees'] as Map<String, dynamic>);
+        await ReleveTechniqueAdapter.instance.saveStructured(key, structured);
+      } catch (_) {}
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Relevé sauvegardé avec succès')),
+        );
+      }
+    });
+  }
+
+  Future<void> _chargerSauvegarde() async {
+    final key = 'releve_complet_${widget.type.toString().split('.').last}';
+    try {
+      final rt = await ReleveTechniqueAdapter.instance.loadStructured(key);
+      if (rt != null) {
+        setState(() {
+          // remplir les champs généraux
+          _nomEntrepriseController.text = rt.client?.adresseChantier ?? rt.client?.nom ?? '';
+          _nomTechnicienController.text = rt.client?.nomTechnicien ?? rt.client?.nom ?? '';
+          _dateReleve = rt.dateVisite ?? rt.dateCreation;
+          // conserver les données legacy/plates dans la liste _releves pour compatibilité
+          final legacy = ReleveTechniqueAdapter.instance.exportLegacy(rt);
+          _releves.clear();
+          _releves.add({'donnees': legacy});
+        });
+      }
+    } catch (e) {
+      // ignore errors silently for now
     }
   }
 
@@ -230,14 +216,22 @@ class _ReleveTechniqueScreenCompletState
         const SnackBar(content: Text('📄 Génération du PDF en cours...')),
       );
 
-      final generator = ReleveTechniquePDFGenerator(
-        nomEntreprise: _nomEntrepriseController.text,
-        nomTechnicien: _nomTechnicienController.text,
-        dateReleve: _dateReleve,
-        typeReleve: _getTitre(),
-        donnees: _releves.isNotEmpty ? _releves.last['donnees'] ?? {} : {},
-        photoPaths: const [], // Les photos seront capturées depuis les formulaires
-      );
+      // Si nous avons un relevé structuré sauvegardé, utilisons-le
+      final key = 'releve_complet_${widget.type.toString().split('.').last}';
+      final structured = await ReleveTechniqueAdapter.instance.loadStructured(key);
+      late final ReleveTechniquePDFGenerator generator;
+      if (structured != null) {
+        generator = ReleveTechniquePDFGenerator.fromStructured(structured, photoPaths: const []);
+      } else {
+        generator = ReleveTechniquePDFGenerator(
+          nomEntreprise: _nomEntrepriseController.text,
+          nomTechnicien: _nomTechnicienController.text,
+          dateReleve: _dateReleve,
+          typeReleve: _getTitre(),
+          donnees: _releves.isNotEmpty ? _releves.last['donnees'] ?? {} : {},
+          photoPaths: const [], // Les photos seront capturées depuis les formulaires
+        );
+      }
 
       final pdfFile = await generator.savePDF();
 
@@ -261,12 +255,22 @@ class _ReleveTechniqueScreenCompletState
   Widget _buildForm() {
     switch (widget.type) {
       case TypeReleve.chaudiere:
-        return const RTChaudiereForm();
+        return RTChaudiereForm(onSaved: _onFormSaved);
       case TypeReleve.pac:
-        return const RTPACForm();
+        return RTPACForm(onSaved: _onFormSaved);
       case TypeReleve.clim:
-        return const RTClimForm();
+        return RTClimForm(onSaved: _onFormSaved);
     }
+  }
+
+  void _onFormSaved(Map<String, dynamic> donnees) {
+    setState(() {
+      if (_releves.isEmpty) {
+        _releves.add({'donnees': donnees});
+      } else {
+        _releves[_releves.length - 1] = {'donnees': donnees};
+      }
+    });
   }
 
   @override

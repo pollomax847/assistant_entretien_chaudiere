@@ -11,10 +11,13 @@ import 'package:assistant_entreiten_chaudiere/utils/mixins/animation_style_mixin
 import 'models/photo_category.dart';
 import 'widgets/single_photo_widget.dart';
 
-/// Relevé Technique Chaudière - Formulaire complet 3 pages
+import 'external_chauffage_expert/widgets/_photo_manager.dart';
+/// Relevé Technique Chaudière - Formulaire complet 4 pages
 /// 152 champs + 22 conformité + 3 photos
 class RTChaudiereForm extends StatefulWidget {
-  const RTChaudiereForm({super.key});
+  final ValueChanged<Map<String, dynamic>>? onSaved;
+
+  const RTChaudiereForm({super.key, this.onSaved});
 
   @override
   State<RTChaudiereForm> createState() => _RTChaudiereFormState();
@@ -84,6 +87,8 @@ class _RTChaudiereFormState extends State<RTChaudiereForm>
   late TextEditingController ctrlInfoMagasin;
   late TextEditingController ctrlTravaux;
   late TextEditingController ctrlTempCircuit;
+  // ===== PHOTOS =====
+  List<PhotoData> _photos = [];
 
   // ===== STATES PAGE 1 =====
   String _typeLogement = 'Appartement';
@@ -215,6 +220,14 @@ class _RTChaudiereFormState extends State<RTChaudiereForm>
                   fade: buildStaggeredFade(_introController, 0),
                   slide: buildStaggeredSlide(buildStaggeredFade(_introController, 0)),
                   child: _buildPage3(),
+                ),
+                buildFadeSlide(
+                  fade: buildStaggeredFade(_introController, 0),
+                  slide: buildStaggeredSlide(buildStaggeredFade(_introController, 0)),
+                  child: _buildPage4(),
+                ),
+                  child: _buildPage4(),
+                ),
                 ),
               ],
             ),
@@ -419,7 +432,49 @@ class _RTChaudiereFormState extends State<RTChaudiereForm>
             ),
           ),
           const SizedBox(height: 20),
-          buildNavigationButtons(previousPage, null, true),
+          buildNavigationButtons(previousPage, () {
+            final data = {
+              'type': 'chaudiere',
+              'client': {
+                'nom': ctrlNomClient.text,
+                'adresse': ctrlAdresseFact.text,
+              },
+              'marque': ctrlMarqueActuelle.text,
+              'annee': ctrlAnneeChaudiere.text,
+              'litresBallon': ctrlLitres.text,
+              'commentaire': ctrlCommentaire.text,
+            };
+            if (widget.onSaved != null) widget.onSaved!(data);
+          }, true),
+        ],
+      ),
+    );
+  }
+
+  /// PAGE 4: PHOTOS
+  Widget _buildPage4() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          buildPageHeader('Photos du relevé', Icons.photo_camera, Colors.purple),
+          const SizedBox(height: 16),
+          PhotoManager(
+            photos: _photos,
+            onPhotosChanged: (photos) {
+              setState(() => _photos = photos);
+            },
+            clientId: 'test-client',
+            typeReleve: 'chaudiere',
+          ),
+          const SizedBox(height: 20),
+          buildNavigationButtons(previousPage, () {
+            final data = {
+              'type': 'chaudiere',
+              'photos': _photos.map((p) => p.toMap()).toList(),
+            };
+            if (widget.onSaved != null) widget.onSaved!(data);
+          }, true),
         ],
       ),
     );
