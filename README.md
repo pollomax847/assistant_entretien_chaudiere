@@ -175,6 +175,8 @@ Les contributions sont les bienvenues ! Voici comment participer :
 
 Ce projet est sous licence **MIT**. Voir le fichier [`LICENSE`](LICENSE) pour plus de détails.
 
+Copyright (c) 2026 pollomax84
+
 ## 📞 Support
 
 Pour toute question ou problème :

@@ -3,6 +3,7 @@ class AppConstants {
   // Informations de l'app
   static const String appName = 'Chauffage Expert';
   static const String appVersion = '1.0.0';
+  static const String appCopyright = 'Copyright (c) 2026 pollomax84';
   
   // Clés SharedPreferences
   static const String prefKeyDernierTirage = 'dernier_tirage';
@@ -57,7 +58,7 @@ class AppConstants {
   
   // URLs
   static const String githubRepo = 'https://github.com/pollomax847/assitant_entreiten_chaudiere';
-  static const String supportEmail = 'support@chauffageexpert.fr';
+  static const String supportEmail = 'memo.chaudiere@gmail.com';
   
   // Gaz types avec PCS (kWh/m³)
   static const Map<String, Map<String, dynamic>> gasTypes = {

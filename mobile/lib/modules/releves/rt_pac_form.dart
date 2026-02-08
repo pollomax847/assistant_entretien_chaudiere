@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'external_chauffage_expert/widgets/_photo_manager.dart';
 import 'dart:io';
 import 'package:assistant_entreiten_chaudiere/utils/mixins/form_field_builder_mixin.dart';
 import 'package:assistant_entreiten_chaudiere/utils/mixins/form_state_mixin.dart';
@@ -10,10 +11,12 @@ import 'package:assistant_entreiten_chaudiere/utils/mixins/animation_style_mixin
 import 'models/photo_category.dart';
 import 'widgets/single_photo_widget.dart';
 
-/// Relevé Technique PAC - Formulaire complet 3 pages
+/// Relevé Technique PAC - Formulaire complet 4 pages
 /// 165 champs + 14 hydraulique + 8 dimensionnement + 4 photos
 class RTPACForm extends StatefulWidget {
-  const RTPACForm({super.key});
+  final ValueChanged<Map<String, dynamic>>? onSaved;
+
+  const RTPACForm({super.key, this.onSaved});
 
   @override
   State<RTPACForm> createState() => _RTPACFormState();
@@ -99,6 +102,8 @@ class _RTPACFormState extends State<RTPACForm>
   late TextEditingController ctrlCommentaire;
   late TextEditingController ctrlInfoMagasin;
   late TextEditingController ctrlTravaux;
+  // ===== PHOTOS =====
+  List<PhotoData> _photos = [];
 
   // ===== STATES PAGE 1 =====
   String _typeLogement = 'Maison';
@@ -277,6 +282,11 @@ class _RTPACFormState extends State<RTPACForm>
                   fade: buildStaggeredFade(_introController, 0),
                   slide: buildStaggeredSlide(buildStaggeredFade(_introController, 0)),
                   child: _buildPage3(),
+                ),
+                buildFadeSlide(
+                  fade: buildStaggeredFade(_introController, 0),
+                  slide: buildStaggeredSlide(buildStaggeredFade(_introController, 0)),
+                  child: _buildPage4(),
                 ),
               ],
             ),
@@ -515,7 +525,48 @@ class _RTPACFormState extends State<RTPACForm>
             ),
           ),
           const SizedBox(height: 20),
-          buildNavigationButtons(previousPage, null, true),
+          buildNavigationButtons(previousPage, () {
+            final data = {
+              'type': 'pac',
+              'client': {
+                'nom': ctrlNomClient.text,
+                'adresse': ctrlAdresseFact.text,
+              },
+              'marque': ctrlMarqueEquip.text,
+              'modele': ctrlModeleEquip.text,
+              'commentaire': ctrlCommentaire.text,
+            };
+            if (widget.onSaved != null) widget.onSaved!(data);
+          }, true),
+        ],
+      ),
+    );
+  }
+
+  /// PAGE 4: PHOTOS
+  Widget _buildPage4() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          buildPageHeader('Photos du relevé PAC', Icons.photo_camera, Colors.purple),
+          const SizedBox(height: 16),
+          PhotoManager(
+            photos: _photos,
+            onPhotosChanged: (photos) {
+              setState(() => _photos = photos);
+            },
+            clientId: 'test-client',
+            typeReleve: 'pac',
+          ),
+          const SizedBox(height: 20),
+          buildNavigationButtons(previousPage, () {
+            final data = {
+              'type': 'pac',
+              'photos': _photos.map((p) => p.toMap()).toList(),
+            };
+            if (widget.onSaved != null) widget.onSaved!(data);
+          }, true),
         ],
       ),
     );

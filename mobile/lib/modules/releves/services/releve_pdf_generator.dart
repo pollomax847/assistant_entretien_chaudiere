@@ -2,6 +2,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'dart:io';
 import 'package:intl/intl.dart';
+import '../models/releve_technique.dart' as models;
+import '../releve_technique_mapper.dart';
 
 /// Générateur de PDF pour les relevés techniques avec photos intégrées
 class ReleveTechniquePDFGenerator {
@@ -20,6 +22,14 @@ class ReleveTechniquePDFGenerator {
     required this.donnees,
     this.photoPaths = const [],
   });
+
+  /// Crée un générateur à partir d'un modèle structuré `ReleveTechnique`
+  ReleveTechniquePDFGenerator.fromStructured(models.ReleveTechnique rt, {this.photoPaths = const []})
+      : nomEntreprise = rt.client?.nom ?? '',
+        nomTechnicien = rt.client?.nomTechnicien ?? '',
+        dateReleve = rt.dateVisite ?? rt.dateCreation,
+        typeReleve = rt.typeEquipement?.toString().split('.').last ?? 'Relevé',
+        donnees = mapStructuredToFlat(rt);
 
   /// Crée le PDF avec toutes les informations et photos
   Future<pw.Document> createPDF() async {

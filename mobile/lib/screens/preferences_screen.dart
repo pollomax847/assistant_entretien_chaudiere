@@ -4,6 +4,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../utils/preferences_provider.dart';
 import '../utils/mixins/controller_dispose_mixin.dart';
 import '../services/github_update_service.dart';
+import '../utils/constants/app_constants.dart';
 
 class PreferencesScreen extends StatelessWidget {
   const PreferencesScreen({super.key});
@@ -234,6 +235,16 @@ class _PreferencesPanelState extends State<PreferencesPanel>
                         leading: const Icon(Icons.info),
                         title: const Text('Version'),
                         subtitle: Text('$_appVersion (build $_buildNumber)'),
+                      ),
+                      const ListTile(
+                        leading: Icon(Icons.copyright),
+                        title: Text('Copyright'),
+                        subtitle: Text(AppConstants.appCopyright),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.mail_outline),
+                        title: const Text('Contact (bugs)'),
+                        subtitle: const Text(AppConstants.supportEmail),
                       ),
                       const ListTile(
                         leading: Icon(Icons.code),
