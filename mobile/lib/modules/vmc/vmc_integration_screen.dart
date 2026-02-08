@@ -1,55 +1,8 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
 import '../../utils/mixins/measurement_photo_storage_mixin.dart';
 import '../../utils/mixins/animation_style_mixin.dart';
 import '../reglementation_gaz/widgets/measurement_photo_widget.dart';
-
-// Type de bouche : extraction ou soufflage
-enum BoucheType { extraction, soufflage }
-
-// Classe pour mesure pression (RE2020 protocole)
-class MesurePression {
-  String pieceNom;
-  BoucheType typeBouche;
-  double pressionPa;
-  double? pressionRef;
-  String? commentaire;
-  List<File> photos; // Photos associées à cette mesure
-
-  MesurePression({
-    required this.pieceNom,
-    required this.typeBouche,
-    required this.pressionPa,
-    this.pressionRef = 80.0,
-    this.commentaire,
-    this.photos = const [],
-  });
-}
-
-// Localized labels and defaults
-class Piece {
-  String type;
-  String nom;
-  Piece({required this.type, required this.nom});
-}
-
-class Fenetre {
-  String taille;
-  bool ouverte;
-  Fenetre({required this.taille, this.ouverte = false});
-}
-
-class MesureVMC {
-  String piece;
-  double debit;
-  List<File> photos; // Photos associées à cette mesure
-
-  MesureVMC({
-    required this.piece,
-    required this.debit,
-    this.photos = const [],
-  });
-}
+import '../../models/vmc_models.dart';
 
 class VMCIntegrationScreen extends StatefulWidget {
   const VMCIntegrationScreen({super.key});
@@ -129,15 +82,15 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
   void _ajouterFenetre() {
     setState(() {
       _fenetres.add(Fenetre(taille: 'moyenne'));
+      _diagnostiquer();
     });
-    _diagnostiquer();
   }
 
   void _ajouterMesureVMC() {
     setState(() {
       _mesuresVMC.add(MesureVMC(piece: 'Chambre ${_mesuresVMC.length + 1}', debit: 15));
+      _diagnostiquer();
     });
-    _diagnostiquer();
   }
 
   void _ajouterMesurePression() {
@@ -150,16 +103,16 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
         typeBouche: BoucheType.extraction,
         pressionPa: 80.0,
       ));
+      _diagnostiquer();
     });
-    _diagnostiquer();
   }
 
   void _editerPression(int index, double nouvelleValeur, {String? comm}) {
     setState(() {
       _mesuresPression[index].pressionPa = nouvelleValeur;
       if (comm != null) _mesuresPression[index].commentaire = comm;
+      _diagnostiquer();
     });
-    _diagnostiquer();
   }
 
   void _diagnostiquer() {
@@ -271,7 +224,7 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
       _recommandation = '${_recommandation ?? ''}\nVérifiez encrassement, réglages bouches ou réseau (pression nominale ~80 Pa).';
     }
 
-    setState(() {});
+    // setState inutile ici car déjà appelé dans les méthodes modifiant l'état
   }
 
   @override
@@ -399,8 +352,10 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
                       trailing: IconButton(
                         icon: const Icon(Icons.delete, color: Colors.red),
                         onPressed: () {
-                          setState(() => _pieces.removeAt(entry.key));
-                          _diagnostiquer();
+                          setState(() {
+                            _pieces.removeAt(entry.key);
+                            _diagnostiquer();
+                          });
                         },
                       ),
                       onTap: () async {
@@ -415,8 +370,10 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
                           ),
                         );
                         if (type != null) {
-                          setState(() => entry.value.type = type);
-                          _diagnostiquer();
+                          setState(() {
+                            entry.value.type = type;
+                            _diagnostiquer();
+                          });
                         }
                       },
                     ),
@@ -470,16 +427,20 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
                             Checkbox(
                               value: entry.value.ouverte,
                               onChanged: (val) {
-                                setState(() => entry.value.ouverte = val ?? false);
-                                _diagnostiquer();
+                                setState(() {
+                                  entry.value.ouverte = val ?? false;
+                                  _diagnostiquer();
+                                });
                               },
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete, color: Colors.red),
                               iconSize: 20,
                               onPressed: () {
-                                setState(() => _fenetres.removeAt(entry.key));
-                                _diagnostiquer();
+                                setState(() {
+                                  _fenetres.removeAt(entry.key);
+                                  _diagnostiquer();
+                                });
                               },
                             ),
                           ],
@@ -497,8 +458,10 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
                           ),
                         );
                         if (taille != null) {
-                          setState(() => entry.value.taille = taille);
-                          _diagnostiquer();
+                          setState(() {
+                            entry.value.taille = taille;
+                            _diagnostiquer();
+                          });
                         }
                       },
                     ),
@@ -584,8 +547,10 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
                                             onPressed: () {
                                               final val = double.tryParse(controller.text);
                                               if (val != null) {
-                                                setState(() => mesure.debit = val);
-                                                _diagnostiquer();
+                                                setState(() {
+                                                  mesure.debit = val;
+                                                  _diagnostiquer();
+                                                });
                                                 Navigator.pop(ctx);
                                               }
                                             },
@@ -599,8 +564,10 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
                                 IconButton(
                                   icon: const Icon(Icons.delete, color: Colors.red),
                                   onPressed: () {
-                                    setState(() => _mesuresVMC.removeAt(idx));
-                                    _diagnostiquer();
+                                    setState(() {
+                                      _mesuresVMC.removeAt(idx);
+                                      _diagnostiquer();
+                                    });
                                   },
                                 ),
                               ],
@@ -613,8 +580,8 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
                             onPhotosChanged: (photos) {
                               setState(() {
                                 mesure.photos = photos;
+                                saveMeasurementPhotos('vmc_mesure_${mesure.piece}_$idx', photos);
                               });
-                              saveMeasurementPhotos('vmc_mesure_${mesure.piece}_$idx', photos);
                             },
                             maxPhotos: 3,
                             recommended: false,
@@ -719,8 +686,10 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
                       IconButton(
                         icon: const Icon(Icons.delete, color: Colors.red),
                         onPressed: () {
-                          setState(() => _mesuresPression.removeAt(idx));
-                          _diagnostiquer();
+                          setState(() {
+                            _mesuresPression.removeAt(idx);
+                            _diagnostiquer();
+                          });
                         },
                       ),
                     ],
@@ -733,8 +702,8 @@ class _VMCIntegrationScreenState extends State<VMCIntegrationScreen>
                 onPhotosChanged: (photos) {
                   setState(() {
                     m.photos = photos;
+                    saveMeasurementPhotos('vmc_pression_${m.pieceNom}_$idx', photos);
                   });
-                  saveMeasurementPhotos('vmc_pression_${m.pieceNom}_$idx', photos);
                 },
                 maxPhotos: 3,
                 recommended: false,
